@@ -12,7 +12,7 @@ and a species tree.
 ## DAFT Significance
 **Purpose:** Detecting introgression between lineages.
 
-### Step 1: Standard Results
+### Standard results
 
 - **Script:** `Significance.py`
 
@@ -41,7 +41,7 @@ python Significance.py --sp <SPECIES_TREE> --gt <LIST_OF_GENE_TREES> --lineage N
 
 ---
 
-### Step 1 alt: Results with Loss
+### Alternative: Results with Loss
 [I'm not actually sure what this is doing]
 * **Script:** `Significance.py` (same as Step 1)
 
@@ -63,29 +63,34 @@ python Significance.py --sp <SPECIES_TREE> --gt <LIST_OF_GENE_TREES> --lineage <
 
 ## DAFT Direction
 
-**Purpose:** Detecting receiver and donor lineages.
+**Purpose:** Determining donor and receiver lineages.
 
-### Step 1
+### Standard Results
 
 * **Script:** `Direction.py`
 
 #### Input
 
 * **SPECIES_TREE (`sp`)**
-  Species tree corresponding to the set of gene trees.
-
+  Species tree in Newick format.
+  This can be in an external text file.
+  
 * **LIST_OF_GENE_TREES (`gt`)**
-  List of gene trees to test.
+  List of gene trees in Newick format.
+  This should be in an external text file.
 
 * **SIGNIFICANT_PAIRS (`sig`)**
   List of lineage pairs identified as significant.
+  This should be in an external text file formatted as:
+
+     XXsome exampleXX
 
 #### Output
 
 * **`DAFT_Direction.txt`**
   (See **DAFT_Direction_Explanation** below.)
 
-#### Command
+#### Example Command
 
 ```bash
 python Direction.py --sp <SPECIES_TREE> --gt <LIST_OF_GENE_TREES> --sig <LIST_OF_SIGNIFICANT_PAIRS>
