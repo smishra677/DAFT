@@ -3,32 +3,30 @@
 
 ## DAFT: Discordant Attachment Frequency Test
 
-DAFT (Discordant Attachment Frequency Test) is designed to distinguish
-**introgression** from **incomplete lineage sorting (ILS)** using gene trees
-and a species tree and characterize its direction. 
+DAFT (Discordant Attachment Frequency Test) is designed to detect
+**introgression** and to determine its direction using gene trees
+and a species tree. 
 
 ---
 
 ## DAFT Significance
-**Purpose:** Distinguishing introgression from ILS.
+**Purpose:** Detecting introgression between lineages.
 
-### Step 1: Results without Loss
+### Step 1: Standard Results
 
 - **Script:** `Significance.py`
 
 #### Input
 - **SPECIES_TREE (`sp`)**  
-  Species tree corresponding to the set of gene trees.
+  Species tree in Newick format.
+  This can be in an external text file.
 
 - **LIST_OF_GENE_TREES (`gt`)**  
-  List of gene trees to test.
-
-- **Lineage1/Lineage2 (`lineage`)**  
-  Two lineages to test lineage loss, separated by `/`.  
-  Can also be set to `NONE`.
+  List of gene trees in Newick format.
+  This should be in an external text file.
 
 - **sibling**  
-  Flag to perform sibling test:  
+  Flag to perform sibling test [default is off]:  
   `1` = perform sibling test  
   `0` = do not perform sibling test
 
@@ -36,15 +34,15 @@ and a species tree and characterize its direction.
 - **`DAFT_Significance.txt`**  
   (See **DAFT_Significance_Explanation** below.)
 
-#### Command
+#### Example Command
 ```bash
 python Significance.py --sp <SPECIES_TREE> --gt <LIST_OF_GENE_TREES> --lineage NONE --sibling <1/0>
 ````
 
 ---
 
-### Step 2: Results with Loss
-
+### Step 1 alt: Results with Loss
+[I'm not actually sure what this is doing]
 * **Script:** `Significance.py` (same as Step 1)
 
 * **Lineage1/Lineage2**
