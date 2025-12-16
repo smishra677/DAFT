@@ -5,7 +5,7 @@
 
 DAFT (Discordant Attachment Frequency Test) is designed to distinguish
 **introgression** from **incomplete lineage sorting (ILS)** using gene trees
-and a species tree.
+and a species tree and characterize its direction. 
 
 ---
 
