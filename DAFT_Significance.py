@@ -441,7 +441,7 @@ filtered_df_1 = sorted_grouped[
 ]
 
 pairs = list(zip(filtered_df_1['What_moved'], filtered_df_1['Where_at']))
-list_unique=pairs[:1]
+list_unique=pairs
 
 
 pairs1=[]
