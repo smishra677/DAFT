@@ -6,11 +6,16 @@ import argparse
 import utils_reconcILS.ILS as ILS
 import utils_reconcILS.readWrite as readWrite
 import pickle
-import time
 import pandas as pd
 import string
 import json
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
+from collections import Counter
+
+
+
+
+
 
 sys.setrecursionlimit(50000)
 
@@ -39,8 +44,6 @@ class reconcils:
                 curr=stack.pop()
 
                 
-                
-
                 if str(curr.taxa)!='0':
                     length.append(len(str(curr.taxa)))
                     return_it.append(str(curr.numbered_taxa))
@@ -1353,11 +1356,6 @@ def parse1():
 def main():
     reconcILS= reconcils()
     parser = parse1()
-    from collections import Counter
-    import pandas as pd
-    import igraph as ig
-    import matplotlib.pyplot as plt
-    from concurrent.futures import ThreadPoolExecutor
 
     
 

@@ -26,7 +26,7 @@ def render_val(col, v):
     else:
         return '' if v is None or (isinstance(v, float) and math.isnan(v)) else str(v)
 
-'''
+
 
 def _fix_group_nested(df):
     what_list = df['What_moved'].tolist()
@@ -60,7 +60,7 @@ def _sibling_count(row):
     if mask2.any() and not mask1.any():
         return pd.NA          
     return grouped.loc[mask1&mask2, 'total_count'].sum()
-
+'''
 
 def parse1():
     parser = argparse.ArgumentParser(description="IQTree on Simphy and dupcoal")
@@ -79,6 +79,11 @@ def parse1():
 
 
 parser = parse1()
+essential= daft_essential()
+reco =reconcils()
+red= readWrite.readWrite()
+Il=ILS.ILS()
+
 sp_string = parser.sp
 lineages = parser.lineages 
 gene_treefile =parser.gt
@@ -90,14 +95,13 @@ sibling_flag=parser.sibling
 out_file=parser.output+'_'+lineage1+'_'+lineage2
 
 lis=[]
-
-reco =reconcils()
-red= readWrite.readWrite()
-Il=ILS.ILS()
 siblings = []
 what_moved = []
-data=pd.read_csv(gene_treefile, sep=',').to_numpy()
 total_count_=[]
+
+
+data=pd.read_csv(gene_treefile, sep=',').to_numpy()
+
 
 sp= red.parse(sp_string)
 sp.label_internal()
@@ -124,7 +128,7 @@ for gt in data:
     gt_tr.label_internal()
 
 
-    if  current_address(taxa_1,gt_tr) and current_address(taxa_2,gt_tr):
+    if  essential.current_address(taxa_1,gt_tr) and essential.current_address(taxa_2,gt_tr):
         filtered_data.append([gt])
 
 data=filtered_data
@@ -145,7 +149,7 @@ for g_t in data:
     g_t[0] = g_t[0].replace('e-', '0')
     tr= red.parse(g_t[0])
     tr.label_internal()
-    list_gt_sibling=find_sibling(tr,[])
+    list_gt_sibling=essential.find_sibling(tr,[])
 
 
     for gt_sib in list_gt_sibling:
@@ -177,7 +181,7 @@ for ke,valu in sib_lineage.items():
     taxa_1_B,taxa_2_B=taxa_1,taxa_2
     
 
-    if not  current_address(taxa_1,sp) or not current_address(taxa_2,sp):
+    if not  essential.current_address(taxa_1,sp) or not essential.current_address(taxa_2,sp):
         #print(lineage,sibling)
         #exit()
         '''
@@ -274,7 +278,7 @@ for ke,valu in sib_lineage.items():
             df=pd.DataFrame(result).to_csv('rev_n.csv',index=False)
 
         else:
-            dist=findDist(sp,key_t.taxa,key1_t.taxa)-2
+            dist=essential.findDist(sp,key_t.taxa,key1_t.taxa)-2
             
             if dist>=0:
                 lineage= visited_dic_set[visited_set_dict[merged_lineage]]
@@ -304,7 +308,7 @@ for ke,valu in sib_lineage.items():
    
             
     else:
-        dist=findDist(sp,key_t.taxa,key1_t.taxa)-2
+        dist=essential.findDist(sp,key_t.taxa,key1_t.taxa)-2
         if dist>=0:
             #print('flag2',running_index)
 
@@ -345,23 +349,23 @@ for ke,valu in sib_lineage.items():
 df = pd.read_csv("./rev_n.csv", sep=',')
 grouped = df.groupby(['Where_at', 'What_moved', 'NNI_sp'], as_index=False)['total_count'].sum()
 sorted_grouped = grouped.sort_values(by=['Where_at', 'NNI_sp'])
-sp_tree_lineages= find_all_lineage(sp)
+sp_tree_lineages= essential.find_all_lineage(sp)
              
 #print(sorted_grouped)
 
 sorted_grouped["Where_at"] = sorted_grouped["Where_at"].apply(
-    lambda v: match_lineage(v, sp_tree_lineages)
+    lambda v: essential.match_lineage(v, sp_tree_lineages)
 )
 sorted_grouped["What_moved"] = sorted_grouped["What_moved"].apply(
-    lambda v: match_lineage(v, sp_tree_lineages)
+    lambda v: essential.match_lineage(v, sp_tree_lineages)
 )
 
 #print(sorted_grouped)
 
 #exit()
 
-sibling_list= find_sibling(sp,[])
-uncle_list= find_uncle(sp,[])
+sibling_list= essential.find_sibling(sp,[])
+uncle_list= essential.find_uncle(sp,[])
 
 
     
@@ -372,8 +376,8 @@ uncle_list= find_uncle(sp,[])
 
 
 
-sorted_grouped['comparison_sibling'] = sorted_grouped['What_moved'].apply(lambda x: map_pair(x,sibling_list))
-sorted_grouped['comparison_uncle'] = sorted_grouped['What_moved'].apply(lambda x: map_pair(x,uncle_list))
+sorted_grouped['comparison_sibling'] = sorted_grouped['What_moved'].apply(lambda x: essential.map_pair(x,sibling_list))
+sorted_grouped['comparison_uncle'] = sorted_grouped['What_moved'].apply(lambda x: essential.map_pair(x,uncle_list))
 
 
 for where_at, group in sorted_grouped.groupby('Where_at',as_index=False):
@@ -388,10 +392,10 @@ for where_at, group in sorted_grouped.groupby('Where_at',as_index=False):
             sorted_grouped.loc[idx, 'comparison_uncle'] = None
             continue
         
-        if isequal_set(comp_sibling,where_at) or is_in(where_at,comp_sibling):
+        if essential.isequal_set(comp_sibling,where_at) or essential.is_in(where_at,comp_sibling):
             sorted_grouped.loc[idx, 'comparison_sibling'] = None
 
-        if isequal_set(comp_uncle,where_at) or is_in(where_at,comp_uncle):
+        if essential.isequal_set(comp_uncle,where_at) or essential.is_in(where_at,comp_uncle):
             sorted_grouped.loc[idx, 'comparison_uncle'] = None
             continue
             
@@ -405,8 +409,8 @@ for where_at, group in sorted_grouped.groupby('Where_at',as_index=False):
             Tree2.label_internal()
             Tree3.label_internal()
 
-            distance1=abs(findDist(sp,Tree1.taxa,Tree3.taxa)-2)
-            distance2=abs(findDist(sp,Tree2.taxa,Tree3.taxa)-2)
+            distance1=abs(essential.findDist(sp,Tree1.taxa,Tree3.taxa)-2)
+            distance2=abs(essential.findDist(sp,Tree2.taxa,Tree3.taxa)-2)
 
             #print('None',What_moved,comp_uncle,where_at,distance1,distance2)
             if distance2>distance1:
@@ -416,24 +420,24 @@ for where_at, group in sorted_grouped.groupby('Where_at',as_index=False):
 
 
 #print(sorted_grouped)
-
+print(grouped)
 sorted_grouped['sibling_count'] = (
-    sorted_grouped.apply(_sibling_count, axis=1).astype('Int64')
+    sorted_grouped.apply(essential._sibling_count, axis=1,args=(grouped,)).astype('Int64')
 )
 
 
-compute_z(sorted_grouped,'sibling',df)
+essential.compute_z(sorted_grouped,'sibling',df)
 sorted_grouped['uncle_count'] = (
-    sorted_grouped.apply(_uncle_count, axis=1).astype('Int64')
+    sorted_grouped.apply(essential._uncle_count, axis=1,args=(grouped,)).astype('Int64')
 )
 
 
 
-compute_z(sorted_grouped,'uncle',df)
+essential.compute_z(sorted_grouped,'uncle',df)
 sorted_grouped = (
     sorted_grouped
     .groupby('Where_at', group_keys=False, dropna=False)
-    .apply(_fix_group_nested)
+    .apply(essential._fix_group_nested)
 )
 
 filtered_df_1 = sorted_grouped[
@@ -450,16 +454,16 @@ for idx,na in enumerate(pairs):
     for sibi in sibling_list:
         sibi1= sibi[0]
         sibi2= sibi[1]
-        if isequal_set(wm,sibi1) and not is_in(wa,sibi2):
+        if essential.isequal_set(wm,sibi1) and not essential.is_in(wa,sibi2):
             pairs1.append(([wm,sibi2],wa))
 
-        if isequal_set(wm,sibi2) and not is_in(wa,sibi1):
+        if essential.isequal_set(wm,sibi2) and not essential.is_in(wa,sibi1):
             pairs1.append(([wm,sibi1],wa))
         
-        if isequal_set(wa,sibi1) and not is_in(wm,sibi2):
+        if essential.isequal_set(wa,sibi1) and not essential.is_in(wm,sibi2):
             pairs1.append(([wa,sibi2],wm))
 
-        if isequal_set(wa,sibi2) and not is_in(wm,sibi1):
+        if essential.isequal_set(wa,sibi2) and not essential.is_in(wm,sibi1):
             pairs1.append(([wa,sibi1],wm))
 
 
@@ -535,7 +539,7 @@ widths = {}
 for col in cols:
     header_len = len(col)
     if col in sorted_grouped.columns:
-        data_lens = sorted_grouped[col].map(lambda v: len(render_val(col, v)))
+        data_lens = sorted_grouped[col].map(lambda v: len(essential.render_val(col, v)))
     else:
         data_lens = pd.Series([0])
     widths[col] = max([header_len] + data_lens.tolist())
@@ -569,7 +573,7 @@ with open('./DAFT_Significance.txt', 'w') as oe:
             line = ''
             for i, col in enumerate(cols, 1):
                 val = row[col] if col in row else np.nan
-                s = render_val(col, val)
+                s = essential.render_val(col, val)
                 line += f"{s:<{widths[col]}}"
                 if i < len(cols):
                     # FIX: use membership, not equality

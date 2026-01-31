@@ -11,19 +11,22 @@ import pandas as pd
 import argparse
 import numpy as np
 
+
+
 reco =reconcils()
 red= readWrite.readWrite()
+essential= daft_essential()
 
 
 
 def parse1():
-    parser = argparse.ArgumentParser(description="IQTree on Simphy and dupcoal")
+    parser = argparse.ArgumentParser(description="Input to DAFT Direction")
     parser.add_argument('--sp', type=str, help="Species tree")
-    parser.add_argument('--gt', type=str, help="gene tree")
+    parser.add_argument('--gt', type=str, help="List of gene trees")
     parser.add_argument(
         '--lineagesU',
         type=lambda s: ast.literal_eval(s),
-        help="List of lineage tuples, e.g. \"[(1,2), (3,4)]\""
+        help="List of lineage tuples to check direction, e.g. \"[(1,2), (3,4)]\""
     )
     parser.add_argument(
         '--lineagesN',
@@ -42,34 +45,21 @@ gene_treefile =parser.gt
 lineages = parser.lineagesN
 lineagesU = parser.lineagesU
 out_filec='big_output'
-reco =reconcils()
-red= readWrite.readWrite()
+
+
+data=pd.read_csv(gene_treefile, sep=',').to_numpy()
+
+
 
 sp =red.parse(sp_string)
 list_df={'Labeled_species':[],'Total_gene_trees':[],'Lineage1':[],'Count1':[],'Lineage2':[],'Count2':[],'What_moved':[],'To_where':[],'Minor_Moved':[],'Minor_moved_count':[]}
-sp_tree_lineages= find_all_lineage(sp)
-#print(sp_tree_lineages)
-#print(match_lineage('(9,8);',sp_tree_lineages))
-#exit()
-#print(lineages)
-#exit()
+sp_tree_lineages= essential.find_all_lineage(sp)
+
+
 for lineageM, lineage2 in lineages:
-
-    #lineage1M,lineage2M= lineage1[0],lineage1[1]
-    
-
-    #lineage1 = match_lineage(lineage1, sp_tree_lineages)
-    #lineage2 = match_lineage(lineage2, sp_tree_lineages)
-    
-
-    #out_file=parser.output+'_'+lineage1+'_'+lineage2
-
     print(lineageM,lineage2)
-    #print(sp_string)
-    
-
     for lineage1 in lineageM:
-        data=pd.read_csv(gene_treefile, sep=',').to_numpy()
+        
 
         l1 = red.parse(lineage1)
         l2= red.parse(lineage2)
@@ -77,9 +67,6 @@ for lineageM, lineage2 in lineages:
         l2.label_internal()
         taxa_1=l1.taxa
         taxa_2=l2.taxa
-
-        #data =np.append(data, ['(3,4);'], axis=None)
-        #data.append(['(3,4);'])
         filtered_data=[]
 
         for gt in data:
@@ -88,15 +75,12 @@ for lineageM, lineage2 in lineages:
             gt_tr.label_internal()
 
 
-            if  current_address(taxa_1,gt_tr) and current_address(taxa_2,gt_tr) and reco.get_current_sister(gt_tr,taxa_1)==taxa_2:
+            if  essential.current_address(taxa_1,gt_tr) and essential.current_address(taxa_2,gt_tr) and reco.get_current_sister(gt_tr,taxa_1)==taxa_2:
                 filtered_data.append(gt)
 
-        data=filtered_data
+        #data=filtered_data
 
-        if len(data)!=0:
-
-            import os, sys
-
+        if len(filtered_data)!=0:
 
             script = "./DAFT_Transform.py"  
             sp = sp_string
@@ -105,20 +89,17 @@ for lineageM, lineage2 in lineages:
 
 
             output = "out"
-
             argv = [
                 sys.executable, script,
                 "--sp", str(sp),
                 "--lineages", str(lineages1),
-                "--gt_list", *data,
+                "--gt_list", *filtered_data,
                 "--output", str('out'),
             ]
-
             status = os.spawnv(os.P_WAIT, sys.executable, argv)
-
             exit_code = status if os.name == "nt" else (status >> 8) 
             if exit_code != 0:
-                raise RuntimeError(f"introgression_querry.py exited with code {exit_code}")
+                raise RuntimeError(f"DAFT_Transform.py exited with code {exit_code}")
 
 
             #Il=ILS.ILS()
@@ -126,33 +107,32 @@ for lineageM, lineage2 in lineages:
             #what_moved = []
 
             df=pd.read_csv('./introgression_out.csv',sep=',')
+            
             #data=pd.read_csv("./introgression_1_group.csv", sep=',').to_numpy()
-            df["Sibling"] = df["Sibling"].apply(lambda v: match_lineage(v, sp_tree_lineages))
-            df["What_moved"] = df["What_moved"].apply(lambda v: match_lineage(v, sp_tree_lineages))
-
+            #print(df)
+            df["Sibling"] = df["Sibling"].apply(lambda v: essential.match_lineage(v, sp_tree_lineages))
+            df["What_moved"] = df["What_moved"].apply(lambda v: essential.match_lineage(v, sp_tree_lineages))
+            
+            total_count_=[]
+            newick_lineage=[]
+            leni=[]
 
             df=df.dropna()
             dfe =df.to_numpy()
-            total_count_=[]
-
             sp= red.parse(sp_string)
             sp.label_internal()
-            newick_lineage=[]
-
-            #if isequal(lineage1,From_Where_moved):
-            #idx,Replicate,Path,From_Where_moved,Sibling,What_moved,NNI
-            leni=[]
+            
             count_lineage1=0
             count_lineage2=0
 
 
             for entry in dfe:
                 #print(entry[-2],lineage1)
-                if (isequal(lineage1,entry[-2]) and isequal(lineage2,entry[-3])):
+                if (essential.isequal(lineage1,entry[-2]) and essential.isequal(lineage2,entry[-3])):
                     leni.append(entry)
                     count_lineage1=count_lineage1+1
 
-                if (isequal(lineage2,entry[-2]) and isequal(lineage1,entry[-3])):
+                if (essential.isequal(lineage2,entry[-2]) and essential.isequal(lineage1,entry[-3])):
                     leni.append(entry)
                     count_lineage2=count_lineage2+1
 
@@ -163,14 +143,9 @@ for lineageM, lineage2 in lineages:
                 total_count=('Replicate', 'count')
             )
 
-            print(aggregated_data.to_csv('introgression_1_group.csv', index=True))
+            #print(aggregated_data.to_csv('introgression_1_group.csv', index=True))
 
             df = pd.read_csv("./introgression_1_group.csv", sep=',')
-
-                    
-
-
-
 
             groups = []
             used = set()
@@ -182,8 +157,8 @@ for lineageM, lineage2 in lineages:
                 for j, row_j in df.iterrows():
                     if j <= i or j in used:
                         continue
-                    if (isequal_set(row_i["What_moved"], row_j["What_moved"]) and
-                        isequal_set(row_i["Sibling"], row_j["Sibling"])):
+                    if (essential.isequal_set(row_i["What_moved"], row_j["What_moved"]) and
+                        essential.isequal_set(row_i["Sibling"], row_j["Sibling"])):
                         current_group.append(j)
                 groups.append(current_group)
                 used.update(current_group)
@@ -246,7 +221,7 @@ for lineageM, lineage2 in lineages:
             list_df['Count2']+=[count_nni_score[2]]
 
 
-            updated_newick = rename_subtrees(sp_string, rename_map)
+            updated_newick = essential.rename_subtrees(sp_string, rename_map)
             #print(rename_map)
             #print(updated_newick)
             #exit()
@@ -304,7 +279,7 @@ df.to_csv('results1.csv',index=False)
 
 
 
-df = attach_rule_sibling_bidirectional(df,lineagesU,sp_string)
+df = essential.sibling_bidirectional(df,lineagesU,sp_string)
 df1 = pd.DataFrame(
     df[['Lineage1', 'Lineage2']].apply(lambda row: sorted([row['Lineage1'], row['Lineage2']]), axis=1).tolist(),
     columns=['Lineage1_s', 'Lineage2_s']
@@ -323,9 +298,9 @@ df =df[df.inUnique==True]
 df = df[(df['Count1']+df['Count2'])>15 &  (df['Count1']>0) & (df['Count2']>0)]
 
 
-sp_labeled =put_network_in_tree(df,sp_string)
+sp_labeled =essential.put_network_in_tree(df,sp_string)
 #print(to_network(sp_labeled))
-network_output=to_network(sp_labeled)
+network_output=essential.to_network(sp_labeled)
 
 
 padding = 2
@@ -378,8 +353,8 @@ conversion_dic2 ={
 
 }
 
-widths_base = compute_widths(df, TABLE1_COL)
-widths_full = compute_widths(df, TABLE2_COL)
+widths_base = essential.compute_widths(df, TABLE1_COL)
+widths_full = essential.compute_widths(df, TABLE2_COL)
 
 
 df = df.fillna("-")
@@ -393,7 +368,7 @@ with open("DAFT_Direction.txt", "w") as f:
     f.write("SIGNIFICANT PAIRS\n")
     f.write("=" * 80 + "\n")
     for i1, i2 in df[['Lineage1', 'Lineage2']].itertuples(index=False, name=None):
-        f.write(f"BETWEEN {i1} AND {i2}  {' '*(25-len(i1)+len(i2))+str(find_dist_string(sp,i1,i2))} NNI APART \n")
+        f.write(f"BETWEEN {i1} AND {i2}  {' '*(25-len(i1)+len(i2))+str(essential.find_dist_string(sp,i1,i2))} NNI APART \n")
     f.write("*" * 80 + "\n")
     f.write("\n") 
     f.write("\n") 
@@ -422,7 +397,7 @@ with open("DAFT_Direction.txt", "w") as f:
         line = ""
         for i, c in enumerate(TABLE1_COL, 1):
             val = row[conversion_dic1[c]] if conversion_dic1[c] in row else np.nan
-            s = render_val(c, val)
+            s = essential.render_val(c, val)
             line += f"{s:<{widths_base[c]}}"
             if i < len(TABLE1_COL):
                 line += TAB_STR if c in SPECIAL_AFTER else SPACE_SEP
@@ -451,7 +426,7 @@ with open("DAFT_Direction.txt", "w") as f:
         line = ""
         for i, c in enumerate(TABLE2_COL, 1):
             val = row[conversion_dic2[c]] if conversion_dic2[c] in row else np.nan
-            s = render_val(c, val)
+            s = essential.render_val(c, val)
             line += f"{s:<{widths_full[c]}}"
             if i < len(TABLE2_COL):
                 line += TAB_STR if c in SPECIAL_AFTER else SPACE_SEP

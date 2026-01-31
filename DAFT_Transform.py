@@ -14,6 +14,7 @@ import argparse
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
+
           
 def nni_search(cur_address,sibling):
         stack =[cur_address]
@@ -84,7 +85,7 @@ def nni_possible(taxa,species_tree,gene_tree):
         sibling=reco.get_current_sister(species_tree,taxa)
 
         #print(species_tree.to_newick(),sibling)
-        cur_address =current_address(taxa,gene_tree)
+        cur_address =essential.current_address(taxa,gene_tree)
         #print(sibling , cur_address,sibling and cur_address)
 
         if sibling and cur_address:
@@ -99,9 +100,9 @@ def querry_lineage(sorted_dict,lineage1,lineage2):
         count1=0
         count2=0
         for  lineage in sorted_dict:
-                if isequal(lineage1,lineage):
+                if essential.isequal(lineage1,lineage):
                     count1=sorted_dict[lineage]
-                if isequal(lineage2,lineage):
+                if essential.isequal(lineage2,lineage):
                     count2=sorted_dict[lineage]
         if count1>count2:
             return lineage1
@@ -114,7 +115,7 @@ def querry_lineage(sorted_dict,lineage1,lineage2):
 def  get_nni(taxa,test_dic):
         print(test_dic)
         for tr in test_dic:
-                if isequal(taxa.to_newick(),tr):
+                if essential.isequal(taxa.to_newick(),tr):
                         if test_dic[tr]>0:
                                 return test_dic[tr]
                         else:
@@ -140,7 +141,7 @@ def max_round(value_tracker,moves):
                 tree= red.parse(tree)
                 for li in value_tracker:
                         for k in li[:-2]:
-                                if isequal(tree.to_newick(),k):
+                                if essential.isequal(tree.to_newick(),k):
                                         if int(li[-1])>max_:
                                                 max_=int(li[-1])
 
@@ -155,7 +156,7 @@ def find_all_lineage(tree,sp):
         while stack:
                 current_node= stack.pop()
                 if current_node:
-                        if current_address(current_node.taxa,sp):
+                        if essential.current_address(current_node.taxa,sp):
                                 ret.append(current_node.to_newick())
                                 
                           
@@ -182,7 +183,7 @@ def find_moved(tree,sp,gene_tree,test_dic):
                 print(taxa_)
                 tree_ =red.parse(taxa_)
                 taxa_=tree_.taxa
-                cur_address =current_address(taxa_,gene_tree)   
+                cur_address =essential.current_address(taxa_,gene_tree)   
                 print(cur_address)
                 if cur_address:
                         nni=get_nni(tree_,test_dic)
@@ -199,7 +200,7 @@ def find_moved(tree,sp,gene_tree,test_dic):
 
 def not_in(newick,visited_list):
         for topo in visited_list:
-              if isequal(newick,topo):
+              if essential.isequal(newick,topo):
                      return False
         return True
               
@@ -214,7 +215,7 @@ def merge_moving(dic,obj):
         for key1,value1 in dic_obj.items():
                 for key2,value2 in dic_obj.items():
                         if key1!=key2:
-                                if current_address(key2.taxa,key1) and key2 not in visited and key1 not in visited:
+                                if essential.current_address(key2.taxa,key1) and key2 not in visited and key1 not in visited:
 
                                        dic_obj[key1]+=dic_obj[key2]
                                        visited.append(key2)
@@ -259,7 +260,7 @@ def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2):
                         key2=dic_keys[index2]
                         com_key=sorted([index1,index2]) 
                         #print(key1,key2)
-                        if key1!=key2 and isequal(key1,key2) and com_key not in visited :
+                        if key1!=key2 and essential.isequal(key1,key2) and com_key not in visited :
                                 visited.append(com_key)
                                 dic[key1]= dic[key1]+dic[key2]
                                 to_delete.append(key2)
@@ -317,7 +318,7 @@ def parse1():
     parser.add_argument(
         '--lineages',
         type=lambda s: s.split('/'),
-        help="Comma-separated list of lineages (e.g. l1,l2)"
+        help="'/'-separated list of lineages (e.g. l1/l2)"
     )
     parser.add_argument('--gt_list', nargs='+', help="List of gene trees (each a Newick string)")
 
@@ -342,7 +343,7 @@ gt_list=parser.gt_list
 
 
 
-
+essential= daft_essential()
 reco =reconcils()
 red= readWrite.readWrite()
 write_intro={'idx':[],'Replicate':[],'Path':[],'From_Where_moved':[],'Sibling':[],'What_moved':[],'NNI':[]}
@@ -363,13 +364,13 @@ audit1=0
 
 
 for k,gene_tree in enumerate(gt_list):
-                print()
+                print('gene tree :',gene_tree , 'Test_Lineage :',lineage1 , lineage2)
 
                 gene_tree_string = gene_tree.replace('e-', '0')
-                print(gene_tree_string)
+                #print(gene_tree_string)
 
                 tr= red.parse_bio(gene_tree_string)
-                print(tr.to_newick())
+                #print(tr.to_newick())
                 
                        
                 sp= red.parse_bio(sp_string)
