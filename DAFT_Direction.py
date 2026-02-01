@@ -447,7 +447,7 @@ def parse1():
         help="List of lineage tuples to check direction, e.g. \"[(1,2), (3,4)]\""
     )
     parser.add_argument(
-        '--lineagesN', default='',
+        '--lineagesN', default='[]',
         type=lambda s: ast.literal_eval(s),
         help="List of lineage tuples, e.g. \"[(1,2), (3,4)]\""
     )
@@ -466,6 +466,8 @@ out_filec='big_output'
 total_count_cutoff=15
 indiv_count_cutoff=0
 
+#print(lineages)
+#exit()
 
 data=pd.read_csv(gene_treefile, sep=',').to_numpy()
 
@@ -475,7 +477,7 @@ sp =red.parse(sp_string)
 list_df={'Labeled_species':[],'Total_gene_trees':[],'Lineage1':[],'Count1':[],'Lineage2':[],'Count2':[],'What_moved':[],'To_where':[],'Minor_Moved':[],'Minor_moved_count':[]}
 sp_tree_lineages= essential.find_all_lineage(sp)
 
-if lineages_bidrectional=='':
+if len(lineages_bidrectional)==0:
     lineages_bidrectional= add_sibling_bidirection(lineages,sp)
 
 run_tranform(lineages_bidrectional,sp_string,list_df)

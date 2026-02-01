@@ -533,13 +533,14 @@ def parse1():
     parser = argparse.ArgumentParser(description="IQTree on Simphy and dupcoal")
     parser.add_argument('--sp', type=str, help="Species tree")
     parser.add_argument('--gt', type=str, help="Gene tree list")
-    parser.add_argument('--excel', type=int,default=0, help="Produce Excel")
     parser.add_argument(
         '--lineages',
         type=lambda s: s.split('/'),
         help="Comma-separated list of lineages (e.g. l1,l2)"
     )
     parser.add_argument('--output', type=str, help="Name of output file")
+    parser.add_argument('--direction', type=int,default=0, help="Run DAFT_Direction.py")
+    parser.add_argument('--excel', type=int,default=0, help="Produce Excel")
     parser.add_argument('--sibling', type=str, default='0', help="Species tree")
     
     args = parser.parse_args()
@@ -556,6 +557,7 @@ sp_string = parser.sp
 lineages = parser.lineages 
 gene_treefile =parser.gt
 produce_excel=parser.excel
+run_direction=parser.direction
 
 lineage1= lineages[0]
 lineage2= lineages[1]
@@ -593,7 +595,8 @@ write_significance(sorted_grouped)
 
 if produce_excel:
     convert_excel()
-call_direction(sorted_grouped,gene_treefile,sp)
+if run_direction:
+    call_direction(sorted_grouped,gene_treefile,sp)
         
 clean_folder()
 

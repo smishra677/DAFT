@@ -17,5 +17,14 @@ for csv in src_dir.glob("*.csv"):
 
 
 shutil.move('DAFT_Significance.txt', dst_dir_results / 'DAFT_Significance.txt')
-shutil.move('DAFT_Direction.txt', dst_dir_results / 'DAFT_Direction.txt')
-shutil.move('DAFT_Significance.xlsx', dst_dir_results / 'DAFT_Significance.xlsx')
+
+files = [
+    ('DAFT_Direction.txt', 'DAFT_Direction.txt'),
+    ('DAFT_Significance.xlsx', 'DAFT_Significance.xlsx'),
+]
+
+for src, dst in files:
+    try:
+        shutil.move(src, dst_dir_results / dst)
+    except FileNotFoundError:
+        pass
