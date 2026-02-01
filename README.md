@@ -162,7 +162,7 @@ python Significance.py --sp <SPECIES_TREE> --gt <LIST_OF_GENE_TREES> --lineage <
 
   **Format:**  
    `[ (['(1,2);', '3;'] ,'4;')]`
-  Here `(1,2);` and `3;` are siblings in species tree and used to test for bidirectional gene flow.
+  Here `(1,2);` and `3;` are siblings in species tree and used to test for bidirectional gene flow against '4;'
 
 - **OUTPUT_NAME (`output`)**  
   Name of output file (without extension).
