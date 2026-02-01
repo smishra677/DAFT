@@ -232,7 +232,7 @@ class daft_essential:
                 pairs+=[[what_moved,L2]]
             else:
                 pairs+=[[what_moved,L1]]
-            print(Z_1,Z_2)
+            #print(Z_1,Z_2)
             Z_1 = 0.0 if pd.isna(Z_1) else Z_1
             Z_2 = 0.0 if pd.isna(Z_2) else Z_2
             if Z_1>=-4:
@@ -261,7 +261,7 @@ class daft_essential:
                     if idx==0 and len(tree.donor)==0:
                         ev= '('+event+','+tree.taxa+')'
                     else:
-                        print('==========>')
+                        #print('==========>')
                         ev='('+ev+','+event+')'
                 return ev  
             else:

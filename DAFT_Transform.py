@@ -113,7 +113,7 @@ def querry_lineage(sorted_dict,lineage1,lineage2):
             
 
 def  get_nni(taxa,test_dic):
-        print(test_dic)
+        #print(test_dic)
         for tr in test_dic:
                 if essential.isequal(taxa.to_newick(),tr):
                         if test_dic[tr]>0:
@@ -133,7 +133,7 @@ def max_round(value_tracker,moves):
         pool={}
         max_=0
         #value_tracker= tracker.values()
-        print(value_tracker)
+        #print(value_tracker)
         if type(moves)!=list:
                moves=[moves]
         for tree in moves:
@@ -180,11 +180,11 @@ def find_moved(tree,sp,gene_tree,test_dic):
         taxa= tree.taxa
         return_list=[]
         for taxa_ in find_all_lineage(tree,sp):
-                print(taxa_)
+                #print(taxa_)
                 tree_ =red.parse(taxa_)
                 taxa_=tree_.taxa
                 cur_address =essential.current_address(taxa_,gene_tree)   
-                print(cur_address)
+                #print(cur_address)
                 if cur_address:
                         nni=get_nni(tree_,test_dic)
                         if nni is None:
@@ -224,26 +224,19 @@ def merge_moving(dic,obj):
         
         return {key.to_newick():value for key,value in dic_obj.items()}
                                        
-
-                                       
-
-def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2):
-        red= readWrite.readWrite()
-        
-        visited_list=[]
+def account_trios(tracker):
         visited=[]
-
-        value_list =list(tracker.values())
         value_list1=[]
+        value_list =list(tracker.values())
+        
         for val in value_list:
                 if len(val)>1:
-                      for val2 in val:
+                    for val2 in val:
                         value_list1.append(val2)
                 else:
                        value_list1.append(val[0])
 
         value_list=value_list1
-
         v=[]
         for val in value_list:
                 v+=val[:-2]
@@ -269,18 +262,26 @@ def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2):
         
         for delete in to_delete:
                 del dic[delete]
+                
+        return visited,value_list1,value_list,dic
+                                       
+
+def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2):
+        red= readWrite.readWrite()
+        
+
+        visited_list=[]
+        visited,value_list1,value_list,dic=account_trios(tracker)
+        
+
         
     
         dic=dict(sorted(dic.items(),key=lambda item: item[1],reverse=True))
-
-        
         dic =merge_moving(dic,red)
+        
         moving_taxas=querry_lineage(dic,lineage1,lineage2)
         
         overall_return={}
-
-
-
         moving_taxas=[moving_taxas]
         path=0
         for move_ in moving_taxas:
@@ -294,8 +295,8 @@ def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2):
                 for move_,flag_nni,val_nni,cur_address in loop_:
                         if cur_address:
                                 if  not_in(cur_address.parent.to_newick(),visited_list):
-                                        sib =[chilee for chilee in cur_address.parent.children if chilee!=cur_address ][0]
-                                        overall_return[path]={'From_Where_moved':cur_address.parent.to_newick(),'Sibling':sib.to_newick(),'What_moved':move_,'NNI':val_nni}
+                                        sibling =[chilee for chilee in cur_address.parent.children if chilee!=cur_address ][0]
+                                        overall_return[path]={'From_Where_moved':cur_address.parent.to_newick(),'Sibling':sibling.to_newick(),'What_moved':move_,'NNI':val_nni}
                                         visited_list.append(cur_address.parent.to_newick())
                                         path=path+1
                                                 
@@ -313,15 +314,14 @@ def _parse_list(s: str):
     return [x for x in re.split(r'[,\s/]+', s.strip()) if x]
 
 def parse1():
-    parser = argparse.ArgumentParser(description="DAFT")
+    parser = argparse.ArgumentParser(description="DAFT Tranform")
     parser.add_argument('--sp', type=str, help="Species tree")
     parser.add_argument(
         '--lineages',
         type=lambda s: s.split('/'),
-        help="'/'-separated list of lineages (e.g. l1/l2)"
+        help="Test lineage separated  by '/' (e.g. l1/l2)"
     )
     parser.add_argument('--gt_list', nargs='+', help="List of gene trees (each a Newick string)")
-
     parser.add_argument('--output', type=str, help="Name of output file")
     
     args = parser.parse_args()
@@ -358,97 +358,95 @@ sp_large= red.parse_bio(sp_string)
 sp_large.label_internal()
 red.write_introgression(sp_large)
 done=[]
-audit=0
-audit1=0
+
 
 
 
 for k,gene_tree in enumerate(gt_list):
-                print('gene tree :',gene_tree , 'Test_Lineage :',lineage1 , lineage2)
+        #print('gene tree :',gene_tree , 'Test_Lineage :',lineage1 , lineage2)
 
-                gene_tree_string = gene_tree.replace('e-', '0')
-                #print(gene_tree_string)
+        gene_tree_string = gene_tree.replace('e-', '0')
+        #print(gene_tree_string)
 
-                tr= red.parse_bio(gene_tree_string)
-                #print(tr.to_newick())
+        tr= red.parse_bio(gene_tree_string)
+        #print(tr.to_newick())
+        
                 
-                       
-                sp= red.parse_bio(sp_string)
-                lis.append(tr.to_newick())
+        sp= red.parse_bio(sp_string)
+        lis.append(tr.to_newick())
 
 
-                tr=tr.parse(gene_tree_string)
-                sp=sp.parse(sp_string)
+        tr=tr.parse(gene_tree_string)
+        sp=sp.parse(sp_string)
 
-                sp_copy= copy.deepcopy(sp)
+        sp_copy= copy.deepcopy(sp)
 
-                start_time1= time.time()
+        start_time1= time.time()
 
-                reco.gene_tree=copy.deepcopy(tr)
-                tr.order_gene(sp)
-                tr.label_internal()
-                sp.label_internal()
-                tr.map_gene(sp)
-                reco.setCost(sp)
-                sp.isRoot=True
-                tr.isRoot=True
-                reco.introgression=True
-                reco.L_cost=  2
-                reco.D_cost=  20000
-                sp_copy.isRoot=True
+        reco.gene_tree=copy.deepcopy(tr)
+        tr.order_gene(sp)
+        tr.label_internal()
+        sp.label_internal()
+        tr.map_gene(sp)
+        reco.setCost(sp)
+        sp.isRoot=True
+        tr.isRoot=True
+        reco.introgression=True
+        reco.L_cost=  2
+        reco.D_cost=  20000
+        sp_copy.isRoot=True
 
+        
+        def call_reconcILS_function():
+                return reco.iterative_reconcILS(tr,sp,sp_copy,sp,[],{},{})
+        
+        reco.gene_tree= copy.deepcopy(tr)
+        species_edge_list=reco.get_edges(sp)
+
+        if len(gene_tree_string)<0:
+                reco.reconcILS(tr,sp,sp_copy,sp,{})
                 
-                def call_reconcILS_function():
-                        return reco.iterative_reconcILS(tr,sp,sp_copy,sp,[],{},{})
+        
+                li =red.sp_event(sp,[])
+        else:
+                #print('Using Iterative Function')
+                num_threads = 40
+                timeout_duration = 1800
+                with ThreadPoolExecutor(max_workers=num_threads) as executor:
+                        future = executor.submit(call_reconcILS_function)
+
+                try:
+                        li , introgression, tracker,test_dic= future.result(timeout=timeout_duration)
+                except TimeoutError:
+                        print(f"The function call timed out after {timeout_duration} seconds.")
+                        exit()
+                        li=[]
                 
-                reco.gene_tree= copy.deepcopy(tr)
-                species_edge_list=reco.get_edges(sp)
-  
-                if len(gene_tree_string)<0:
-                        reco.reconcILS(tr,sp,sp_copy,sp,{})
-                        
                 
-                        li =red.sp_event(sp,[])
-                else:
-                        print('Using Iterative Function')
-                        num_threads = 40
+                #print('-----------------------------------------------------Done With reconcils-----------------------------------------------------------------------------')
 
-                        timeout_duration = 1800
-                        with ThreadPoolExecutor(max_workers=num_threads) as executor:
-                                future = executor.submit(call_reconcILS_function)
-
-                        try:
-                                li , introgression, tracker,test_dic= future.result(timeout=timeout_duration)
-                        except TimeoutError:
-                                print(f"The function call timed out after {timeout_duration} seconds.")
-                                exit()
-                                li=[]
-                        
-                        
-                        print('-----------------------------------------------------Done With reconcils-----------------------------------------------------------------------------')
-
-                        if len(tracker)>=1:
-                                table=tabulate(tracker,sp,tr,test_dic,lineage1,lineage2)
-                                added=0
-                                for path in table:
-                                        write_intro['idx']+=[k]
-                                        write_intro['Replicate']+=[reco.gene_tree.to_newick()]
-                                        write_intro['Path']+=[path]
-                                        write_intro['NNI']+=[table[path]['NNI']]
-                                        write_intro['From_Where_moved']+=[table[path]['From_Where_moved']]
-                                        write_intro['What_moved']+=[table[path]['What_moved']]
-                                        write_intro['Sibling']+=[table[path]['Sibling']]
-                        else:            
-                                #print('We are here')   
-                                write_intro['Replicate']+=[reco.gene_tree.to_newick()]
-                                write_intro['Path']+=[0]
-                                write_intro['NNI']+=[0]
-                                write_intro['From_Where_moved']+=['N/A']
-                                write_intro['What_moved']+=['N/A']
+                if len(tracker)>=1:
+                        table=tabulate(tracker,sp,tr,test_dic,lineage1,lineage2)
+                        added=0
+                        for path in table:
                                 write_intro['idx']+=[k]
-                                write_intro['Sibling']+=['N/A']
-                                        
-                        intro_df= pd.DataFrame(write_intro)
-                        intro_df.to_csv('introgression_'+output+'.csv', index=False)
-                        
-                        
+                                write_intro['Replicate']+=[reco.gene_tree.to_newick()]
+                                write_intro['Path']+=[path]
+                                write_intro['NNI']+=[table[path]['NNI']]
+                                write_intro['From_Where_moved']+=[table[path]['From_Where_moved']]
+                                write_intro['What_moved']+=[table[path]['What_moved']]
+                                write_intro['Sibling']+=[table[path]['Sibling']]
+                else:            
+                        #print('We are here')   
+                        write_intro['Replicate']+=[reco.gene_tree.to_newick()]
+                        write_intro['Path']+=[0]
+                        write_intro['NNI']+=[0]
+                        write_intro['From_Where_moved']+=['N/A']
+                        write_intro['What_moved']+=['N/A']
+                        write_intro['idx']+=[k]
+                        write_intro['Sibling']+=['N/A']
+                                
+                intro_df= pd.DataFrame(write_intro)
+                intro_df.to_csv('introgression_'+output+'.csv', index=False)
+                
+                
