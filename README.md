@@ -50,7 +50,7 @@ pip install .
 
 - **`--gt` (GENE_TREE_CSV)**  
   CSV file containing gene trees in Newick format.  
-  Each row corresponds to one gene tree (column name assumed by the script). The header of column as 'gt'
+  Each row corresponds to one gene tree (column name(='gt') assumed by the script).
 
 - **`--lineages`** *(Optional)*  
   '/'-separated list of lineages to test for loss(i.e keep all the lineages which you want to test)..
