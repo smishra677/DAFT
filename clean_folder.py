@@ -18,3 +18,4 @@ for csv in src_dir.glob("*.csv"):
 
 shutil.move('DAFT_Significance.txt', dst_dir_results / 'DAFT_Significance.txt')
 shutil.move('DAFT_Direction.txt', dst_dir_results / 'DAFT_Direction.txt')
+shutil.move('DAFT_Significance.xlsx', dst_dir_results / 'DAFT_Significance.xlsx')

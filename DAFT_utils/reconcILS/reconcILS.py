@@ -181,7 +181,7 @@ class reconcils:
 
                         self.label_lost_child(co.leftChild)
                         
-                        print(co.to_newick())
+                        #print(co.to_newick())
                         
                         if sp.parent==None:
                             self.gene_tree=co
