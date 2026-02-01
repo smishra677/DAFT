@@ -31,10 +31,10 @@ pip install .
 
 
 ---
-
 ## DAFT Significance
 
-**Purpose:** : Detecting introgression between lineages.
+**Purpose:** Detect introgression between lineages.
+
 ---
 
 ### Standard Usage
@@ -46,40 +46,53 @@ pip install .
 ### Input Arguments
 
 - **`--sp` (SPECIES_TREE)**  
-  Species tree in Newick format.  
+  Species tree in Newick format.
 
 - **`--gt` (GENE_TREE_CSV)**  
   CSV file containing gene trees in Newick format.  
-  Each row corresponds to one gene tree (column name(='gt') assumed by the script).
+  Each row corresponds to one gene tree (column name `gt` is assumed by the script).
 
 - **`--lineages`** *(Optional)*  
-  '/'-separated list of lineages to test for loss(i.e keep all the lineages which you want to test)..
+  `/`-separated list of focal lineages to test.  
+  Provide the set of lineages you want included in the analysis.
 
   **Format:**  
   `l1/l2/l3/l4`
 
   **Example:**  
-  `--lineages 'A/B/C/D' `
+  `--lineages "A/B/C/D"`
 
 - **`--sibling`** *(Optional)*  
   Perform sibling-based control test.  
   - `1` → perform sibling test  
   - `0` → do not perform sibling test (default)
 
-- **`--excel`** *(Optional flag)*  
-  - `1` → convert outfile to excel file
-  - `0` → do not convert outfile to excel file(default)
+- **`--excel`** *(Optional)*  
+  Produce Excel output in addition to the text output.  
+  - `1` → write Excel output  
+  - `0` → do not write Excel output (default)
+
+- **`--direction`** *(Optional)*  
+  Run direction inference (`DAFT_Direction.py`) after significance testing.  
+  - `1` → run direction inference  (Z score cutoff -2.25)
+  - `0` → do not run direction inference (default)
 
 - **`--output`**  
-  Name of the output file (without extension).
+  Output name (used as the results folder / prefix).
 
 ---
 
 ### Output
 
-- **`DAFT_Significance.txt`** (or `.xlsx` if `--excel` is used)  
-  Contains test statistics, Z-scores, and significances.  
+- **`DAFT_Significance.txt`**  
+  Contains test statistics, Z-scores, and significance calls.  
   See **DAFT_Significance_Explanation** for details.
+
+- **`DAFT_Significance.xlsx`** *(if `--excel 1` is used)*  
+  Excel version of the results.
+
+- **`DAFT_Direction.txt`** *(if `--direction 1` is used)*  
+  Directionality results inferred from significant lineage pairs.
 
 ---
 
@@ -89,10 +102,12 @@ pip install .
 python DAFT_Significance.py \
   --sp <SPECIES_TREE> \
   --gt <GENE_TREE_CSV> \
-  --lineages "l1/l2" \
+  --lineages "A/B/C/D" \
   --sibling 1 \
   --excel 1 \
-  --output 'daft_results'
+  --direction 1 \
+  --output daft_results
+
 
 ```
 ---
