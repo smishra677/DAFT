@@ -33,35 +33,68 @@ pip install .
 ---
 
 ## DAFT Significance
-**Purpose:** Detecting introgression between lineages.
 
-### Standard results
+**Purpose:** : Detecting introgression between lineages.
+---
 
-- **Script:** `Significance.py`
+### Standard Usage
 
-#### Input
-- **SPECIES_TREE (`sp`)**  
-  Species tree in Newick format.
-  This can be in an external text file.
+- **Script:** `DAFT_Significance.py`
 
-- **LIST_OF_GENE_TREES (`gt`)**  
-  List of gene trees in Newick format.
-  This should be in an external text file.
+---
 
-- **sibling**  
-  Flag to perform sibling test [default is off]:  
-  `1` = perform sibling test  
-  `0` = do not perform sibling test
+### Input Arguments
 
-#### Output
-- **`DAFT_Significance.txt`**  
-  (See **DAFT_Significance_Explanation** below.)
+- **`--sp` (SPECIES_TREE)**  
+  Species tree in Newick format.  
 
-#### Example Command
+- **`--gt` (GENE_TREE_CSV)**  
+  CSV file containing gene trees in Newick format.  
+  Each row corresponds to one gene tree (column name assumed by the script). The header of column as 'gt'
+
+- **`--lineages`** *(Optional)*  
+  '/'-separated list of lineages to test for loss(i.e keep all the lineages which you want to test)..
+
+  **Format:**  
+  `l1/l2/l3/l4`
+
+  **Example:**  
+  `--lineages 'A/B/C/D' `
+
+- **`--sibling`** *(Optional)*  
+  Perform sibling-based control test.  
+  - `1` → perform sibling test  
+  - `0` → do not perform sibling test (default)
+
+- **`--excel`** *(Optional flag)*  
+  - `1` → convert outfile to excel file
+  - `0` → do not convert outfile to excel file(default)
+
+- **`--output`**  
+  Name of the output file (without extension).
+
+---
+
+### Output
+
+- **`DAFT_Significance.txt`** (or `.xlsx` if `--excel` is used)  
+  Contains test statistics, Z-scores, and significances.  
+  See **DAFT_Significance_Explanation** for details.
+
+---
+
+### Example Command
+
 ```bash
-python Significance.py --sp <SPECIES_TREE> --gt <LIST_OF_GENE_TREES> --lineage NONE --sibling <1/0>
-````
+python DAFT_Significance.py \
+  --sp "((1,2),3);" \
+  --gt "gene_trees.csv" \
+  --lineages "1;/2;" \
+  --sibling 1 \
+  --excel 1 \
+  --output 'daft_results'
 
+```
 ---
 
 ### Alternative: Results with Loss
