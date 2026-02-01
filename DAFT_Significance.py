@@ -536,12 +536,12 @@ def parse1():
     parser.add_argument(
         '--lineages',
         type=lambda s: s.split('/'),
-        help="Comma-separated list of lineages (e.g. l1,l2)"
+        help="'/'-separated list of lineages (e.g. l1/l2)"
     )
     parser.add_argument('--output', type=str, help="Name of output file")
     parser.add_argument('--direction', type=int,default=0, help="Run DAFT_Direction.py")
     parser.add_argument('--excel', type=int,default=0, help="Produce Excel")
-    parser.add_argument('--sibling', type=str, default='0', help="Species tree")
+    parser.add_argument('--sibling', type=str, default='0', help="Run sibling test")
     
     args = parser.parse_args()
     return args
