@@ -139,6 +139,7 @@ python Significance.py --sp <SPECIES_TREE> --gt <LIST_OF_GENE_TREES> --lineage <
 
   **Format:**  
   `[[(1,2);, (3,4);],[1;, 4;]]`
+  where `(1,2);` and  `(3,4);` one pair of test lineages.
 
 - **Bidirectional lingeages (`lineagesN`)** *(Optional)*  
   This is a list of lingeages along with the siblings of the test lingeage
