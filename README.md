@@ -153,7 +153,7 @@ python Significance.py --sp <SPECIES_TREE> --gt <LIST_OF_GENE_TREES> --lineage <
   Must be passed as a Python-style list of tuples.
 
   **Format:**  
-  `[[(1,2);, (3,4);],[1;, 4;]]`
+  `[ ('(1,2);', '(3,4);'),('1;', '4;')]`
   where `(1,2);` and  `(3,4);` one pair of test lineages.
 
 - **Bidirectional lingeages (`lineagesN`)** *(Optional)*  
@@ -161,11 +161,8 @@ python Significance.py --sp <SPECIES_TREE> --gt <LIST_OF_GENE_TREES> --lineage <
   Must be passed as a Python-style list of tuples.
 
   **Format:**  
-   `[[(1,2);, 3;] ,4;]]`
+   `[ (['(1,2);', '3;'] ,'4;')]`
   Here `(1,2);` and `3;` are siblings in species tree and used to test for bidirectional gene flow.
-
-  **Example:**  
-  `--lineagesN "[(5,6)]"`
 
 - **OUTPUT_NAME (`output`)**  
   Name of output file (without extension).
