@@ -3,6 +3,29 @@
 
 ## DAFT: Discordant Attachment Frequency Test
 
+## Requirements
+This package has the following requirements:
+
+- Python (3.x)
+- Pandas
+- Matplotlib
+- uuid
+- igraph
+- ete3
+- numpy
+
+
+
+
+
+## Installation
+
+You can install DAFT using pip:
+
+```bash
+pip install .
+```
+
 DAFT (Discordant Attachment Frequency Test) is designed to detect
 **introgression** and to determine its direction using gene trees
 and a species tree. 
