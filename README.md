@@ -87,9 +87,9 @@ pip install .
 
 ```bash
 python DAFT_Significance.py \
-  --sp "((1,2),3);" \
-  --gt "gene_trees.csv" \
-  --lineages "1;/2;" \
+  --sp <SPECIES_TREE> \
+  --gt <GENE_TREE_CSV> \
+  --lineages "l1/l2" \
   --sibling 1 \
   --excel 1 \
   --output 'daft_results'
@@ -123,35 +123,52 @@ python Significance.py --sp <SPECIES_TREE> --gt <LIST_OF_GENE_TREES> --lineage <
 
 ### Standard Results
 
-* **Script:** `Direction.py`
+- **Script:** `DAFT_Direction.py`
 
 #### Input
 
-* **SPECIES_TREE (`sp`)**
-  Species tree in Newick format.
-  This can be in an external text file.
-  
-* **LIST_OF_GENE_TREES (`gt`)**
-  List of gene trees in Newick format.
-  This should be in an external text file.
+- **SPECIES_TREE (`sp`)**  
+  Species tree in Newick format.  
 
-* **SIGNIFICANT_PAIRS (`sig`)**
-  List of lineage pairs identified as significant.
-  This should be in an external text file formatted as:
+- **LIST_OF_GENE_TREES (`gt`)**  
+  Gene tree input file (CSV, as expected by the script).  
 
-     XXsome exampleXX
+- **LINEAGE_PAIRS (`lineages`)**  
+  List of lineages to test direction.
+  Must be passed as a Python-style list of tuples.
+
+  **Format:**  
+  `[[(1,2);, (3,4);],[1;, 4;]]`
+
+- **Bidirectional lingeages (`lineagesN`)** *(Optional)*  
+  This is a list of lingeages along with the siblings of the test lingeage
+  Must be passed as a Python-style list of tuples.
+
+  **Format:**  
+   `[[(1,2);, 3;] ,4;]]`
+  Here `(1,2);` and `3;` are siblings in species tree and used to test for bidirectional gene flow.
+
+  **Example:**  
+  `--lineagesN "[(5,6)]"`
+
+- **OUTPUT_NAME (`output`)**  
+  Name of output file (without extension).
 
 #### Output
 
-* **`DAFT_Direction.txt`**
+- **`DAFT_Direction.txt`**  
   (See **DAFT_Direction_Explanation** below.)
 
 #### Example Command
 
 ```bash
-python Direction.py --sp <SPECIES_TREE> --gt <LIST_OF_GENE_TREES> --sig <LIST_OF_SIGNIFICANT_PAIRS>
+python DAFT_Direction.py \
+  --sp <SPECIES_TREE> \
+  --gt <GENE_TREE_CSV> \
+  --lineages "[[l1,l2]]" \
+  --lineagesN "[[[l1,l3],l2]]" \
+  --output <OUTPUT_NAME>
 ```
-
 ---
 
 ## DAFT_Significance_Explanation
