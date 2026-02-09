@@ -235,8 +235,8 @@ class daft_essential:
             #print(Z_1,Z_2)
             Z_1 = 0.0 if pd.isna(Z_1) else Z_1
             Z_2 = 0.0 if pd.isna(Z_2) else Z_2
-            if Z_1>=-4:
-                if Z_2<Z_1:
+            #if Z_1>=-4:
+            if Z_2<-1.96:
                     pairs1 =pairs[-1]
                     pairs+=[[pairs1[1],pairs1[0]]]
 
@@ -434,6 +434,7 @@ class daft_essential:
             found_k = None
             for j in idxs:
                 if j == i:
+                    #print('yess')
                     continue
 
                 L1_j = df.at[j, 'Lineage1']
@@ -441,22 +442,22 @@ class daft_essential:
                 L1_count_j = df.at[j, 'Count1']
                 L2_count_j = df.at[j, 'Count2']
 
-                if self.isequal_set(L1_i, L1_j) and self._is_sibling(L2_i, L2_j,sp_string) and L2_count_i<L1_count_i:
+                if self.isequal_set(L1_i, L1_j) and self._is_sibling(L2_i, L2_j,sp_string) and L2_count_i<=L1_count_i:
                     found_j = j
                     found_k = 1
                     break
 
-                if self.isequal_set(L1_i, L2_j) and self._is_sibling(L2_i, L1_j,sp_string) and L2_count_i<L1_count_i:
+                if self.isequal_set(L1_i, L2_j) and self._is_sibling(L2_i, L1_j,sp_string) and L2_count_i<=L1_count_i:
                     found_j = j
                     found_k = 2
                     break
 
-                if self.isequal_set(L2_i, L1_j) and self._is_sibling(L1_i, L2_j,sp_string) and L1_count_i<L2_count_i:
+                if self.isequal_set(L2_i, L1_j) and self._is_sibling(L1_i, L2_j,sp_string) and L1_count_i<=L2_count_i:
                     found_j = j
                     found_k = 1
                     break
 
-                if self.isequal_set(L2_i, L2_j) and self._is_sibling(L1_i, L1_j,sp_string) and L1_count_i<L2_count_i:
+                if self.isequal_set(L2_i, L2_j) and self._is_sibling(L1_i, L1_j,sp_string) and L1_count_i<=L2_count_i:
                     found_j = j
                     found_k = 2
                     break
@@ -479,7 +480,7 @@ class daft_essential:
 
                 df.at[i,'Z_score_sibling']=Z_score_sib
 
-                if Z_score_sib<Z_score:
+                if Z_score_sib<=-1.96:
                     df.at[i,'CouldbeBidirectional']=True
 
         return df

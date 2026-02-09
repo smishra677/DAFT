@@ -16,9 +16,9 @@ reco =reconcils()
 red= readWrite.readWrite()
 essential= daft_essential()
 
+np.random.seed(42)
 
-
-def write_direction(df,network_output,sp):
+def write_direction(df,network_output,sp,out_filec):
     padding = 2
     SPACE_SEP = " " * padding
     TAB_STR = "\t" * 5
@@ -78,7 +78,7 @@ def write_direction(df,network_output,sp):
     #print(df)
     #df.to_csv('test.csv',index=False)
     #exit()
-    with open("DAFT_Direction.txt", "w") as f:
+    with open("DAFT_Direction_"+out_filec+".txt", "w") as f:
         f.write("## DAFT Direction\n\n")
         
         f.write("SIGNIFICANT PAIRS\n")
@@ -162,7 +162,7 @@ def write_direction(df,network_output,sp):
                 zs = row.get("Z_score_sibling", np.nan)
                 zf = float(z)
                 zsf = float(zs)
-                is_bidirectional = (not pd.isna(zf)) and (not pd.isna(zsf)) and (zf > zsf)
+                is_bidirectional = (not pd.isna(zf)) and (not pd.isna(zsf)) and (zsf<-1.96)
             except Exception:
                 is_bidirectional = False
 
@@ -212,6 +212,7 @@ def aggregrate_lineage(dfe,lineage1,lineage2):
 def collapse_clade(df):
     groups = []
     used = set()
+    #print(df)
 
     for i, row_i in df.iterrows():
         if i in used:
@@ -372,6 +373,7 @@ def run_tranform(lineages_bidrectional,sp_string,list_df):
                 
                 #total_count_=[]
                 #newick_lineage=[]
+                #print(df)
                 
 
                 df=df.dropna()
@@ -380,7 +382,7 @@ def run_tranform(lineages_bidrectional,sp_string,list_df):
                 sp.label_internal()
                 
                 df,count_lineage1,count_lineage2= aggregrate_lineage(dfe,lineage1,lineage2)
-                #print(df)
+                #print(list_df)
                 df= collapse_clade(df)
 
 
@@ -436,7 +438,6 @@ def add_sibling_bidirection(pairs,sp):
     return pairs1
 
 
-
 def parse1():
     parser = argparse.ArgumentParser(description="Input to DAFT Direction")
     parser.add_argument('--sp', type=str, help="Species tree")
@@ -462,24 +463,30 @@ sp_string = parser.sp
 gene_treefile =parser.gt
 lineages = parser.lineages
 lineages_bidrectional = parser.lineagesN
-out_filec='big_output'
+out_filec=parser.output
 total_count_cutoff=15
 indiv_count_cutoff=0
 
 #print(lineages)
 #exit()
 
+#print(lineages_bidrectional)
+
 data=pd.read_csv(gene_treefile, sep=',').to_numpy()
 
 
 
 sp =red.parse(sp_string)
+sp.label_internal()
+
 list_df={'Labeled_species':[],'Total_gene_trees':[],'Lineage1':[],'Count1':[],'Lineage2':[],'Count2':[],'What_moved':[],'To_where':[],'Minor_Moved':[],'Minor_moved_count':[]}
 sp_tree_lineages= essential.find_all_lineage(sp)
 
 if len(lineages_bidrectional)==0:
     lineages_bidrectional= add_sibling_bidirection(lineages,sp)
 
+
+#print(lineages_bidrectional)
 run_tranform(lineages_bidrectional,sp_string,list_df)
 
 
@@ -500,10 +507,11 @@ df = df.loc[unique_pairs['original_index']]
 df =df[df.inUnique==True]
 df = df[(df['Count1']+df['Count2'])>total_count_cutoff &  (df['Count1']>indiv_count_cutoff) & (df['Count2']>indiv_count_cutoff)]
 
+df.to_csv('results1.csv',index=False)
 
 #put it in a network
 sp_labeled =essential.put_network_in_tree(df,sp_string)
 network_output=essential.to_network(sp_labeled)
 
-
-write_direction(df,network_output,sp)
+#print(df)
+write_direction(df,network_output,sp,out_filec)
