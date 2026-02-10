@@ -432,7 +432,7 @@ for k,gene_tree in enumerate(gt_list):
                                 write_intro['idx']+=[k]
                                 write_intro['Replicate']+=[reco.gene_tree.to_newick()]
                                 write_intro['Path']+=[path]
-                                write_intro['NNI']+=[table[path]['NNI']]
+                                write_intro['NNI']+=[1]#table[path]['NNI']]
                                 write_intro['From_Where_moved']+=[table[path]['From_Where_moved']]
                                 write_intro['What_moved']+=[table[path]['What_moved']]
                                 write_intro['Sibling']+=[table[path]['Sibling']]
