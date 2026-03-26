@@ -1,8 +1,22 @@
 import pandas as pd
 import re
+import argparse
 
-input_file = "DAFT_Significance.txt"
-output_file = "DAFT_Significance.xlsx"
+
+def parse1():
+    parser = argparse.ArgumentParser(description="IQTree on Simphy and dupcoal")
+   
+    parser.add_argument('--output', type=str, help="Name of output file")
+    
+    args = parser.parse_args()
+    return args
+
+parser = parse1()
+output =parser.output
+
+
+input_file = "DAFT_Significance_"+output+".txt"
+output_file = "DAFT_Significance_"+output+".xlsx"
 
 columns = [
     "NNI_sp",

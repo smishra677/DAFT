@@ -1020,7 +1020,7 @@ class reconcils:
                             timeout_duration = self.time_ils
                             with ThreadPoolExecutor(max_workers=num_threads) as executor:
                                 future = executor.submit(call_ils_function)
-
+                                
                                 try:
 
                                     new_topo, cost, bi_cos, child_,introgression,tracker ,test_dic= future.result(timeout=timeout_duration)
@@ -1141,10 +1141,11 @@ class reconcils:
 
                                 
                                 stack.append((new_topo,sp,introgression))
-
+                                self.introgression=False
                                 if self.introgression:
 
-                                    df1 = pd.read_csv('./discordance.csv', converters={'events': eval}) 
+                                    #df1 = pd.read_csv('./discordance.csv', converters={'events': eval}) 
+                                    s=0
 
                                 for i in list(child_):
                                     if type(i[1].numbered_taxa)==set:
@@ -1196,7 +1197,7 @@ class reconcils:
                                             
                                         #self.copy_event_(i[0],self.gene_tree,new_topo) 
                                 
-
+                                    self.introgression=False
                                     if self.introgression:
                                         i[0].parent.label_internal()
                                         #introgression1 =sorted([sorted(list(i[0].parent.leftChild.taxa)),sorted(list(i[0].parent.rightChild.taxa))])
@@ -1214,7 +1215,7 @@ class reconcils:
                                         df1.loc[mask, 'events'] = df1.loc[mask, 'events'].apply(lambda x: x + new_events)
 
                                                     
-                                        df1.to_csv('./discordance.csv', index=False)                               
+                                        #df1.to_csv('./discordance.csv', index=False)                               
 
 
                        
@@ -1458,7 +1459,7 @@ def main():
         red.write_introgression(sp)
     
 
-    li,introgression= reconcILS.iterative_reconcILS(tr,sp,sp_copy,sp,[])
+    li,introgression= reconcILS.iterative_reconcILS(tr,sp,sp_copy,sp,[],{},{})
         
         
     

@@ -336,6 +336,7 @@ output =parser.output
 lineage1= lineages[0]
 lineage2= lineages[1]
 
+output= output+'_'+lineage1[:-1]+'_'+lineage2[:-1]
 lis=[]
 #sp_string='((((1,2),3),((4,5),6)),7);'
 #sp_string='((((((((1,2),3),4),5),6),7),(8,9)));'
@@ -356,9 +357,8 @@ write_intro1={'Moves':[],'Replicate':[],'NNI':[]}
 #exit()
 sp_large= red.parse_bio(sp_string)
 sp_large.label_internal()
-red.write_introgression(sp_large)
+#red.write_introgression(sp_large)
 done=[]
-
 
 
 
@@ -447,6 +447,6 @@ for k,gene_tree in enumerate(gt_list):
                         write_intro['Sibling']+=['N/A']
                                 
                 intro_df= pd.DataFrame(write_intro)
-                intro_df.to_csv('introgression_'+output+'.csv', index=False)
+                intro_df.to_csv('djiNNI_'+output+'.csv', index=False)
                 
                 

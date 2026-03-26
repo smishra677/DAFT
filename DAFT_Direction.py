@@ -18,6 +18,100 @@ essential= daft_essential()
 
 np.random.seed(42)
 
+
+
+def convert_species(df,sp_string):
+    species_to_letters = {
+    'Carlitosyrichta': 'A',
+    'Cebuscapucinus': 'B',
+    'Cercocebusatys': 'C',
+    'Macacafascicularis': 'D',
+    'Macacanemestrina': 'E',
+    'Theropithecusgelada': 'F',
+    'Papioanubis': 'G',
+    'Macacamulatta': 'H',
+    'Mandrillusleucophaeus': 'I',
+    'Chlorocebussabaeus': 'J',
+    'Colobusangolensis': 'K',
+    'Piliocolobustephrosceles': 'L',
+    'Rhinopithecusbieti': 'M',
+    'Rhinopithecusroxellana': 'N',
+    'Gorillagorilla': 'O',
+    'Homosapiens': 'P',
+    'Panpaniscus': 'Q',
+    'Pantroglodytes': 'R',
+    'Pongoabelii': 'S',
+    'Nomascusleucogenys': 'T',
+    'Saimiriboliviensis': 'U',
+    'Aotusnancymaae': 'V',
+    'Callithrixjacchus': 'W',
+    }
+    #letter_to_species ={value:key for key,value in species_to_letters.keys()}
+    sp_= red.parse(sp_string)
+    sp_string= sp_.to_newick_change(species_to_letters)
+    for idx, row in df.iterrows():
+
+        # ---- Primary fields ----
+        old_lineage1 = row['Lineage1']
+        old_lineage2 = row['Lineage2']
+        old_what_moved = row['What_moved']
+        old_to_where = row['To_where']
+        
+        print(old_lineage1,old_lineage2)
+
+        # ---- Minor sibling fields ----
+        old_minor_moved = row['Minor_Moved']
+        old_minor_sibling = row['minor_sibling']
+        old_minor_sib_what = row['minor_sibling_What_moved']
+        old_minor_sib_to_where = row['minor_sibling_To_where']
+
+        # ---- Significant pairs ----
+        old_sig = row['Significant_Pairs']
+        old_receiver, old_donor = '', ''
+
+        if pd.notna(old_sig) and 'AND' in old_sig:
+            parts = old_sig.split('AND')
+            old_receiver = parts[0].strip()
+            old_donor = parts[1].strip()
+
+        # ---- Helper ----
+        def convert_tree(val):
+            if pd.notna(val) and val != '':
+                tree = red.parse(val)
+                return tree.to_newick_change(species_to_letters)
+            return val
+
+        # ---- Convert primary ----
+        new_lineage1 = convert_tree(old_lineage1)
+        new_lineage2 = convert_tree(old_lineage2)
+        new_what_moved = convert_tree(old_what_moved)
+        new_to_where = convert_tree(old_to_where)
+
+        # ---- Convert significant ----
+        new_receiver = convert_tree(old_receiver)
+        new_donor = convert_tree(old_donor)
+
+        # ---- Convert minor ----
+        new_minor_moved = convert_tree(old_minor_moved)
+        new_minor_sibling = convert_tree(old_minor_sibling)
+        new_minor_sib_what = convert_tree(old_minor_sib_what)
+        new_minor_sib_to_where = convert_tree(old_minor_sib_to_where)
+
+        # ---- Store back (ALWAYS write back) ----
+        df.at[idx, 'Lineage1'] = new_lineage1
+        df.at[idx, 'Lineage2'] = new_lineage2
+        df.at[idx, 'What_moved'] = new_what_moved
+        df.at[idx, 'To_where'] = new_to_where
+
+        df.at[idx, 'Minor_Moved'] = new_minor_moved
+        df.at[idx, 'minor_sibling'] = new_minor_sibling
+        df.at[idx, 'minor_sibling_What_moved'] = new_minor_sib_what
+        df.at[idx, 'minor_sibling_To_where'] = new_minor_sib_to_where
+
+        df.at[idx, 'Significant_Pairs'] = str(new_receiver) + ' AND ' + str(new_donor)
+
+    return df, sp_string
+
 def write_direction(df,network_output,sp,out_filec):
     padding = 2
     SPACE_SEP = " " * padding
@@ -83,8 +177,9 @@ def write_direction(df,network_output,sp,out_filec):
         
         f.write("SIGNIFICANT PAIRS\n")
         f.write("=" * 80 + "\n")
-        for i1, i2 in df[['Lineage1', 'Lineage2']].itertuples(index=False, name=None):
-            f.write(f"BETWEEN {i1} AND {i2}  {' '*(25-len(i1)+len(i2))+str(essential.find_dist_string(sp,i1,i2))} NNI APART \n")
+        for i1, i2,NNI_ in df[['Lineage1', 'Lineage2','NNI_']].itertuples(index=False, name=None):
+            #f.write(f"BETWEEN {i1} AND {i2}  {' '*(25-len(i1)+len(i2))+str(essential.find_dist_string(sp,i1,i2))} NNI APART \n")
+            f.write(f"BETWEEN {i1} AND {i2}  {' '*(25-len(i1)+len(i2))+str(NNI_)} NNI APART \n")
         f.write("*" * 80 + "\n")
         f.write("\n") 
         f.write("\n") 
@@ -272,6 +367,8 @@ def get_donor_receipient(lineage1,lineage2,count_lineage1,count_lineage2,choice)
 def update_big_list(df,data,list_df,lineage1,lineage2,rename_map,choice):
     count_nni_score ={1:0,2:0,3:'',4:''}
     lineage_seen=[]
+    #print(df)
+    #print(lineage1,lineage2)
     for idx,line in enumerate(df.to_numpy()):
         count_nni_score[idx+3]=line[1]
         count_nni_score[idx+1]=line[3]
@@ -366,7 +463,7 @@ def run_tranform(lineages_bidrectional,sp_string,list_df):
                     raise RuntimeError(f"DAFT_Transform.py exited with code {exit_code}")
 
 
-                df=pd.read_csv('./introgression_out.csv',sep=',')
+                df=pd.read_csv('./djiNNI_out_'+lineage1[:-1]+'_'+lineage2[:-1]+'.csv',sep=',')
                 
                 df["Sibling"] = df["Sibling"].apply(lambda v: essential.match_lineage(v, sp_tree_lineages))
                 df["What_moved"] = df["What_moved"].apply(lambda v: essential.match_lineage(v, sp_tree_lineages))
@@ -374,12 +471,13 @@ def run_tranform(lineages_bidrectional,sp_string,list_df):
                 #total_count_=[]
                 #newick_lineage=[]
                 #print(df)
-                
+                #print(df)
 
                 df=df.dropna()
                 dfe =df.to_numpy()
                 sp= red.parse(sp_string)
                 sp.label_internal()
+                
                 
                 df,count_lineage1,count_lineage2= aggregrate_lineage(dfe,lineage1,lineage2)
                 #print(list_df)
@@ -464,8 +562,8 @@ gene_treefile =parser.gt
 lineages = parser.lineages
 lineages_bidrectional = parser.lineagesN
 out_filec=parser.output
-total_count_cutoff=15
-indiv_count_cutoff=0
+total_count_cutoff=5
+indiv_count_cutoff=5
 
 #print(lineages)
 #exit()
@@ -507,11 +605,22 @@ df = df.loc[unique_pairs['original_index']]
 df =df[df.inUnique==True]
 df = df[(df['Count1']+df['Count2'])>total_count_cutoff &  (df['Count1']>indiv_count_cutoff) & (df['Count2']>indiv_count_cutoff)]
 
+#df,sp_string1= convert_species(df,sp_string)
 df.to_csv('results1.csv',index=False)
 
+df['NNI_'] = df.apply(
+    lambda row: essential.find_dist_string(sp, row['Lineage1'], row['Lineage2']),
+    axis=1
+)
+node_map,branch_map,sp_labeled= essential.id_it(sp_string)
+df_converted= essential.idfy_it_direction(df,node_map)
+
 #put it in a network
-sp_labeled =essential.put_network_in_tree(df,sp_string)
+
+sp_labeled =essential.put_network_in_tree(df,sp_labeled)
 network_output=essential.to_network(sp_labeled)
 
 #print(df)
-write_direction(df,network_output,sp,out_filec)
+#print(df_converted)
+write_direction(df_converted,network_output,sp,out_filec)
+

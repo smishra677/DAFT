@@ -26,6 +26,7 @@ class Tree:
         self.donor=[]
         self.receiver=[]
         self.network_tag=''
+        self.id_map_tag=None
         #self.visited=[]
         #self.li=[]
         #self.sp_ev_list=[]
@@ -345,6 +346,43 @@ class Tree:
             val= [str(k) + ':' + str(v) for k,v in dic.items()]
             val1= "["+','.join(val)+"]"
             return val1 if len(val)>0 else  ''
+
+    # Got it From StackOverflow:
+    #https://stackoverflow.com/questions/61117131/how-to-convert-a-binary-tree-to-a-newick-tree-using-python
+    # https://stackoverflow.com/questions/61117131/how-to-convert-a-binary-tree-to-a-newick-tree-using-python
+    
+    def traverse_change(self, newick,letter_to_species):
+        
+        
+
+        if self.leftChild and not self.rightChild:
+            newick = f"(,{self.leftChild.traverse_change(newick,letter_to_species)}){letter_to_species[self.taxa] if self.isLeaf else ''}"
+        elif not self.leftChild and self.rightChild:
+            newick = f"({self.rightChild.traverse_change(newick,letter_to_species)},){letter_to_species[self.taxa] if self.isLeaf else ''}"
+        elif self.leftChild and self.rightChild:
+            newick = f"({self.rightChild.traverse_change(newick,letter_to_species)},{self.leftChild.traverse_change(newick,letter_to_species)}){letter_to_species[self.taxa] if self.isLeaf else ''}"
+        elif not self.leftChild and not self.rightChild :
+            newick = f"{letter_to_species[self.taxa] if self.isLeaf else ''}"
+        else:
+            pass
+        return newick
+
+
+
+
+
+    # Got it From StackOverflow:
+    #https://stackoverflow.com/questions/61117131/how-to-convert-a-binary-tree-to-a-newick-tree-using-python
+    # https://stackoverflow.com/questions/61117131/how-to-convert-a-binary-tree-to-a-newick-tree-using-python
+    
+    def to_newick_change(self,species_to_letters):
+        letter_to_species = {value:key for key,value in species_to_letters.items()}
+
+        newick = ""
+        newick = self.traverse_change(newick,letter_to_species)
+        newick = f"{newick};"
+        return newick
+
 
 
     # Got it From StackOverflow:

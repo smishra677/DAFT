@@ -249,17 +249,16 @@ class daft_essential:
             if tree.isLeaf:
                 ev=''
                 if len(tree.donor)==0 and len(tree.receiver)==0:
-                    return ev+tree.taxa
-                
+                    return ev+f"{tree.taxa}[&label={tree.id_map_tag}]"
 
                 for idx,event in enumerate(tree.donor):
                     if idx==0:
-                        ev= '('+tree.taxa+')'+event
+                        ev= '('+f"{tree.taxa}[&label={tree.id_map_tag}]"+')'+event
                     else:
                         ev='('+ev+')'+event
                 for idx ,event  in  enumerate(tree.receiver):
                     if idx==0 and len(tree.donor)==0:
-                        ev= '('+event+','+tree.taxa+')'
+                        ev= '('+event+','+f"{tree.taxa}[&label={tree.id_map_tag}]"+')'
                     else:
                         #print('==========>')
                         ev='('+ev+','+event+')'
@@ -315,12 +314,12 @@ class daft_essential:
 
 
 
-    def put_network_in_tree(self,df,tree):
+    def put_network_in_tree(self,df,sp):
 
         pairs= self.find_pairs(df)
 
 
-        sp = red.parse(tree)
+        #sp = red.parse(tree)
         sp.label_internal()
         i=1
         current_event = '#H'+str(i)
@@ -541,20 +540,58 @@ class daft_essential:
             return sep.join(map(str, x))
         return str(x)
 
-    def map_pair(self,what_moved,Elist):
+    def map_pair_uncle(self,what_moved,Elist):
+        #print(Elist)
+        #print('###')
+        #print(what_moved)
+
         for pair in Elist:
 
             key=pair[0]
             uncle =pair[1]
-            
+            #print(key,uncle)
         
 
 
             if self.isequal_set(what_moved,key):
+                #print(what_moved)
+                return uncle
+            #if self.isequal_set(what_moved,uncle):
+            #return key
+        for pair in Elist:
+
+            key=pair[0]
+            uncle =pair[1]
+            #print(key,uncle)
+        
+
+
+            #if self.isequal_set(what_moved,key):
+                #print(what_moved)
+                #return uncle
+            if self.isequal_set(what_moved,uncle):
+                return key
+        return None  
+
+    def map_pair_sibling(self,what_moved,Elist):
+        #print(Elist)
+        #print('###')
+        #print(what_moved)
+        for pair in Elist:
+
+            key=pair[0]
+            uncle =pair[1]
+            #print(key,uncle)
+        
+
+
+            if self.isequal_set(what_moved,key):
+                #print(what_moved)
                 return uncle
             if self.isequal_set(what_moved,uncle):
                 return key
         return None  
+
 
     def is_in(self,tree1,tree2):
         if tree1==None or tree2 ==None:
@@ -638,3 +675,158 @@ class daft_essential:
         if mask2.any() and not mask1.any():
             return pd.NA          
         return grouped.loc[mask1&mask2, 'total_count'].sum()
+
+
+
+    def id_it(self,sp_tree):
+        sp =red.parse(sp_tree)
+        id_map_node={}
+        id_map_branch={'From':[],'To':[],'id':[]}
+        counter_node=0
+        counter_branch=0
+        stack=[sp]
+        while stack:
+            current_node = stack.pop()
+            if current_node:
+                current_node.id_map_tag=counter_branch
+                if current_node.parent:
+                    id_map_branch['From']+=[current_node.parent.to_newick()]
+                    id_map_branch['To']+=[current_node.to_newick()]
+                    id_map_branch['id']+=[counter_branch]
+                else:
+                    id_map_branch['From']+=[current_node.to_newick()]
+                    id_map_branch['To']+=[current_node.to_newick()]
+                    id_map_branch['id']+=[counter_branch]
+
+                id_map_node[current_node.to_newick()]=counter_node
+                counter_node=counter_node+1
+                counter_branch = counter_branch+1
+                stack.append(current_node.leftChild)
+                stack.append(current_node.rightChild)
+        
+        
+        return id_map_node,id_map_branch,sp
+
+    def map_id(self,val,id_map_node):
+        for key,value in id_map_node.items():
+            if self.isequal(val,key):
+                return str(value)
+        return None
+
+    def idfy_it(self,dfc,id_map_node):
+        df = dfc.copy()
+        for idx,row in df.iterrows():
+            old_what_moved = row['What_moved']
+            old_where_at = row['Where_at']
+            old_comp_sib = row['comparison_sibling']
+            old_comp_uncle = row['comparison_uncle']
+            
+
+            new_what_moved =self.map_id(old_what_moved,id_map_node)
+            new_where_at = self.map_id(old_where_at,id_map_node)
+            
+            new_comp_sib=old_comp_sib
+            new_comp_uncle= old_comp_uncle
+            if old_comp_sib:
+                
+                new_comp_sib =self.map_id(old_comp_sib,id_map_node)
+                
+            if old_comp_uncle:
+                new_comp_uncle =self.map_id(old_comp_uncle,id_map_node)
+
+            
+            
+            
+            df.loc[idx,'What_moved']=new_what_moved
+            df.loc[idx,'Where_at']=new_where_at
+            df.loc[idx,'comparison_sibling']=new_comp_sib
+            df.loc[idx,'comparison_uncle']=new_comp_uncle
+        return df
+            
+
+    def idfy_it_direction(self,dfc,id_map_node):
+        df= dfc.copy()
+        for idx, row in df.iterrows():
+
+            old_lineage1 = row['Lineage1']
+            old_lineage2 = row['Lineage2']
+            old_what_moved = row['What_moved']
+            old_to_where = row['To_where']
+            
+            #print(old_lineage1,old_lineage2)
+
+            # ---- Minor sibling fields ----
+            old_minor_moved = row['Minor_Moved']
+            old_minor_sibling = row['minor_sibling']
+            old_minor_sib_what = row['minor_sibling_What_moved']
+            old_minor_sib_to_where = row['minor_sibling_To_where']
+
+            # ---- Significant pairs ----
+            old_sig = row['Significant_Pairs']
+            old_receiver, old_donor = '', ''
+
+            if pd.notna(old_sig) and 'AND' in old_sig:
+                parts = old_sig.split('AND')
+                old_receiver = parts[0].strip()
+                old_donor = parts[1].strip()
+
+            # ---- Helper ----
+            def convert_tree(val):
+                if pd.notna(val) and val != '':
+                    return self.map_id(val,id_map_node)
+                return val
+
+            # ---- Convert primary ----
+            new_lineage1 = convert_tree(old_lineage1)
+            new_lineage2 = convert_tree(old_lineage2)
+            new_what_moved = convert_tree(old_what_moved)
+            new_to_where = convert_tree(old_to_where)
+
+            # ---- Convert significant ----
+            new_receiver = convert_tree(old_receiver)
+            new_donor = convert_tree(old_donor)
+
+            # ---- Convert minor ----
+            new_minor_moved = convert_tree(old_minor_moved)
+            new_minor_sibling = convert_tree(old_minor_sibling)
+            new_minor_sib_what = convert_tree(old_minor_sib_what)
+            new_minor_sib_to_where = convert_tree(old_minor_sib_to_where)
+
+            # ---- Store back (ALWAYS write back) ----
+            df.at[idx, 'Lineage1'] = new_lineage1
+            df.at[idx, 'Lineage2'] = new_lineage2
+            df.at[idx, 'What_moved'] = new_what_moved
+            df.at[idx, 'To_where'] = new_to_where
+
+            df.at[idx, 'Minor_Moved'] = new_minor_moved
+            df.at[idx, 'minor_sibling'] = new_minor_sibling
+            df.at[idx, 'minor_sibling_What_moved'] = new_minor_sib_what
+            df.at[idx, 'minor_sibling_To_where'] = new_minor_sib_to_where
+
+            df.at[idx, 'Significant_Pairs'] = str(new_receiver) + ' AND ' + str(new_donor)
+
+        return df
+
+
+    def to_newick_with_id(self,labeled_sp):
+        newick = ""
+        newick = self.traverse_newick_with_id(newick,labeled_sp)
+        newick = f"{newick};"
+        return newick
+
+    def traverse_newick_with_id(self,newick,tree):
+        if tree.leftChild and not tree.rightChild:
+            newick = f"(,{self.traverse_newick_with_id(newick,tree.leftChild)}){self.write_events_with_id(tree)}"
+        elif not tree.leftChild and tree.rightChild:
+            newick = f"({self.traverse_newick_with_id(newick,tree.rightChild)},){self.write_events_with_id(tree)}"
+        elif tree.leftChild and tree.rightChild:
+            newick = f"({self.traverse_newick_with_id(newick,tree.rightChild)},{self.traverse_newick_with_id(newick,tree.leftChild)}){self.write_events_with_id(tree)}"
+        elif not tree.leftChild and not tree.rightChild :
+            newick = f"{self.write_events_with_id(tree)}"
+        else:
+            pass
+        #newick=self.check_internal(newick,tree)
+        return newick
+    
+    def write_events_with_id(self, tree):
+        return f"{tree.taxa}[&label={tree.id_map_tag}]"
