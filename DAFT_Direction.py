@@ -204,15 +204,17 @@ def write_direction(df,network_output,sp,out_filec):
         #subset=df 
         
         for ide, row in df.iterrows():
-            line = ""
-            for i, c in enumerate(TABLE1_COL, 1):
-                val = row[conversion_dic1[c]] if conversion_dic1[c] in row else np.nan
-                s = essential.render_val(c, val)
-                line += f"{s:<{widths_base[c]}}"
-                if i < len(TABLE1_COL):
-                    line += TAB_STR if c in SPECIAL_AFTER else SPACE_SEP
-            line += "\n"
-            f.write(line)
+            NNI_between = row['NNI_']
+            if NNI_between>1:
+                line = ""
+                for i, c in enumerate(TABLE1_COL, 1):
+                    val = row[conversion_dic1[c]] if conversion_dic1[c] in row else np.nan
+                    s = essential.render_val(c, val)
+                    line += f"{s:<{widths_base[c]}}"
+                    if i < len(TABLE1_COL):
+                        line += TAB_STR if c in SPECIAL_AFTER else SPACE_SEP
+                line += "\n"
+                f.write(line)
         f.write("*" * len(header.expandtabs(TABSTOP).rstrip()) + "\n")
         
         f.write("\n") 
@@ -233,15 +235,17 @@ def write_direction(df,network_output,sp,out_filec):
 
         #subset=df 
         for ide, row in df.iterrows():
-            line = ""
-            for i, c in enumerate(TABLE2_COL, 1):
-                val = row[conversion_dic2[c]] if conversion_dic2[c] in row else np.nan
-                s = essential.render_val(c, val)
-                line += f"{s:<{widths_full[c]}}"
-                if i < len(TABLE2_COL):
-                    line += TAB_STR if c in SPECIAL_AFTER else SPACE_SEP
-            line += "\n"
-            f.write(line)
+            NNI_between = row['NNI_']
+            if NNI_between>1:
+                line = ""
+                for i, c in enumerate(TABLE2_COL, 1):
+                    val = row[conversion_dic2[c]] if conversion_dic2[c] in row else np.nan
+                    s = essential.render_val(c, val)
+                    line += f"{s:<{widths_full[c]}}"
+                    if i < len(TABLE2_COL):
+                        line += TAB_STR if c in SPECIAL_AFTER else SPACE_SEP
+                line += "\n"
+                f.write(line)
         
         f.write("*" * len(header.expandtabs(TABSTOP).rstrip()) + "\n")
         f.write("\n") 
@@ -252,20 +256,22 @@ def write_direction(df,network_output,sp,out_filec):
         f.write("INFERRED RELATIONS:\n")
         f.write("=" * 80 + "\n")
         for ide, row in df.iterrows():
-            try:
-                z = row.get("Z_score", np.nan)
-                zs = row.get("Z_score_sibling", np.nan)
-                zf = float(z)
-                zsf = float(zs)
-                is_bidirectional = (not pd.isna(zf)) and (not pd.isna(zsf)) and (zsf<-1.96)
-            except Exception:
-                is_bidirectional = False
+            NNI_between = row['NNI_']
+            if NNI_between>1:
+                try:
+                    z = row.get("Z_score", np.nan)
+                    zs = row.get("Z_score_sibling", np.nan)
+                    zf = float(z)
+                    zsf = float(zs)
+                    is_bidirectional = (not pd.isna(zf)) and (not pd.isna(zsf)) and (zsf<-1.96)
+                except Exception:
+                    is_bidirectional = False
 
-            if is_bidirectional:
-                line = f"{row['Significant_Pairs']:<25}{' RECEIVER:'+row['What_moved']+' AND Donor:'+ row['Minor_Moved'] +'  (BIDIRECTIONAL)'}\n"
-            else:
-                line = f"{row['Significant_Pairs']:<25}{' RECEIVER:'+row['What_moved']+' AND Donor:'+ row['Minor_Moved']}\n"
-            f.write(line)
+                if is_bidirectional:
+                    line = f"{row['Significant_Pairs']:<25}{' RECEIVER:'+row['What_moved']+' AND Donor:'+ row['Minor_Moved'] +'  (BIDIRECTIONAL)'}\n"
+                else:
+                    line = f"{row['Significant_Pairs']:<25}{' RECEIVER:'+row['What_moved']+' AND Donor:'+ row['Minor_Moved']}\n"
+                f.write(line)
 
         f.write("*" * 80 + "\n")
         f.write("\n") 
@@ -612,12 +618,15 @@ df['NNI_'] = df.apply(
     lambda row: essential.find_dist_string(sp, row['Lineage1'], row['Lineage2']),
     axis=1
 )
+
+
 node_map,branch_map,sp_labeled= essential.id_it(sp_string)
 df_converted= essential.idfy_it_direction(df,node_map)
 
 #put it in a network
+df_net = df[(df['NNI_']>1)]
 
-sp_labeled =essential.put_network_in_tree(df,sp_labeled)
+sp_labeled =essential.put_network_in_tree(df_net,sp_labeled)
 network_output=essential.to_network(sp_labeled)
 
 #print(df)
