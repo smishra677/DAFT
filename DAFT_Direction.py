@@ -470,6 +470,13 @@ def run_tranform(lineages_bidrectional,sp_string,list_df):
 
 
                 df=pd.read_csv('./djiNNI_out_'+lineage1[:-1]+'_'+lineage2[:-1]+'.csv',sep=',')
+                #print(df)
+                
+                #import pprint
+                #pprint.pprint(df.to_dict()['Sibling'])
+                #print('-->')
+                #pprint.pprint(df.to_dict()['What_moved'])
+                #print(sp_tree_lineages)
                 
                 df["Sibling"] = df["Sibling"].apply(lambda v: essential.match_lineage(v, sp_tree_lineages))
                 df["What_moved"] = df["What_moved"].apply(lambda v: essential.match_lineage(v, sp_tree_lineages))

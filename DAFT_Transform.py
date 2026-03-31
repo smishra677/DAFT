@@ -270,7 +270,7 @@ def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2):
         red= readWrite.readWrite()
         
 
-        visited_list=[]
+        #visited_list=[]
         visited,value_list1,value_list,dic=account_trios(tracker)
         
 
@@ -280,25 +280,30 @@ def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2):
         dic =merge_moving(dic,red)
         
         moving_taxas=querry_lineage(dic,lineage1,lineage2)
-        
+        #print('==>',moving_taxas,lineage1,lineage2)
         overall_return={}
         moving_taxas=[moving_taxas]
         path=0
-        for move_ in moving_taxas:
-                tree_= red.parse(move_)
+        #for move_ in moving_taxas:
+        #tree_= red.parse(move_)
 
-                tree_.label_internal()
-                val_nni =get_nni(tree_,test_dic)
-                flag_nni, cur_address =nni_possible(tree_.taxa,sp,gt)                                        
-                loop_= [[move_,flag_nni,val_nni,cur_address]]
+        #tree_.label_internal()
+        #val_nni =get_nni(tree_,test_dic)
+        #print('xxxx>',tree_.taxa,sp,gt.to_newick())
+        #flag_nni, cur_address =nni_possible(tree_.taxa,sp,gt)                                        
+        #loop_= [[move_,flag_nni,val_nni,cur_address]]
 
-                for move_,flag_nni,val_nni,cur_address in loop_:
-                        if cur_address:
-                                if  not_in(cur_address.parent.to_newick(),visited_list):
-                                        sibling =[chilee for chilee in cur_address.parent.children if chilee!=cur_address ][0]
-                                        overall_return[path]={'From_Where_moved':cur_address.parent.to_newick(),'Sibling':sibling.to_newick(),'What_moved':move_,'NNI':val_nni}
-                                        visited_list.append(cur_address.parent.to_newick())
-                                        path=path+1
+        #for move_,flag_nni,val_nni,cur_address in loop_:
+        #if cur_address:
+        #if  not_in(cur_address.parent.to_newick(),visited_list):
+        #print(moving_taxas,lineage2)
+        if moving_taxas[0]==lineage2:
+                #sibling =[chilee for chilee in cur_address.parent.children if chilee!=cur_address ][0]
+                overall_return[path]={'Sibling':lineage1,'What_moved':lineage2,'NNI':1}
+                #visited_list.append(cur_address.parent.to_newick())
+                
+        elif moving_taxas[0]==lineage1:
+                overall_return[path]={'Sibling':lineage2,'What_moved':lineage1,'NNI':1}
                                                 
                              
                              
@@ -428,16 +433,20 @@ for k,gene_tree in enumerate(gt_list):
                 if len(tracker)>=1:
                         table=tabulate(tracker,sp,tr,test_dic,lineage1,lineage2)
                         added=0
+                        
+                        #print(table)
                         for path in table:
                                 write_intro['idx']+=[k]
                                 write_intro['Replicate']+=[reco.gene_tree.to_newick()]
                                 write_intro['Path']+=[path]
                                 write_intro['NNI']+=[1]#table[path]['NNI']]
-                                write_intro['From_Where_moved']+=[table[path]['From_Where_moved']]
+                                write_intro['From_Where_moved']+=["("+lineage2[:-1]+","+lineage1[:-1]+")"]
                                 write_intro['What_moved']+=[table[path]['What_moved']]
                                 write_intro['Sibling']+=[table[path]['Sibling']]
                 else:            
-                        #print('We are here')   
+                        print(gene_tree_string,tracker)
+                        print('We are here')
+                        exit()   
                         write_intro['Replicate']+=[reco.gene_tree.to_newick()]
                         write_intro['Path']+=[0]
                         write_intro['NNI']+=[0]
