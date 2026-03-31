@@ -448,11 +448,12 @@ def run_tranform(lineages_bidrectional,sp_string,list_df):
 
 
             if len(filtered_data)!=0:
+                
 
                 script = "./DAFT_Transform.py"  
                 #sp = sp_string
                 lineages1 = f"{lineage1}/{lineage2}"   
-
+                #print(lineages1)
 
 
                 output = "out"

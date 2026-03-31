@@ -443,10 +443,12 @@ for k,gene_tree in enumerate(gt_list):
                                 write_intro['From_Where_moved']+=["("+lineage2[:-1]+","+lineage1[:-1]+")"]
                                 write_intro['What_moved']+=[table[path]['What_moved']]
                                 write_intro['Sibling']+=[table[path]['Sibling']]
-                else:            
-                        print(gene_tree_string,tracker)
-                        print('We are here')
-                        exit()   
+                else:   
+                             
+                        #print(gene_tree_string,tracker)
+                        #print('We are here')
+                        #exit() 
+                        '''  
                         write_intro['Replicate']+=[reco.gene_tree.to_newick()]
                         write_intro['Path']+=[0]
                         write_intro['NNI']+=[0]
@@ -454,6 +456,8 @@ for k,gene_tree in enumerate(gt_list):
                         write_intro['What_moved']+=['N/A']
                         write_intro['idx']+=[k]
                         write_intro['Sibling']+=['N/A']
+                        '''
+                        continue  
                                 
                 intro_df= pd.DataFrame(write_intro)
                 intro_df.to_csv('djiNNI_'+output+'.csv', index=False)
