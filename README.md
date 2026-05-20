@@ -74,7 +74,7 @@ Run DAFT commands from this directory. The current version uses relative imports
 
 DAFT requires Python 3.
 
-I recommend creating a clean environment:
+We recommend creating a clean environment:
 
 ```bash
 conda create -n daft python=3.10
@@ -189,7 +189,7 @@ DAFT_extras/
 
 ## 5. Recommended First Run
 
-For a first analysis, I recommend running the significance step first without automatic direction inference:
+For a first analysis, werecommend running the significance step first without automatic direction inference:
 
 ```bash
 python3 DAFT_Significance.py \
