@@ -1,7 +1,7 @@
 # DAFT User Guide
 
 
-DAFT, the **Discordant Attachment Frequency Test**, is a Python package for detecting and characterizing introgression from a rooted species tree and a collection of gene trees.
+DAFT, the **Discordant Attachment Frequency Tool**, is a Python package for detecting and characterizing introgression from a rooted species tree and a collection of gene trees.
 
 This guide shows how to install DAFT, prepare input files, run the main analyses, and interpret the output.
 
@@ -11,8 +11,8 @@ This guide shows how to install DAFT, prepare input files, run the main analyses
 
 DAFT has two main components:
 
-1. **DAFT Significance**
-   - Implemented in `DAFT_Significance.py`
+1. **DAFT Test**
+   - Implemented in `DAFT_Test.py`
    - Counts discordant attachments between branches of a species tree across gene trees
    - Tests whether a lineage pair appears together more often than expected
    - Reports test counts, comparison counts, and Z-scores
@@ -30,7 +30,7 @@ A typical DAFT workflow is:
 species tree + gene trees
         |
         v
-DAFT_Significance.py
+DAFT_Test.py
         |
         v
 significant lineage pairs
@@ -56,7 +56,7 @@ cd DAFT
 The main DAFT directory should contain:
 
 ```text
-DAFT_Significance.py
+DAFT_Test.py
 DAFT_Direction.py
 DAFT_Transform.py
 DAFT_produce_excel.py
