@@ -189,7 +189,7 @@ DAFT_extras/
 
 ## 5. Recommended First Run
 
-For a first analysis, werecommend running the significance step first without automatic direction inference:
+For a first analysis, we recommend running the significance step first without automatic direction inference:
 
 ```bash
 python3 DAFT_Significance.py \
