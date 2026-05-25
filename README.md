@@ -66,7 +66,13 @@ excel_direction.py
 DAFT_utils/
 ```
 
-Run DAFT commands from this directory. The current version uses relative imports to access files in `DAFT_utils/`.
+Run DAFT commands from this directory. By default, DAFT looks for helper code in `./DAFT_utils`.
+
+If you run DAFT from another location, pass the utility path explicitly using:
+
+```bash
+--path /path/to/DAFT_utils
+```
 
 ---
 
@@ -84,7 +90,7 @@ conda activate daft
 Then install the required Python packages:
 
 ```bash
-pip install numpy pandas ete3 openpyxl
+pip install numpy pandas matplotlib igraph ete3 openpyxl rich
 ```
 
 The most important dependencies are:
@@ -92,6 +98,8 @@ The most important dependencies are:
 ```text
 numpy
 pandas
+matplotlib
+igraph
 ete3
 openpyxl
 rich
@@ -102,7 +110,13 @@ If you do not want to use conda, you can use a normal Python virtual environment
 ```bash
 python3 -m venv daft-env
 source daft-env/bin/activate
-pip install numpy pandas ete3 openpyxl
+pip install numpy pandas matplotlib igraph ete3 openpyxl rich
+```
+
+You can also install DAFT from the repository root in editable mode:
+
+```bash
+pip install -e .
 ```
 
 ---
@@ -164,6 +178,7 @@ The easiest way to run DAFT is to run `DAFT_Test.py` and let it automatically ca
 python3 DAFT_Test.py \
   --sp "(A,(((W,V),(B,U)),((((K,L),(M,N)),(J,((E,(D,H)),((C,I),(G,F))))),(T,(S,(O,((Q,R),P)))))));" \
   --gt "test_data.csv" \
+  --path "./DAFT_utils" \
   --output "output" \
   --sibling 1 \
   --excel 1 \
@@ -196,6 +211,7 @@ For a first analysis, we recommend running the significance step first without a
 python3 DAFT_Test.py \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
+  --path "./DAFT_utils" \
   --output "output" \
   --sibling 1 \
   --excel 1 \
@@ -216,7 +232,9 @@ After identifying significant lineage pairs, run direction inference manually:
 python3 DAFT_Direction.py \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
+  --path "./DAFT_utils" \
   --lineages "[('B;', 'K;'), ('M;', 'E;')]" \
+  --verbose 1 \
   --output "output"
 ```
 
@@ -224,7 +242,7 @@ This two-step workflow is the safest way to understand what DAFT is doing.
 
 ---
 
-## 6. DAFT Significance Arguments
+## 6. DAFT Test Arguments
 
 ### `--sp`
 
@@ -246,6 +264,24 @@ Example:
 
 ```bash
 --gt "test_data.csv"
+```
+
+---
+
+### `--path`
+
+Path to the DAFT utility folder. The default is:
+
+```bash
+--path "./DAFT_utils"
+```
+
+Use this when running a DAFT script from outside the repository root or when `DAFT_utils/` is stored elsewhere.
+
+Example:
+
+```bash
+--path "/path/to/DAFT_utils"
 ```
 
 ---
@@ -698,7 +734,9 @@ Example:
 python3 DAFT_Direction.py \
   --sp "(A,(((W,V),(B,U)),((((K,L),(M,N)),(J,((E,(D,H)),((C,I),(G,F))))),(T,(S,(O,((Q,R),P)))))));" \
   --gt "test_data.csv" \
+  --path "./DAFT_utils" \
   --lineages "[('B;', 'K;'), ('M;', 'E;')]" \
+  --verbose 1 \
   --output "output"
 ```
 
@@ -722,6 +760,35 @@ Species tree in Newick format.
 ### `--gt`
 
 CSV file containing gene trees.
+
+---
+
+### `--path`
+
+Path to the DAFT utility folder. The default is:
+
+```bash
+--path "./DAFT_utils"
+```
+
+This is useful when running `DAFT_Direction.py` from outside the repository root.
+
+---
+
+### `--verbose`
+
+Controls whether DAFT Direction prints additional progress messages.
+
+```text
+1 = verbose output
+0 = quieter output
+```
+
+Example:
+
+```bash
+--verbose 1
+```
 
 ---
 
@@ -898,6 +965,7 @@ Use this when you only want DAFT significance results:
 python3 DAFT_Test.py \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
+  --path "./DAFT_utils" \
   --output "output" \
   --sibling 1 \
   --excel 1 \
@@ -922,6 +990,7 @@ Use this when lineages or clades are observed unequally across gene trees:
 python3 DAFT_Test.py \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
+  --path "./DAFT_utils" \
   --output "output" \
   --sibling 1 \
   --excel 1 \
@@ -941,7 +1010,9 @@ Use this after inspecting the significance output:
 python3 DAFT_Direction.py \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
+  --path "./DAFT_utils" \
   --lineages "[('B;', 'K;'), ('M;', 'E;')]" \
+  --verbose 1 \
   --output "output"
 ```
 
@@ -961,6 +1032,7 @@ Use this when you want DAFT to run significance and direction inference together
 python3 DAFT_Test.py \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
+  --path "./DAFT_utils" \
   --output "output" \
   --sibling 1 \
   --excel 1 \
@@ -979,7 +1051,41 @@ DAFT_extras/
 
 ---
 
-## 16. Troubleshooting
+## 16. Rich Progress Dashboard and Verbose Output
+
+`DAFT_Transform.py` uses `rich` to show a terminal progress dashboard during the djiNNI transformation step.
+
+The dashboard can be controlled with:
+
+```bash
+--progress 1
+```
+
+or disabled with:
+
+```bash
+--progress 0
+```
+
+`DAFT_Direction.py` and `DAFT_Transform.py` also accept:
+
+```bash
+--verbose 1
+```
+
+for more detailed terminal output, or:
+
+```bash
+--verbose 0
+```
+
+for quieter output.
+
+When `DAFT_Direction.py` calls `DAFT_Transform.py`, these flags can be passed through the workflow so the direction step can be run either with progress messages or quietly.
+
+---
+
+## 17. Troubleshooting
 
 ### `ModuleNotFoundError: No module named 'reconcILS'`
 
@@ -990,7 +1096,13 @@ cd DAFT
 python3 DAFT_Test.py ...
 ```
 
-The current version uses relative paths to find `DAFT_utils/`.
+Or pass the utility folder explicitly:
+
+```bash
+python3 DAFT_Test.py --path /path/to/DAFT_utils ...
+```
+
+By default, DAFT uses `./DAFT_utils`.
 
 ---
 
@@ -1001,6 +1113,18 @@ Install `ete3`:
 ```bash
 pip install ete3
 ```
+
+---
+
+### `ModuleNotFoundError: No module named 'rich'`
+
+Install `rich`:
+
+```bash
+pip install rich
+```
+
+`rich` is used for the terminal progress dashboard in the direction/transform workflow.
 
 ---
 
@@ -1059,7 +1183,7 @@ to map output labels back to the original species tree.
 
 ---
 
-## 17. How We Recommend Reporting DAFT Results
+## 18. How We Recommend Reporting DAFT Results
 
 When reporting DAFT results, include:
 
