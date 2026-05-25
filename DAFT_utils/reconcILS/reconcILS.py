@@ -935,7 +935,7 @@ class reconcils:
                             if len(left_.intersection(tr_))==0:
                                 #print('loss')
                                 sp.leftChild.evolve='Loss'
-                                self.copy_loss(tr,self.gene_tree,sp.leftChild)
+                                #self.copy_loss(tr,self.gene_tree,sp.leftChild)
                                 eve.append([sp.taxa, sp.leftChild.taxa,'L',sp.leftChild.isLeaf])
                                 stack.append((tr,sp.rightChild,introgression))
 
@@ -944,7 +944,7 @@ class reconcils:
                                 sp.rightChild.evolve='Loss'
                                 eve.append([sp.taxa, sp.rightChild.taxa,'L',sp.rightChild.isLeaf])
                                 #print('loss1')
-                                self.copy_loss(tr,self.gene_tree,sp.rightChild)
+                                #self.copy_loss(tr,self.gene_tree,sp.rightChild)
                                 stack.append((tr,sp.leftChild,introgression))
                             
 
@@ -971,7 +971,7 @@ class reconcils:
                             sp.evolve= 'Speciation'
                             if len(left_.intersection(tr_))==0:
                                 #print('loss2')
-                                self.copy_loss(tr,self.gene_tree,sp.leftChild)
+                                #self.copy_loss(tr,self.gene_tree,sp.leftChild)
                                 sp.leftChild.evolve='Loss'
                                 eve.append([sp.taxa, sp.leftChild.taxa,'L',sp.leftChild.isLeaf])
                             
@@ -981,7 +981,7 @@ class reconcils:
                                 sp.rightChild.evolve='Loss'
                                 eve.append([sp.taxa, sp.rightChild.taxa,'L',sp.rightChild.isLeaf])
                                 #print('loss3')
-                                self.copy_loss(tr,self.gene_tree,sp.rightChild)
+                                #self.copy_loss(tr,self.gene_tree,sp.rightChild)
                                 #print('done')
                                 stack.append((tr,sp.leftChild,introgression))
         

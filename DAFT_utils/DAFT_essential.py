@@ -8,6 +8,20 @@ import pandas as pd
 import numpy as np
 from utils_reconcILS import *
 from reconcILS import *
+import numpy as np
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message="Downcasting object dtype arrays on .*fillna.*",
+    category=FutureWarning,
+)
+
+warnings.filterwarnings(
+    "ignore",
+    message="DataFrameGroupBy.apply operated on the grouping columns.*",
+    category=DeprecationWarning,
+)
         
 reco =reconcils()
 red= readWrite.readWrite()
@@ -50,6 +64,178 @@ class daft_essential:
 
         
         return [i[0]  for i in returni]
+
+
+
+    def project_z_score_z(self, dummy, flag, df):
+        
+        mask = dummy['comparison_' + flag].notna() & (dummy[flag + '_count'] == 0)
+
+        dummy[flag + '_count'] = dummy[flag + '_count'].astype(float)
+        dummy.loc[mask, flag + '_count'] += 5e-5
+
+        dummy['total_count'] = dummy['total_count'].astype(float)
+        dummy.loc[mask, 'total_count'] += 5e-5
+        
+        
+        x1 = dummy[flag+'_count'].astype(float)
+        x2 = dummy['total_count'].astype(float)
+        
+        n1 = dummy[flag+'_count_population'].astype(float)
+        n2 = dummy['test_count_population'].astype(float)
+        
+        
+        dummy['Z-value-'+flag] = np.nan  
+        
+        denom = np.sqrt(x1 + x2)
+
+        mask = dummy['comparison_'+flag].notna() & (denom != 0)
+        dummy.loc[mask, 'Z-value-'+flag] = (x1 - x2) / denom
+        
+        dummy['Z-value-'+flag+'_corrected_scaled_down'] = np.nan  
+  
+        
+        x1_copy=x1
+        x2_copy=x2
+        
+        scale_x1 = n2 < n1
+        scale_x2 = ~scale_x1
+
+        #x1.loc[scale_x1] = (x1.loc[scale_x1] / n1.loc[scale_x1]) * n2.loc[scale_x1]
+        #x2.loc[scale_x2] = (x2.loc[scale_x2] / n2.loc[scale_x2]) * n1.loc[scale_x2]
+        x1 = x1.where(~scale_x1, x1 / n1 * n2)
+        x2 = x2.where(~scale_x2, x2 / n2 * n1)   
+        
+        
+        dummy[flag+'_count_scaled_down'] = x1 
+        dummy[flag+'_total_count_scaled_down'] = x2
+        
+        #print(x2)
+        
+        #dummy[flag+'_count'] = x1
+        #dummy['total_count'] = x2
+        
+        #print(dummy['total_count'])
+        denom = np.sqrt(x1 + x2)
+
+        mask = dummy['comparison_'+flag].notna() & (denom != 0)
+        dummy.loc[mask, 'Z-value-'+flag+'_corrected_scaled_down'] = (x1 - x2) / denom
+        
+        
+
+    def project_z_score(self, dummy, flag, df):
+        
+        mask = dummy['comparison_' + flag].notna() & (dummy[flag + '_count'] == 0)
+
+        dummy[flag + '_count'] = dummy[flag + '_count'].astype(float)
+        dummy.loc[mask, flag + '_count'] += 5e-5
+
+        dummy['total_count'] = dummy['total_count'].astype(float)
+        dummy.loc[mask, 'total_count'] += 5e-5
+        
+        
+        x1 = dummy[flag+'_count'].astype(float)
+        x2 = dummy['total_count'].astype(float)
+        
+        n1 = dummy[flag+'_count_population'].astype(float)
+        n2 = dummy['test_count_population'].astype(float)
+        
+        
+        dummy['Z-value-'+flag] = np.nan  
+        
+        denom = np.sqrt(x1 + x2)
+
+        mask = dummy['comparison_'+flag].notna() & (denom != 0)
+        dummy.loc[mask, 'Z-value-'+flag] = (x1 - x2) / denom
+        
+        dummy['Z-value-'+flag+'_corrected_scaled_down'] = np.nan  
+  
+        
+        x1_copy=x1
+        x2_copy=x2
+        
+        scale_x1 = n2 < n1
+        scale_x2 = ~scale_x1
+
+        #x1.loc[scale_x1] = (x1.loc[scale_x1] / n1.loc[scale_x1]) * n2.loc[scale_x1]
+        #x2.loc[scale_x2] = (x2.loc[scale_x2] / n2.loc[scale_x2]) * n1.loc[scale_x2]
+        x1 = x1.where(~scale_x1, x1 / n1 * n2)
+        x2 = x2.where(~scale_x2, x2 / n2 * n1)   
+        
+        
+        dummy[flag+'_count_scaled_down'] = x1 
+        dummy[flag+'_total_count_scaled_down'] = x2
+        
+        #print(x2)
+        
+        #dummy[flag+'_count'] = x1
+        #dummy['total_count'] = x2
+        
+        #print(dummy['total_count'])
+        denom = np.sqrt(x1 + x2)
+
+        mask = dummy['comparison_'+flag].notna() & (denom != 0)
+        dummy.loc[mask, 'Z-value-'+flag+'_corrected_scaled_down'] = (x1 - x2) / denom
+        
+        
+        
+        dummy['Z-value-'+flag+'_corrected_scaled_up'] = np.nan
+
+        #x1.loc[scale_x1] = (x1.loc[scale_x1] / n1.loc[scale_x1]) * n2.loc[scale_x1]
+        #x2.loc[scale_x2] = (x2.loc[scale_x2] / n2.loc[scale_x2]) * n1.loc[scale_x2]
+        x1_copy = x1_copy.where(scale_x1, x1_copy / n1 * n2)
+        x2_copy = x2_copy.where(scale_x2, x2_copy / n2 * n1)   
+        
+        
+        dummy[flag+'_count_scaled_up'] = x1_copy 
+        dummy[flag+'_total_count_scaled_up'] = x2_copy
+        #print(x2)
+        
+        #dummy[flag+'_count'] = x1
+        #dummy['total_count'] = x2
+        
+        #print(dummy['total_count'])
+        denom = np.sqrt(x1_copy + x2_copy)
+
+        mask = dummy['comparison_'+flag].notna() & (denom != 0)
+        dummy.loc[mask, 'Z-value-'+flag+'_corrected_scaled_up'] = (x1_copy - x2_copy) / denom
+        
+        
+
+    def calculate_pooled_z(self,dummy,flag,df):
+        
+        x1 = dummy[flag+'_count'].astype(float)
+        x2 = dummy['total_count'].astype(float)
+        
+        n1 = dummy[flag+'_count_population'].astype(float)
+        n2 = dummy['test_count_population'].astype(float)
+        #print(n1,n2)
+        
+        
+        
+        df['Z-value-'+flag] = np.nan  
+       
+        
+        #ummy.loc[mask, 'Z-value-'+flag] = (X - Y) / denom
+       
+        p1 = x1 / n1
+        p2 = x2 / n2
+        
+      
+        p_pooled = (x1 + x2) / (n1 + n2)
+        
+       
+        #if p_pooled == 0 or p_pooled == 1:
+        #return 0.0
+            
+        
+        se = np.sqrt(p_pooled * (1 - p_pooled) * (1/n1 + 1/n2))
+        
+
+        z = (p1 - p2) / se
+        denom = np.sqrt(x1 + x2)
+        mask = dummy['comparison_'+flag].notna() & (denom != 0)
+        dummy.loc[mask, 'Z-value-'+flag] =round(z, 4)
 
 
     def current_address(self,taxa,gene_tree):
@@ -485,7 +671,7 @@ class daft_essential:
         return df
 
     # ---------- styling----------
-    def render_val(self,col, v):
+    def render_val_2(self,col, v):
         if col in ("Z_score", "Z_score_sibling"):
             return "-" if pd.isna(v) else f"{float(v):.2f}"
         elif col in ("Total_gene_trees", "Count1", "Count2",
@@ -501,7 +687,7 @@ class daft_essential:
             return "" if v is None or (isinstance(v, float) and math.isnan(v)) else str(v)
         
     
-    def render_val(self,col, v):
+    def render_val_1(self,col, v):
         if col in ("Z_score", "Z_score_sibling"):
             return "-" if pd.isna(v) else f"{float(v):.2f}"
         elif col in (
@@ -628,7 +814,7 @@ class daft_essential:
 
 
     def render_val(self,col, v):
-        if col in ('Z-value-uncle', 'Z-value-sibling'):
+        if col in ('Z-value-uncle', 'Z-value-sibling','Z-value-sibling_corrected_scaled_down','Z-value-uncle_corrected_scaled_down'):
             return '-' if pd.isna(v) or v=='' else f"{float(v):.2f}"
         elif col in ('total_count', 'uncle_count', 'sibling_count','Z_score_sibling','Minor_moved_count'):
             if pd.isna(v) or v =='':
@@ -643,7 +829,6 @@ class daft_essential:
                 return '-'
         else:
             return '' if v is None or (isinstance(v, float) and math.isnan(v)) else str(v)
-
 
     def _fix_group_nested(self,df):
         what_list = df['What_moved'].tolist()
@@ -668,6 +853,41 @@ class daft_essential:
         return grouped.loc[mask1&mask2, 'total_count'].sum()
 
 
+    def _sibling_population_count(self,row,grouped):
+        siblings = row['comparison_sibling']
+        mask = grouped['Where_at'].apply(lambda x: self.isequal_set(x, siblings))
+        total = grouped.loc[mask, 'total_count'].sum()
+        dfer =pd.read_csv('./rev_all_corrected.csv')
+        
+        mask1 = dfer['Topo'].apply(lambda x: self.isequal_set(x, siblings))
+        total1 = dfer.loc[mask1, 'junk_count'].sum()
+        #total1=0
+        return (total+total1) if (total > 0) else pd.NA
+    
+    
+    def _uncle_population_count(self,row,grouped):
+        uncle = row['comparison_uncle']
+        mask = grouped['Where_at'].apply(lambda x: self.isequal_set(x, uncle))
+        total = grouped.loc[mask, 'total_count'].sum()
+        dfer =pd.read_csv('./rev_all_corrected.csv')
+        
+        mask1 = dfer['Topo'].apply(lambda x: self.isequal_set(x, uncle))
+        total1 = dfer.loc[mask1, 'junk_count'].sum()
+        #total1=0
+        return (total+total1) if (total > 0) else pd.NA
+    
+    def _test_population_count(self,row,grouped):
+        test = row['What_moved']
+        mask = grouped['Where_at'].apply(lambda x: self.isequal_set(x, test))
+        total = grouped.loc[mask, 'total_count'].sum()
+        
+        dfer =pd.read_csv('./rev_all_corrected.csv')
+        mask1 = dfer['Topo'].apply(lambda x: self.isequal_set(x, test))
+        total1 = dfer.loc[mask1, 'junk_count'].sum()
+        #total1=0
+        return (total+total1) if (total > 0) else pd.NA
+    
+    
     def _sibling_count(self,row,grouped):
         mask1 = grouped['What_moved'].apply(lambda x: self.isequal_set(x, row['comparison_sibling'])) 
         mask2 = grouped['Where_at'].apply(lambda x: self.isequal_set(x, row['Where_at']))
@@ -676,6 +896,23 @@ class daft_essential:
             return pd.NA          
         return grouped.loc[mask1&mask2, 'total_count'].sum()
 
+    def _is_uncle(self,lineage1,lineage2,sp_string):
+        l1=red.parse(lineage1)
+        l2=red.parse(lineage2)
+        l1.label_internal()
+        l2.label_internal()
+        sp=red.parse(sp_string)
+        sp.label_internal()
+
+        curr_1=self.current_address(l1.taxa,sp)
+        if curr_1:
+            if curr_1.parent:
+                if curr_1.parent.parent:
+                    other_child =[chil for chil in curr_1.parent.parent.children if chil!=curr_1.parent][0]
+                    if other_child.taxa==l2.taxa:
+                        return True
+                    else:
+                        return False
 
 
     def id_it(self,sp_tree):

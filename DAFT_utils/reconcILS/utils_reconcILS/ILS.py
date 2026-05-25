@@ -387,7 +387,8 @@ class ILS:
         geneTree = gene_tree.deepcopy()
         geneTree.reset()
 
-        if len(child) == 1:
+        #if len(child) == 1:
+        if 1==1:
             ##print(introgression)
             ##print('*******************************************')
             list_tree = child[0][0].NNI(geneTree, child[0][2])
