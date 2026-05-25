@@ -20,6 +20,7 @@ setup(
         "igraph",
         "ete3",
         "openpyxl",
+        "rich",
     ],
     classifiers=[
         "Programming Language :: Python :: 3",
