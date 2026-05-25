@@ -78,16 +78,10 @@ If you run DAFT from another location, pass the utility path explicitly using:
 
 ## 2. Install Dependencies
 
+
 DAFT requires Python 3.
 
-We recommend creating a clean environment:
-
-```bash
-conda create -n daft python=3.10
-conda activate daft
-```
-
-Then install the required Python packages:
+Install the required Python packages:
 
 ```bash
 pip install numpy pandas matplotlib igraph ete3 openpyxl rich
@@ -105,19 +99,6 @@ openpyxl
 rich
 ```
 
-If you do not want to use conda, you can use a normal Python virtual environment:
-
-```bash
-python3 -m venv daft-env
-source daft-env/bin/activate
-pip install numpy pandas matplotlib igraph ete3 openpyxl rich
-```
-
-You can also install DAFT from the repository root in editable mode:
-
-```bash
-pip install -e .
-```
 
 ---
 
