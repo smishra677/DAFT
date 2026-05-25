@@ -94,6 +94,7 @@ numpy
 pandas
 ete3
 openpyxl
+rich
 ```
 
 If you do not want to use conda, you can use a normal Python virtual environment:
@@ -157,10 +158,10 @@ The current code reads the CSV using `pandas.read_csv(...).to_numpy()` and uses 
 
 ## 4. Quick Start: Run the Full DAFT Workflow
 
-The easiest way to run DAFT is to run `DAFT_Significance.py` and let it automatically call `DAFT_Direction.py`.
+The easiest way to run DAFT is to run `DAFT_Test.py` and let it automatically call `DAFT_Direction.py`.
 
 ```bash
-python3 DAFT_Significance.py \
+python3 DAFT_Test.py \
   --sp "(A,(((W,V),(B,U)),((((K,L),(M,N)),(J,((E,(D,H)),((C,I),(G,F))))),(T,(S,(O,((Q,R),P)))))));" \
   --gt "test_data.csv" \
   --output "output" \
@@ -192,7 +193,7 @@ DAFT_extras/
 For a first analysis, we recommend running the significance step first without automatic direction inference:
 
 ```bash
-python3 DAFT_Significance.py \
+python3 DAFT_Test.py \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
   --output "output" \
@@ -204,8 +205,8 @@ python3 DAFT_Significance.py \
 Then inspect:
 
 ```text
-DAFT_results/DAFT_Significance_output.txt
-DAFT_results/DAFT_Significance_output.xlsx
+DAFT_results/DAFT_Test_output.txt
+DAFT_results/DAFT_Test_output.xlsx
 DAFT_results/branch_map.csv
 ```
 
@@ -262,8 +263,8 @@ Example:
 This produces files such as:
 
 ```text
-DAFT_Significance_output.txt
-DAFT_Significance_output.xlsx
+DAFT_Test_output.txt
+DAFT_Test_output.xlsx
 DAFT_Direction_output.txt
 ```
 
@@ -306,7 +307,7 @@ Example:
 When enabled, DAFT creates:
 
 ```text
-DAFT_Significance_output.xlsx
+DAFT_Test_output.xlsx
 ```
 
 ---
@@ -317,7 +318,7 @@ Controls whether DAFT automatically runs direction inference after the significa
 
 ```text
 1 = automatically run DAFT_Direction.py
-0 = only run DAFT_Significance.py
+0 = only run DAFT_Test.py
 ```
 
 Example:
@@ -430,8 +431,8 @@ This folder contains the main output files.
 Typical files include:
 
 ```text
-DAFT_Significance_output.txt
-DAFT_Significance_output.xlsx
+DAFT_Test_output.txt
+DAFT_Test_output.xlsx
 DAFT_Direction_output.txt
 branch_map.csv
 important_output.csv
@@ -441,7 +442,7 @@ Some files only appear when the corresponding option is enabled.
 
 For example:
 
-- `DAFT_Significance_output.xlsx` appears when `--excel 1`
+- `DAFT_Test_output.xlsx` appears when `--excel 1`
 - `DAFT_Direction_output.txt` appears when `--direction 1` or when direction inference is run separately
 - `branch_map.csv` maps DAFT branch labels back to the original species tree
 
@@ -485,9 +486,9 @@ Use this file whenever an output branch label is hard to interpret.
 
 ---
 
-## 9. Understanding `DAFT_Significance_output.txt`
+## 9. Understanding `DAFT_Test_output.txt`
 
-This is the main output file from `DAFT_Significance.py`.
+This is the main output file from `DAFT_Test.py`.
 
 It contains one section for each focal lineage.
 
@@ -894,7 +895,7 @@ This network can be visualized using a tree or network visualization tool that s
 Use this when you only want DAFT significance results:
 
 ```bash
-python3 DAFT_Significance.py \
+python3 DAFT_Test.py \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
   --output "output" \
@@ -906,8 +907,8 @@ python3 DAFT_Significance.py \
 Main outputs:
 
 ```text
-DAFT_results/DAFT_Significance_output.txt
-DAFT_results/DAFT_Significance_output.xlsx
+DAFT_results/DAFT_Test_output.txt
+DAFT_results/DAFT_Test_output.xlsx
 DAFT_results/branch_map.csv
 ```
 
@@ -918,7 +919,7 @@ DAFT_results/branch_map.csv
 Use this when lineages or clades are observed unequally across gene trees:
 
 ```bash
-python3 DAFT_Significance.py \
+python3 DAFT_Test.py \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
   --output "output" \
@@ -957,7 +958,7 @@ DAFT_Direction_output.txt
 Use this when you want DAFT to run significance and direction inference together:
 
 ```bash
-python3 DAFT_Significance.py \
+python3 DAFT_Test.py \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
   --output "output" \
@@ -969,8 +970,8 @@ python3 DAFT_Significance.py \
 Main outputs:
 
 ```text
-DAFT_results/DAFT_Significance_output.txt
-DAFT_results/DAFT_Significance_output.xlsx
+DAFT_results/DAFT_Test_output.txt
+DAFT_results/DAFT_Test_output.xlsx
 DAFT_results/DAFT_Direction_output.txt
 DAFT_results/branch_map.csv
 DAFT_extras/
@@ -986,7 +987,7 @@ Run DAFT from the main DAFT directory:
 
 ```bash
 cd DAFT
-python3 DAFT_Significance.py ...
+python3 DAFT_Test.py ...
 ```
 
 The current version uses relative paths to find `DAFT_utils/`.
