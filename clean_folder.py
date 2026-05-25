@@ -23,7 +23,8 @@ dst_dir_results = Path("DAFT_results")
 dst_dir_extra.mkdir(exist_ok=True)
 dst_dir_results.mkdir(exist_ok=True)
 
-prefixes = ("introgression", "rev", "result" ,"Summary", "djiNNI")
+prefixes = ("introgression", "rev", "result" , "djiNNI", "list_")
+#prefixes = ("introgression", "rev", "result" , "djiNNI")
 
 
 for csv in src_dir.glob("*.csv"):
@@ -32,15 +33,15 @@ for csv in src_dir.glob("*.csv"):
 
 
 shutil.move(
-    f"DAFT_Significance_{output}.txt",
-    Path(dst_dir_results, f"DAFT_Significance_{output}.txt")
+    f"DAFT_Test_{output}.txt",
+    Path(dst_dir_results, f"DAFT_Test_{output}.txt")
 )
 
 
 
 files = [
     ('DAFT_Direction_'+output+'.txt', 'DAFT_Direction_'+output+'.txt'),
-    ('DAFT_Significance_'+output+'.xlsx', 'DAFT_Significance_'+output+'.xlsx'),
+    ('DAFT_Test_'+output+'.xlsx', 'DAFT_Test_'+output+'.xlsx'),
     ('important_'+output+'.csv', 'important_'+output+'.csv'),
     ('branch_map.csv', 'branch_map.csv'),
 ]

@@ -1,16 +1,73 @@
 import os
 import sys
-sys.path.append("./DAFT_utils")
-sys.path.append("./DAFT_utils/reconcILS")
-from reconcILS import *
-from utils_reconcILS import *
-import pandas as pd 
+import pandas as pd
 import ast
-from DAFT_essential import *
 import argparse
 import numpy as np
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message="Downcasting object dtype arrays on .*fillna.*",
+    category=FutureWarning,
+)
+
+warnings.filterwarnings(
+    "ignore",
+    message="DataFrameGroupBy.apply operated on the grouping columns.*",
+    category=DeprecationWarning,
+)
 
 
+def parse1():
+    parser = argparse.ArgumentParser(description="Input to DAFT Direction")
+
+    parser.add_argument('--sp', type=str, help="Species tree")
+    parser.add_argument('--gt', type=str, help="List of gene trees")
+    parser.add_argument('--path', type=str, default="./DAFT_utils", help="Path to DAFT_utils")
+    parser.add_argument('--verbose', type=int, default=1, help="Verbose mode. 1 = yes, 0 = no")
+
+    parser.add_argument(
+        '--lineages',
+        type=lambda s: ast.literal_eval(s),
+        help="List of lineage tuples to check direction, e.g. \"[(1,2), (3,4)]\""
+    )
+
+    parser.add_argument(
+        '--lineagesN',
+        default='[]',
+        type=lambda s: ast.literal_eval(s),
+        help="List of lineage tuples, e.g. \"[(1,2), (3,4)]\""
+    )
+
+    parser.add_argument('--output', type=str, help="Name of output file")
+
+    args = parser.parse_args()
+    return args
+
+
+parser = parse1()
+
+path = parser.path
+
+sys.path.append(path)
+sys.path.append(path + "/reconcILS")
+
+from reconcILS import *
+from utils_reconcILS import *
+from DAFT_essential import *
+
+
+sp_string = parser.sp
+gene_treefile = parser.gt
+lineages = parser.lineages
+lineages_bidrectional = parser.lineagesN
+out_filec = parser.output
+verbose=parser.verbose
+
+
+total_count_cutoff = 5
+indiv_count_cutoff = 5
 
 reco =reconcils()
 red= readWrite.readWrite()
@@ -21,6 +78,7 @@ np.random.seed(42)
 
 
 def convert_species(df,sp_string):
+    '''
     species_to_letters = {
     'Carlitosyrichta': 'A',
     'Cebuscapucinus': 'B',
@@ -46,6 +104,32 @@ def convert_species(df,sp_string):
     'Aotusnancymaae': 'V',
     'Callithrixjacchus': 'W',
     }
+    '''
+    species_to_letters  = {
+    "D_albomicans": "A",
+    "D_nasuta": "B",
+    "D_kepulauana": "C",
+    "D_neonasuta": "D",
+    "D_sulfurigaster_albostrigata": "E",
+    "D_pulaua": "F",
+    "D_sulfurigaster_bilimbata": "G",
+    "D_sulfurigaster_sulfurigaster": "H",
+    "D_neohypocausta": "I",
+    "D_immigrans_kari17": "K",
+    "D_immigrans": "J",
+    "D_pruinosa": "L",
+    "D_arawakana": "M",
+    "D_dunni": "N",
+    "D_cardini": "O",
+    "D_ornatifrons": "P",
+    "D_subbadia": "Q",
+    "D_pallidipennis": "R",
+    "D_funebris": "S",
+    "D_guttifera": "T",
+    "D_innubila": "U",
+    "D_mush_saotome": "V",
+    "D_quadrilineata": "W"  }
+    
     #letter_to_species ={value:key for key,value in species_to_letters.keys()}
     sp_= red.parse(sp_string)
     sp_string= sp_.to_newick_change(species_to_letters)
@@ -425,26 +509,67 @@ def update_big_list(df,data,list_df,lineage1,lineage2,rename_map,choice):
             list_df['Minor_Moved']+=[list_df['Lineage1'][-1]]
             list_df['Minor_moved_count']+=[count_nni_score[1]]
             
-            
+    
+def tuple_equal(t1, t2):
+    a, b = t1
+    c, d = t2
+    
+    a_tree =red.parse(a)
+    b_tree =red.parse(b)
+    c_tree =red.parse(c)
+    d_tree =red.parse(d)
+    
+    a_tree.label_internal()
+    b_tree.label_internal()
+    c_tree.label_internal()
+    d_tree.label_internal()
+    
+    #a=a_tree.taxa
+    #b=b_tree.taxa
+    #c=c_tree.taxa
+    #d=d_tree.taxa
+    ##print(a,b,c,d)
+    
+    
+    return (essential.isequal(a, c) and essential.isequal(b, d)) or \
+           (essential.isequal(a, d) and essential.isequal(b, c))
+           
+def find_equal(visited,querry):
+    for tup in visited:
+        if tuple_equal(tup, querry):
+            return True
+    return False
+        
+        
 
-def run_tranform(lineages_bidrectional,sp_string,list_df):
+def run_tranform(data,lineages_bidrectional,sp_string,list_df,path,verbose):
+    vis=[]
     for lineageM, lineage2 in lineages_bidrectional:
         #print('Testing Direction for: ',lineageM,lineage2)
         for lineage1 in lineageM:
+            if find_equal(vis,(lineage1,lineage2)):
+                continue
+            vis.append((lineage1,lineage2))
             l1 = red.parse(lineage1)
             l2= red.parse(lineage2)
+            
             l1.label_internal()
             l2.label_internal()
             taxa_1=l1.taxa
             taxa_2=l2.taxa
             filtered_data=[]
+            index_data=[]
 
-            for gt in data:
+            for idex, gt in enumerate(data):
                 gt =gt[0]
                 gt_tr= red.parse(gt)
                 gt_tr.label_internal()
                 if  essential.current_address(taxa_1,gt_tr) and essential.current_address(taxa_2,gt_tr) and reco.get_current_sister(gt_tr,taxa_1)==taxa_2:
                     filtered_data.append(gt)
+                    index_data.append(idex)
+                
+            
+                    
 
 
             if len(filtered_data)!=0:
@@ -455,17 +580,21 @@ def run_tranform(lineages_bidrectional,sp_string,list_df):
                 lineages1 = f"{lineage1}/{lineage2}"   
                 #print(lineages1)
 
-
+                #print('asasas',verbose)
                 output = "out"
                 argv = [
                     sys.executable, script,
                     "--sp", str(sp_string),
                     "--lineages", str(lineages1),
+                    "--path", path,
+                    "--verbose", str(1),
                     "--gt_list", *filtered_data,
+                    "--gt_list_index", *map(str, index_data),
                     "--output", str('out'),
                 ]
                 status = os.spawnv(os.P_WAIT, sys.executable, argv)
                 exit_code = status if os.name == "nt" else (status >> 8) 
+
                 if exit_code != 0:
                     raise RuntimeError(f"DAFT_Transform.py exited with code {exit_code}")
 
@@ -550,34 +679,6 @@ def add_sibling_bidirection(pairs,sp):
     return pairs1
 
 
-def parse1():
-    parser = argparse.ArgumentParser(description="Input to DAFT Direction")
-    parser.add_argument('--sp', type=str, help="Species tree")
-    parser.add_argument('--gt', type=str, help="List of gene trees")
-    parser.add_argument(
-        '--lineages',
-        type=lambda s: ast.literal_eval(s),
-        help="List of lineage tuples to check direction, e.g. \"[(1,2), (3,4)]\""
-    )
-    parser.add_argument(
-        '--lineagesN', default='[]',
-        type=lambda s: ast.literal_eval(s),
-        help="List of lineage tuples, e.g. \"[(1,2), (3,4)]\""
-    )
-    parser.add_argument('--output', type=str, help="Name of output file")
-    
-    args = parser.parse_args()
-    return args
-
-
-parser = parse1()
-sp_string = parser.sp
-gene_treefile =parser.gt
-lineages = parser.lineages
-lineages_bidrectional = parser.lineagesN
-out_filec=parser.output
-total_count_cutoff=5
-indiv_count_cutoff=5
 
 #print(lineages)
 #exit()
@@ -599,7 +700,7 @@ if len(lineages_bidrectional)==0:
 
 
 #print(lineages_bidrectional)
-run_tranform(lineages_bidrectional,sp_string,list_df)
+run_tranform(data,lineages_bidrectional,sp_string,list_df,path,verbose)
 
 
 df = pd.DataFrame(list_df)
@@ -630,14 +731,14 @@ df['NNI_'] = df.apply(
 
 node_map,branch_map,sp_labeled= essential.id_it(sp_string)
 df_converted= essential.idfy_it_direction(df,node_map)
-
+#print(sp_labeled.to_newick())
+#exit()
 #put it in a network
-df_net = df[(df['NNI_']>1)]
+df_net = df[(df['NNI_']>0)]
 
 sp_labeled =essential.put_network_in_tree(df_net,sp_labeled)
 network_output=essential.to_network(sp_labeled)
 
-#print(df)
-#print(df_converted)
+#print(df)fp
+#print(sp_labeled.to_newick())
 write_direction(df_converted,network_output,sp,out_filec)
-

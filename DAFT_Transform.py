@@ -1,21 +1,268 @@
 import copy
 from collections import Counter
 import sys
-sys.path.append("./DAFT_utils")
-sys.path.append("./DAFT_utils/reconcILS")
-from reconcILS import *
-from utils_reconcILS import *
-import pandas as pd 
+import pandas as pd
 import time
-from DAFT_essential import *
 import pprint
 import re
 import argparse
+import os
+import pickle
 import numpy as np
 from concurrent.futures import ThreadPoolExecutor, TimeoutError
 
+from rich.console import Console, Group
+from rich.live import Live
+from rich.panel import Panel
+from rich.progress import (
+    BarColumn,
+    Progress,
+    SpinnerColumn,
+    TaskProgressColumn,
+    TextColumn,
+    TimeElapsedColumn,
+    TimeRemainingColumn,
+)
+from rich.table import Table
 
+import warnings
+
+warnings.filterwarnings(
+    "ignore",
+    message="Downcasting object dtype arrays on .*fillna.*",
+    category=FutureWarning,
+)
+
+warnings.filterwarnings(
+    "ignore",
+    message="DataFrameGroupBy.apply operated on the grouping columns.*",
+    category=DeprecationWarning,
+)
+
+
+def parse1():
+    parser = argparse.ArgumentParser(description="DAFT Tranform")
+
+    parser.add_argument('--sp', type=str, help="Species tree")
+    parser.add_argument('--path', type=str, default="./DAFT_utils", help="Path to DAFT_utils")
+    parser.add_argument('--verbose', type=int, default=1, help="Verbose mode. 1 = yes, 0 = no")
+    parser.add_argument(
+        '--lineages',
+        type=lambda s: s.split('/'),
+        help="Test lineage separated  by '/' (e.g. l1/l2)"
+    )
+
+    parser.add_argument('--gt_list', nargs='+', help="List of gene trees (each a Newick string)")
+    parser.add_argument('--gt_list_index', nargs='+', help="List of gene trees index for caching")
+
+    parser.add_argument(
+        '--progress',
+        type=int,
+        default=1,
+        help="Show DAFT/djiNNI progress dashboard. 1 = yes, 0 = no"
+    )
+
+    parser.add_argument('--output', type=str, help="Name of output file")
+
+    args = parser.parse_args()
+    return args
+
+
+parser = parse1()
+
+path = parser.path
+
+sys.path.append(path)
+sys.path.append(path + "/reconcILS")
+
+from reconcILS import *
+from utils_reconcILS import *
+from DAFT_essential import *
+
+
+sp_string = parser.sp
+lineages = parser.lineages
+output = parser.output
+
+lineage1 = lineages[0]
+lineage2 = lineages[1]
+
+output = output + '_' + lineage1[:-1] + '_' + lineage2[:-1]
+lis = []
+
+gt_list = parser.gt_list
+gt_list_index = parser.gt_list_index
+show_progress = parser.progress == 1
+verbose = parser.verbose == 1
+
+
+
+essential = daft_essential()
+reco = reconcils()
+red = readWrite.readWrite()
+
+
+def format_seconds(seconds):
+    seconds = int(max(seconds, 0))
+    h = seconds // 3600
+    m = (seconds % 3600) // 60
+    s = seconds % 60
+    return f"{h:02d}:{m:02d}:{s:02d}"
+
+
+def get_progress_checkpoints(total):
+    fixed = [10, 20, 50, 100, 250, 500, 750, 1000]
+    percentages = [
+        int(total * p)
+        for p in [0.01, 0.02, 0.05, 0.10, 0.25, 0.50, 0.75, 1.00]
+    ]
+    checkpoints = set(fixed + percentages + [total])
+    checkpoints = {x for x in checkpoints if 0 < x <= total}
+    return checkpoints
+
+
+class DAFTProgress:
+    def __init__(self, total_trees, lineage1, lineage2):
+        self.total_trees = total_trees
+        self.lineage1 = lineage1
+        self.lineage2 = lineage2
+        self.start_wall_time = time.perf_counter()
+
+        # Runtime estimate excludes cache hits.
+        self.uncached_time = 0.0
+        self.uncached_count = 0
+        self.cached_count = 0
+        self.completed = 0
+        self.closed = False
+        self.checkpoints = get_progress_checkpoints(total_trees)
+
+        self.console = Console()
+        self.progress = Progress(
+            SpinnerColumn(),
+            TextColumn("[bold cyan]Reconciling gene trees"),
+            BarColumn(),
+            TaskProgressColumn(),
+            TextColumn("[bold]{task.completed}/{task.total}"),
+            TimeElapsedColumn(),
+            TimeRemainingColumn(),
+            expand=True,
+        )
+        self.task_id = self.progress.add_task("DAFT/djiNNI", total=total_trees)
+        self.live = Live(
+            self._render(),
+            console=self.console,
+            refresh_per_second=4,
+            transient=False,
+        )
+        self.live.start()
+
+    #def record_cached(self):
+    #self.cached_count += 1
+
+    def record_uncached(self, seconds):
+        self.uncached_count += 1
+        self.uncached_time += seconds
+
+    def _estimate_values(self):
+        elapsed_wall = time.perf_counter() - self.start_wall_time
+
+        completed = int(self.progress.tasks[self.task_id].completed)
+        remaining_total = self.total_trees - completed
+
+        # Forecast 1: actual run speed, including cache
+        if completed > 0:
+                avg_wall = elapsed_wall / completed
+                wall_remaining = avg_wall * remaining_total
+                wall_total = avg_wall * self.total_trees
+
+                wall_avg_text = f"{avg_wall:.4f} sec/tree"
+                wall_remaining_text = format_seconds(wall_remaining)
+                wall_total_text = format_seconds(wall_total)
+        else:
+                wall_avg_text = "calculating..."
+                wall_remaining_text = "calculating..."
+                wall_total_text = "calculating..."
+
+        # Forecast 2: uncached reconciliation speed only
+        if self.uncached_count > 0:
+                avg_uncached = self.uncached_time / self.uncached_count
+                uncached_remaining = avg_uncached * remaining_total
+                uncached_total = avg_uncached * self.total_trees
+
+                uncached_avg_text = f"{avg_uncached:.4f} sec/tree"
+                uncached_remaining_text = format_seconds(uncached_remaining)
+                uncached_total_text = format_seconds(uncached_total)
+        else:
+                uncached_avg_text = "no uncached trees yet"
+                uncached_remaining_text = "no uncached estimate"
+                uncached_total_text = "no uncached estimate"
+
+        return {
+                "elapsed_wall": elapsed_wall,
+
+                "wall_avg_text": wall_avg_text,
+                "wall_remaining_text": wall_remaining_text,
+                "wall_total_text": wall_total_text,
+
+                "uncached_avg_text": uncached_avg_text,
+                "uncached_remaining_text": uncached_remaining_text,
+                "uncached_total_text": uncached_total_text,
+        }
+
+    def _render(self):
+                values = self._estimate_values()
+
+                table = Table.grid(padding=(0, 2))
+                table.add_column(justify="left", style="bold")
+                table.add_column(justify="right")
+
+                completed = int(self.progress.tasks[self.task_id].completed)
+
+                table.add_row("Significant pair", f"{self.lineage1} vs {self.lineage2}")
+                table.add_row("Total gene trees detected", str(self.total_trees))
+                table.add_row("Completed gene trees", f"{completed}/{self.total_trees}")
+                table.add_row("Elapsed wall time", format_seconds(values["elapsed_wall"]))
+
+                table.add_row("", "")
+                table.add_row("avg time/tree", values["wall_avg_text"])
+                table.add_row("Remaining time", values["wall_remaining_text"])
+                table.add_row("Total runtime", values["wall_total_text"])
+
+                
+                return Panel.fit(
+                        Group(self.progress, table),
+                        title="[bold green]DAFT Direction / djiNNI[/bold green]",
+                        border_style="red",
+                        padding=(1, 2),
+                )
+    def update(self, completed):
+        self.completed = completed
+
+        self.progress.update(self.task_id, completed=completed)
+        self.live.update(self._render())
+        if completed >= self.total_trees:
+            self.close()
+
+    def close(self):
+        if self.closed:
+            return
+        self.closed = True
+
+        if self.live is not None:
+            self.live.stop()
+
+        elapsed_wall = time.perf_counter() - self.start_wall_time
+        print()
+        print("=" * 80)
+        print("DAFT Direction / djiNNI completed")
+        print("=" * 80)
+        print(f"Total gene trees:          {self.total_trees}")
+        print(f"Reconciled from scratch:   {self.uncached_count}")
+        print(f"Loaded from cache:         {self.cached_count}")
+        print(f"Total elapsed wall time:   {format_seconds(elapsed_wall)}")
+        print("=" * 80)
           
+
 def nni_search(cur_address,sibling):
         stack =[cur_address]
         if type(sibling)!=set:
@@ -95,8 +342,17 @@ def nni_possible(taxa,species_tree,gene_tree):
                         return 0,cur_address
 
 
+def initialize_counter(lineage1, lineage2):
+    lineage_stats = {
+        f"{lineage1} > {lineage2}": 0,
+        f"{lineage1} < {lineage2}": 0,
+        f"{lineage1} == {lineage2}": 0,
+    }
 
-def querry_lineage(sorted_dict,lineage1,lineage2):
+    return lineage_stats
+
+
+def querry_lineage(sorted_dict,lineage1,lineage2,lineage_stats):
         count1=0
         count2=0
         for  lineage in sorted_dict:
@@ -105,11 +361,20 @@ def querry_lineage(sorted_dict,lineage1,lineage2):
                 if essential.isequal(lineage2,lineage):
                     count2=sorted_dict[lineage]
         if count1>count2:
-            return lineage1
+                #print(123)
+                lineage_stats[f"{lineage1} > {lineage2}"] += 1  
+                #print(lineage_stats)
+                return lineage1,lineage_stats
         elif count1<count2:
-            return lineage2
-        else:
-               return np.random.choice([lineage2,lineage1])
+                #print(2323)
+                lineage_stats[f"{lineage1} < {lineage2}"] += 1
+                #print(lineage_stats)
+                return lineage2,lineage_stats
+        else:   
+                #print('rando')
+                #np.random.seed(42)  
+                lineage_stats[f"{lineage1} == {lineage2}"] += 1
+                return np.random.choice([lineage2,lineage1]),lineage_stats
             
 
 def  get_nni(taxa,test_dic):
@@ -266,7 +531,7 @@ def account_trios(tracker):
         return visited,value_list1,value_list,dic
                                        
 
-def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2):
+def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2,lineage_stats):
         red= readWrite.readWrite()
         
 
@@ -278,8 +543,9 @@ def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2):
     
         dic=dict(sorted(dic.items(),key=lambda item: item[1],reverse=True))
         dic =merge_moving(dic,red)
+        #print(dic)
         
-        moving_taxas=querry_lineage(dic,lineage1,lineage2)
+        moving_taxas,lineage_stats=querry_lineage(dic,lineage1,lineage2,lineage_stats)
         #print('==>',moving_taxas,lineage1,lineage2)
         overall_return={}
         moving_taxas=[moving_taxas]
@@ -309,7 +575,14 @@ def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2):
                              
               
 
-        return overall_return
+        return overall_return,lineage_stats
+        
+
+def render_lineage_stats(lineage_stats):
+        print("\nLineage comparison counts:")
+        for key, value in lineage_stats.items():
+                print(f"{key}: {value}")
+        print('##'*40)
         
 
 
@@ -318,44 +591,21 @@ def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2):
 def _parse_list(s: str):
     return [x for x in re.split(r'[,\s/]+', s.strip()) if x]
 
-def parse1():
-    parser = argparse.ArgumentParser(description="DAFT Tranform")
-    parser.add_argument('--sp', type=str, help="Species tree")
-    parser.add_argument(
-        '--lineages',
-        type=lambda s: s.split('/'),
-        help="Test lineage separated  by '/' (e.g. l1/l2)"
-    )
-    parser.add_argument('--gt_list', nargs='+', help="List of gene trees (each a Newick string)")
-    parser.add_argument('--output', type=str, help="Name of output file")
-    
-    args = parser.parse_args()
-    return args
 
-
-parser = parse1()
-sp_string = parser.sp
-lineages = parser.lineages 
-output =parser.output
-
-lineage1= lineages[0]
-lineage2= lineages[1]
-
-output= output+'_'+lineage1[:-1]+'_'+lineage2[:-1]
-lis=[]
-#sp_string='((((1,2),3),((4,5),6)),7);'
-#sp_string='((((((((1,2),3),4),5),6),7),(8,9)));'
-gt_list=parser.gt_list
-
-
-
-essential= daft_essential()
-reco =reconcils()
-red= readWrite.readWrite()
 write_intro={'idx':[],'Replicate':[],'Path':[],'From_Where_moved':[],'Sibling':[],'What_moved':[],'NNI':[]}
 write_intro1={'Moves':[],'Replicate':[],'NNI':[]}
 
 
+# Cache reconciliation output by gene tree index.
+# This assumes the same gene tree file and same gene tree order are used across runs.
+CACHE_DIR = "gene_tree_reconciliation_cache"
+os.makedirs(CACHE_DIR, exist_ok=True)
+
+def get_reconciliation_cache_path(gene_tree_index):
+        return os.path.join(CACHE_DIR, f"gene_tree_{gene_tree_index}.pkl")
+
+
+lineage_stats= initialize_counter(lineage1,lineage2)
 
 #xit()
 #exit()
@@ -367,7 +617,17 @@ done=[]
 
 
 
-for k,gene_tree in enumerate(gt_list):
+progress = None
+if show_progress:
+        progress = DAFTProgress(len(gt_list), lineage1, lineage2)
+
+for tree_number,gene_tree in enumerate(gt_list):
+        completed = tree_number + 1
+        k=gt_list_index[tree_number]
+        #print(k,gene_tree,lineage1, lineage2)
+        #if not show_progress:
+        #print(k,gene_tree,' '*3, output)
+        
         #print('gene tree :',gene_tree , 'Test_Lineage :',lineage1 , lineage2)
 
         gene_tree_string = gene_tree.replace('e-', '0')
@@ -397,8 +657,8 @@ for k,gene_tree in enumerate(gt_list):
         sp.isRoot=True
         tr.isRoot=True
         reco.introgression=True
-        reco.L_cost=  2
-        reco.D_cost=  20000
+        reco.L_cost=  20000000000000
+        reco.D_cost=  20000000000000
         sp_copy.isRoot=True
 
         
@@ -417,23 +677,63 @@ for k,gene_tree in enumerate(gt_list):
                 #print('Using Iterative Function')
                 num_threads = 40
                 timeout_duration = 1800
-                with ThreadPoolExecutor(max_workers=num_threads) as executor:
-                        future = executor.submit(call_reconcILS_function)
+                reconciliation_cache_path = get_reconciliation_cache_path(k)
 
-                try:
-                        li , introgression, tracker,test_dic= future.result(timeout=timeout_duration)
-                except TimeoutError:
-                        print(f"The function call timed out after {timeout_duration} seconds.")
-                        exit()
-                        li=[]
+                if os.path.exists(reconciliation_cache_path):
+                        #if not show_progress:
+                        #if verbose:
+                        print(f"Loading cached reconciliation for gene tree index {k}")
+                        with open(reconciliation_cache_path, "rb") as cache_file:
+                                cached_reconciliation = pickle.load(cache_file)
+
+                        li = cached_reconciliation["li"]
+                        introgression = cached_reconciliation["introgression"]
+                        tracker = cached_reconciliation["tracker"]
+                        test_dic = cached_reconciliation["test_dic"]
+
+                        #if progress is not None:
+                        #progress.record_cached()
+                else:
+                        uncached_start = time.perf_counter()
+
+                        with ThreadPoolExecutor(max_workers=num_threads) as executor:
+                                future = executor.submit(call_reconcILS_function)
+
+                        try:
+                                li , introgression, tracker,test_dic= future.result(timeout=timeout_duration)
+                        except TimeoutError:
+                                print(f"The function call timed out after {timeout_duration} seconds.")
+                                exit()
+                                li=[]
+
+                        uncached_elapsed = time.perf_counter() - uncached_start
+
+                        if progress is not None:
+                                progress.record_uncached(uncached_elapsed)
+
+                        with open(reconciliation_cache_path, "wb") as cache_file:
+                                pickle.dump({
+                                        "li": li,
+                                        "introgression": introgression,
+                                        "tracker": tracker,
+                                        "test_dic": test_dic
+                                }, cache_file)
+
+                #if progress is not None:
+                progress.update(completed)
                 
-                
+        
+
                 #print('-----------------------------------------------------Done With reconcils-----------------------------------------------------------------------------')
-
+                #import pprint
+                #pprint.pprint(li)
+                #print('123'*100)
+                #pprint.pprint(tracker)
+                
                 if len(tracker)>=1:
-                        table=tabulate(tracker,sp,tr,test_dic,lineage1,lineage2)
+                        table,lineage_stats=tabulate(tracker,sp,tr,test_dic,lineage1,lineage2,lineage_stats)
                         added=0
-                        
+                        #exit()
                         #print(table)
                         for path in table:
                                 write_intro['idx']+=[k]
@@ -462,4 +762,4 @@ for k,gene_tree in enumerate(gt_list):
                 intro_df= pd.DataFrame(write_intro)
                 intro_df.to_csv('djiNNI_'+output+'.csv', index=False)
                 
-                
+render_lineage_stats(lineage_stats)

@@ -1,13 +1,76 @@
 import numpy as np
 import os, sys
-sys.path.append("./DAFT_utils/reconcILS")
-sys.path.append("./DAFT_utils/")
+import pandas as pd
+import argparse
+import copy
+import warnings
+import pprint
+
+warnings.filterwarnings(
+    "ignore",
+    message="Downcasting object dtype arrays on .*fillna.*",
+    category=FutureWarning,
+)
+
+warnings.filterwarnings(
+    "ignore",
+    message="DataFrameGroupBy.apply operated on the grouping columns.*",
+    category=DeprecationWarning,
+)
+
+
+def parse1():
+    parser = argparse.ArgumentParser(description="DAFT Test")
+
+    parser.add_argument('--sp', type=str, help="Species tree")
+    parser.add_argument('--gt', type=str, help="Gene tree list")
+    parser.add_argument('--path', type=str, default="./DAFT_utils" ,help="Path to daft_util")
+    parser.add_argument('--output', type=str, help="Name of output file")
+    parser.add_argument('--direction', type=int, default=0, help="Run DAFT_Direction.py")
+    parser.add_argument('--excel', type=int, default=0, help="Produce Excel")
+    parser.add_argument('--correct', type=int, default=0, help="Run correction test")
+    parser.add_argument('--sibling', type=str, default='0', help="Run sibling test")
+    parser.add_argument('--demography', type=str, help="demography file")
+
+    args = parser.parse_args()
+    return args
+
+
+parser = parse1()
+path = parser.path
+if path=="./DAFT_utils":
+    print("No path passed taking default path ./DAFT_utils ")
+else:
+    print("Path: ",path)
+
+sys.path.append(path + "/reconcILS")
+sys.path.append(path)
+
 from reconcILS import *
 from utils_reconcILS import *
-import pandas as pd 
-import argparse
 from DAFT_essential import *
-import copy
+
+
+essential = daft_essential()
+reco = reconcils()
+red = readWrite.readWrite()
+Il = ILS.ILS()
+
+
+sp_string = parser.sp
+# lineages = parser.lineages
+gene_treefile = parser.gt
+produce_excel = parser.excel
+run_direction = parser.direction
+correct_flag = parser.correct
+demography = parser.demography
+# demography = '_M'
+# print(id_it(sp_string))
+# exit()
+# lineage1 = lineages[0]
+# lineage2 = lineages[1]
+sibling_flag = parser.sibling
+out_file = parser.output  # + '_' + lineage1 + '_' + lineage2
 
 
 '''
@@ -179,14 +242,16 @@ def extract_direction(out):
         
 
 
-def call_direction(sorted_grouped,gene_treefile,sp,out):
+def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,path):
     
-    list_unique= filter_direction(sorted_grouped,-1.96,5,0,out)
+    list_unique= filter_direction(sorted_grouped,-1.96,6,0,out,correct_flag)
     #print(list_unique)
     #exit()
-
+    #list_unique =[]
     sibling_list= essential.find_sibling(sp,[])
-   
+    #if demography.split('demography_')[-1].strip() in ['A','B','C','D','E','F','G','H','I','J','K','L','J_1','K_1','L_1']:
+    #list_unique=[]
+        
     list_non_unique=add_sibling_bidirection(sorted_grouped,list_unique,sibling_list)
 
     
@@ -205,6 +270,8 @@ def call_direction(sorted_grouped,gene_treefile,sp,out):
             script,
             "--sp", str(sp),
             "--gt", str(gene_treefile),
+            "--path",path,
+            "--verbose",str(1),
             "--lineages", repr(list_unique),  
             "--lineagesN", repr(list_non_unique),  
             "--output", output,
@@ -243,13 +310,14 @@ def find_sib_lineage_pair(data):
                                 sib_lineage[(gt_sib[0],gt_sib[1])]=1
     return sib_lineage
 
-def accounting(data,sib_lineage):
+def accounting(data,sib_lineage,out_file):
     result={'Where_at':[],'What_moved':[],'NNI_sp':[],'total_count':[]}
-    #result1={'Where_at':[],'What_moved':[],'NNI_sp':[],'total_count':[]}
+    result1={}
     visited_dic_set={}
     visited_set_dict ={}
     visited_set_index=[]
     running_index=0
+    collapsed = []
     for ke,valu in sib_lineage.items():
         #print(ke)
         lineage,sibling=ke
@@ -261,22 +329,35 @@ def accounting(data,sib_lineage):
         taxa_2=key_t.taxa
         taxa_1_B,taxa_2_B=taxa_1,taxa_2
         
+        addr_taxa_1 =essential.current_address(taxa_1,sp)
+        addr_taxa_2 =essential.current_address(taxa_2,sp)
 
-        if not  essential.current_address(taxa_1,sp) or not essential.current_address(taxa_2,sp):
+        if not  addr_taxa_1 or not addr_taxa_2:
             #print(lineage,sibling)
             #exit()
-            '''
-            result1['Where_at']+=[key1_t.to_newick()]
-            result1['What_moved']+=[key_t.to_newick()]
-            result1['NNI_sp']+=[-1]
-            result1['total_count']+=[valu]
+            if not  addr_taxa_1 and not addr_taxa_2:
+                continue  
+            
+            elif not  addr_taxa_1:
+                yeskey=False
+                for keyewr,valuerf  in result1.items():
+                    #print(keyewr,key_t)
+                    if essential.isequal_set(keyewr,key_t.to_newick()):
+                        result1[keyewr]+=valu
+                        yeskey= True
+                if not yeskey:
+                    result1[key_t.to_newick()]=valu
+            
+            elif not  addr_taxa_2:
+                yeskey=False
+                for keyewr,valuerf  in result1.items():
+                    if essential.isequal_set(keyewr,key1_t.to_newick()):
+                        result1[keyewr]+=valu
+                        yeskey= True
+                if not yeskey:
+                    result1[key1_t.to_newick()]=valu
 
-            result1['Where_at']+=[key1_t.to_newick()]
-            result1['What_moved']+=[key_t.to_newick()]
-            result1['NNI_sp']+=[-1]
-            result1['total_count']+=[valu]
-            pd.DataFrame(result1).to_csv('rev_all.csv',index=False)
-            '''
+            
             continue
         if key1_t.isLeaf:
             taxa_1_B={taxa_1}
@@ -340,7 +421,7 @@ def accounting(data,sib_lineage):
                 target_index_reverse = index_lineage.intersection(index_sibling).pop()
                 
                 result['total_count'][target_index_reverse]+=valu
-                pd.DataFrame(result).to_csv('rev_n.csv',index=False)
+                #pd.DataFrame(result).to_csv('rev_n.csv',index=False)
 
             else:
                 dist=essential.findDist(sp,key_t.taxa,key1_t.taxa)-2
@@ -366,7 +447,7 @@ def accounting(data,sib_lineage):
                     result['total_count']+=[valu]
                     #print('flag1')
                     #running_index+=2   
-                    pd.DataFrame(result).to_csv('rev_n.csv',index=False)
+                    #pd.DataFrame(result).to_csv('rev_n.csv',index=False)
 
         else:
             dist=essential.findDist(sp,key_t.taxa,key1_t.taxa)-2
@@ -403,23 +484,39 @@ def accounting(data,sib_lineage):
                 #print('flag2',running_index)
 
 
-                pd.DataFrame(result).to_csv('rev_n.csv',index=False)  
-    return result 
+                #pd.DataFrame(result).to_csv('rev_n.csv',index=False) 
+    
+    pd.DataFrame(result).to_csv('rev_n.csv',index=False) 
 
-def sorting_arrangement():
-    df = pd.read_csv("./rev_n.csv", sep=',')
+
+    result1_df = pd.DataFrame(list(result1.items()), columns=['Topo', 'junk_count'])
+    #result1_df
+    result1_df.to_csv('rev_all_'+out_file+'.csv',index=False)
+    result1_df.to_csv('rev_all_corrected.csv',index=False)
+             
+    #pd.DataFrame(result1).to_csv('rev_all_'+out_file+'.csv',index=False)
+             
+    return pd.DataFrame(result),result1_df
+
+def sorting_arrangement(df):
+    #df = pd.read_csv("./rev_n.csv", sep=',')
+    #print('de0')
     grouped = df.groupby(['Where_at', 'What_moved', 'NNI_sp'], as_index=False)['total_count'].sum()
     sorted_grouped = grouped.sort_values(by=['Where_at', 'NNI_sp'])
     sp_tree_lineages= essential.find_all_lineage(sp)
                 
     #print(sorted_grouped)
+    #print('de1')
 
     sorted_grouped["Where_at"] = sorted_grouped["Where_at"].apply(
         lambda v: essential.match_lineage(v, sp_tree_lineages)
     )
+    
+    #print('de2')
     sorted_grouped["What_moved"] = sorted_grouped["What_moved"].apply(
         lambda v: essential.match_lineage(v, sp_tree_lineages)
     )
+    #print('de3')
     return grouped,sorted_grouped,df
 
 def address_to_newick(list_sp_tree):
@@ -580,6 +677,7 @@ def tuple_equal(t1, t2):
 
 
 def convert_species(df):
+    '''
     species_to_letters = {
     'Carlitosyrichta': 'A',
     'Cebuscapucinus': 'B',
@@ -605,6 +703,31 @@ def convert_species(df):
     'Aotusnancymaae': 'V',
     'Callithrixjacchus': 'W',
     }
+    '''
+    species_to_letters  = {
+    "D_albomicans": "A",
+    "D_nasuta": "B",
+    "D_kepulauana": "C",
+    "D_neonasuta": "D",
+    "D_sulfurigaster_albostrigata": "E",
+    "D_pulaua": "F",
+    "D_sulfurigaster_bilimbata": "G",
+    "D_sulfurigaster_sulfurigaster": "H",
+    "D_neohypocausta": "I",
+    "D_immigrans_kari17": "K",
+    "D_immigrans": "J",
+    "D_pruinosa": "L",
+    "D_arawakana": "M",
+    "D_dunni": "N",
+    "D_cardini": "O",
+    "D_ornatifrons": "P",
+    "D_subbadia": "Q",
+    "D_pallidipennis": "R",
+    "D_funebris": "S",
+    "D_guttifera": "T",
+    "D_innubila": "U",
+    "D_mush_saotome": "V",
+    "D_quadrilineata": "W"  }
     #letter_to_species ={value:key for key,value in species_to_letters.keys()}
     
     for idx,row in df.iterrows():
@@ -673,15 +796,45 @@ def find_level_from_above(address):
         
     return hop+1
         
-    
 
-def filter_direction(sorted_grouped,Z,tc,nni,out):
-    filtered_df_1 = sorted_grouped[
-        (sorted_grouped['Z-value-uncle'] <= Z)&(sorted_grouped['NNI_sp']>nni)&((sorted_grouped['total_count']+sorted_grouped['uncle_count'])>tc)
-    ].assign(flag=1)
-    filtered_df_2 = sorted_grouped[
-        (sorted_grouped['Z-value-sibling'] <= Z)&(sorted_grouped['NNI_sp']>nni)&((sorted_grouped['total_count']+sorted_grouped['sibling_count'])>tc)
-    ].assign(flag=2)
+def account_junk(df):
+    #df =pd.read_csv('./rev_all_'+out_file+'.csv')
+    #print(df)
+
+    collapsed = []
+    for _, row in df.iterrows():
+        found = False
+        
+        for entry in collapsed:
+            if (essential.isequal_set(row["What_moved"], entry["What_moved"]) and \
+            essential.isequal_set(row["Where_at"], entry["Where_at"])):
+                
+                entry["total_count"] += row["total_count"]
+                found = True
+                break
+        
+        if not found:
+            collapsed.append(row.to_dict())
+
+    result = pd.DataFrame(collapsed)
+    result.to_csv('./rev_all_corrected.csv')    
+    
+    
+def filter_direction(sorted_grouped,Z,tc,nni,out,correct_flag):
+    if not correct_flag:
+        filtered_df_1 = sorted_grouped[
+            (sorted_grouped['Z-value-uncle'] <= Z)&(sorted_grouped['NNI_sp']>nni)&((sorted_grouped['total_count']+sorted_grouped['uncle_count'])>tc)
+        ].assign(flag=1)
+        filtered_df_2 = sorted_grouped[
+            (sorted_grouped['Z-value-sibling'] <= Z)&(sorted_grouped['NNI_sp']>nni)&((sorted_grouped['total_count']+sorted_grouped['sibling_count'])>tc)
+        ].assign(flag=2)
+    else:
+        filtered_df_1 = sorted_grouped[
+            (sorted_grouped['Z-value-uncle'] <= Z)&(sorted_grouped['Z-value-uncle_corrected_scaled_down'] <= Z)&(sorted_grouped['NNI_sp']>nni)&((sorted_grouped['total_count']+sorted_grouped['uncle_count'])>tc)
+        ].assign(flag=1)
+        filtered_df_2 = sorted_grouped[
+            (sorted_grouped['Z-value-sibling'] <= Z)&(sorted_grouped['Z-value-sibling_corrected_scaled_down'] <= Z)&(sorted_grouped['NNI_sp']>nni)&((sorted_grouped['total_count']+sorted_grouped['sibling_count'])>tc)
+        ].assign(flag=2)
     
     ##print('hellp')
     
@@ -710,7 +863,30 @@ def filter_direction(sorted_grouped,Z,tc,nni,out):
     "flag",
     "idx"
     ]
-
+    if correct_flag:
+        expected_columns = [
+        'Focal_lineage',
+        'Test_lineage',
+        'NNI_sp',
+        'Test_count',
+        'comparison_sibling',
+        'comparison_uncle',
+        'sibling_count',
+        'uncle_count',
+        'sibling_count_population',
+        'uncle_count_population',
+        'test_count_population',
+        'Z-value-sibling',
+        'Z-value-sibling_corrected_scaled_down',
+        'sibling_count_scaled_down',
+        'sibling_total_count_scaled_down',
+        'Z-value-uncle',
+        'Z-value-uncle_corrected_scaled_down',
+        'uncle_count_scaled_down',
+        'uncle_total_count_scaled_down',
+        'flag',
+        'idx'  ]
+    
     #filtered_df_3 = filtered_df_3.copy()
     filtered_df_3["idx"] = out
 
@@ -726,8 +902,114 @@ def filter_direction(sorted_grouped,Z,tc,nni,out):
     else:
         filtered_df_3.to_csv("./Summary.csv", mode="w", header=True, index=False)
         
+    '''
+    filtered_df_1_down = sorted_grouped[
+        (sorted_grouped['Z-value-uncle_corrected_scaled_down'] <= Z)&(sorted_grouped['NNI_sp']>nni)&((sorted_grouped['total_count']+sorted_grouped['uncle_count'])>tc)
+    ].assign(flag=1)
+    filtered_df_2_down = sorted_grouped[
+        (sorted_grouped['Z-value-sibling_corrected_scaled_down'] <= Z)&(sorted_grouped['NNI_sp']>nni)&((sorted_grouped['total_count']+sorted_grouped['sibling_count'])>tc)
+    ].assign(flag=2)
+    
+    ##print('hellp')
+    
+    concat_df_down = pd.concat([filtered_df_1_down, filtered_df_2_down], ignore_index=True)
+    ##print('hellp222')
+    
+    filtered_df_3_down=concat_df_down.copy()
+    filtered_df_3_down.rename(columns={'What_moved': 'Test_lineage', 'Where_at': 'Focal_lineage','total_count':'Test_count'}, inplace=True)
+    #filtered_df_3.to_csv('important_'+out+'.csv',index=False)
+    #write_results(filtered_df_3.to_dict(),file="Important.csv")
+    
+    filtered_df_3_down["idx"] = out 
+    #Focal_lineage,Test_lineage,NNI_sp,Test_count,comparison_sibling,comparison_uncle,sibling_count,Z-value-sibling,uncle_count,Z-value-uncle,flag
+
+    expected_columns = [
+    "Focal_lineage",
+    "Test_lineage",
+    "NNI_sp",
+    "Test_count",
+    "comparison_sibling",
+    "comparison_uncle",
+    "sibling_count",
+    "Z-value-sibling",
+    "uncle_count",
+    "Z-value-uncle",
+    "flag",
+    "idx"
+    ]
+
+    #filtered_df_3 = filtered_df_3.copy()
+    #filtered_df_3_down= convert_species(filtered_df_3_down)
+    filtered_df_3_down["idx"] = out
+
+    if filtered_df_3_down.empty:
+        filtered_df_3_down = pd.DataFrame(columns=expected_columns)
+        filtered_df_3_down.loc[0, "idx"] = out
+
+
+    
+    #filtered_df_3_down= convert_species(filtered_df_3_down)
+    if os.path.exists("./Summary_down.csv"):
+        filtered_df_3_down.to_csv("./Summary_down.csv", mode="a", header=False, index=False)
+    else:
+        filtered_df_3_down.to_csv("./Summary_down.csv", mode="w", header=True, index=False)
+
+
+
+    filtered_df_1_up = sorted_grouped[
+        (sorted_grouped['Z-value-uncle_corrected_scaled_up'] <= Z)&(sorted_grouped['NNI_sp']>nni)&((sorted_grouped['total_count']+sorted_grouped['uncle_count'])>tc)
+    ].assign(flag=1)
+    filtered_df_2_up = sorted_grouped[
+        (sorted_grouped['Z-value-sibling_corrected_scaled_up'] <= Z)&(sorted_grouped['NNI_sp']>nni)&((sorted_grouped['total_count']+sorted_grouped['sibling_count'])>tc)
+    ].assign(flag=2)
+    
+    ##print('hellp')
+    
+    concat_df_up = pd.concat([filtered_df_1_up, filtered_df_2_up], ignore_index=True)
+    ##print('hellp222')
+    
+    filtered_df_3_up=concat_df_up.copy()
+    filtered_df_3_up.rename(columns={'What_moved': 'Test_lineage', 'Where_at': 'Focal_lineage','total_count':'Test_count'}, inplace=True)
+    #filtered_df_3.to_csv('important_'+out+'.csv',index=False)
+    #write_results(filtered_df_3.to_dict(),file="Important.csv")
+    
+    filtered_df_3_up["idx"] = out 
+    #Focal_lineage,Test_lineage,NNI_sp,Test_count,comparison_sibling,comparison_uncle,sibling_count,Z-value-sibling,uncle_count,Z-value-uncle,flag
+
+    expected_columns = [
+    "Focal_lineage",
+    "Test_lineage",
+    "NNI_sp",
+    "Test_count",
+    "comparison_sibling",
+    "comparison_uncle",
+    "sibling_count",
+    "Z-value-sibling",
+    "uncle_count",
+    "Z-value-uncle",
+    "flag",
+    "idx"
+    ]
+
+    #filtered_df_3 = filtered_df_3.copy()
+    filtered_df_3_up["idx"] = out
+
+    if filtered_df_3_up.empty:
+        filtered_df_3_up = pd.DataFrame(columns=expected_columns)
+        filtered_df_3_up.loc[0, "idx"] = out
+
+
+    
+    #filtered_df_3_up= convert_species(filtered_df_3_up)
+    if os.path.exists("./Summary_up.csv"):
+        filtered_df_3_up.to_csv("./Summary_up.csv", mode="a", header=False, index=False)
+    else:
+        filtered_df_3_up.to_csv("./Summary_up.csv", mode="w", header=True, index=False)
         
+    '''
     pairs = list(zip(concat_df['What_moved'], concat_df['Where_at']))
+    #pairs = list(zip(concat_df_down['What_moved'], concat_df_down['Where_at']))
+    #concat_df_down
     ##print(pairs)
     pairs1= []
     not_include=[]
@@ -744,7 +1026,7 @@ def filter_direction(sorted_grouped,Z,tc,nni,out):
     return pairs1
 
 
-def put_z(sorted_grouped,grouped):
+def put_z(sorted_grouped,grouped,correct_flag):
     
     sibling_counts = (
         sorted_grouped.apply(essential._sibling_count, axis=1,args=(grouped,))
@@ -762,15 +1044,60 @@ def put_z(sorted_grouped,grouped):
     
     sorted_grouped['sibling_count'] = sibling_counts
     sorted_grouped['uncle_count'] = uncle_counts
-    
+    #sorted_grouped= correct_count(data,sorted_grouped,sp_string)
 
     
-    essential.compute_z(sorted_grouped,'sibling',df)
+    #print('done4')
+    if correct_flag:
+        sibling_counts_population = (
+            sorted_grouped.apply(essential._sibling_population_count, axis=1,args=(grouped,))
+        )
+        
+        uncle_counts_population = (
+            sorted_grouped.apply(essential._uncle_population_count, axis=1,args=(grouped,))
+        )
+        
+        
+        test_counts_population = (
+            sorted_grouped.apply(essential._test_population_count, axis=1,args=(grouped,))
+        )
+        
+        #print('done5')
+        
+        sibling_counts_population = sibling_counts_population.fillna(0) 
+        sibling_counts_population = sibling_counts_population.astype(float)
+        
+        uncle_counts_population = uncle_counts_population.fillna(0) 
+        uncle_counts_population = uncle_counts_population.astype(float)
+        
+        test_counts_population = test_counts_population.fillna(0) 
+        test_counts_population = test_counts_population.astype(float)
+        
+        sorted_grouped['sibling_count_population'] = sibling_counts_population
+        sorted_grouped['uncle_count_population'] = uncle_counts_population
+        sorted_grouped['test_count_population'] = test_counts_population
+        
+        #essential.compute_z(sorted_grouped,'sibling',df)
+        sorted_grouped.to_csv('debug.csv',index=False)
+        #exit()
+        
+        #essential.compute_z(sorted_grouped,'sibling',df)
+        #essential.compute_z(sorted_grouped,'uncle',df)
+        
+        #essential.project_z_score(sorted_grouped,'sibling',df)
+        #essential.project_z_score(sorted_grouped,'uncle',df)
+        
+        essential.project_z_score_z(sorted_grouped,'sibling',df)
+        essential.project_z_score_z(sorted_grouped,'uncle',df)
+        
+        #project_z_score_z
+        #project_z_score
+        #essential.compute_z(sorted_grouped,'uncle',df)
+    else:
+        essential.compute_z(sorted_grouped,'sibling',df)
+        essential.compute_z(sorted_grouped,'uncle',df)
     
     
-
-
-    essential.compute_z(sorted_grouped,'uncle',df)
     sorted_grouped = (
         sorted_grouped
         .groupby('Where_at', group_keys=False, dropna=False)
@@ -780,7 +1107,7 @@ def put_z(sorted_grouped,grouped):
     return sorted_grouped
 
 
-def write_significance(sorted_grouped,out_file,labeled_sp):
+def write_significance(sorted_grouped,out_file,labeled_sp,correction_flag):
     sorted_grouped = sorted_grouped.sort_values(by=[ 'NNI_sp'])
 
     cols = [
@@ -809,6 +1136,8 @@ def write_significance(sorted_grouped,out_file,labeled_sp):
     sorted_grouped.rename(columns={"total_count": "Test_count"}, inplace=True)
     sorted_grouped.rename(columns={"Where_at": "Focal_lineage"}, inplace=True)
     #sorted_grouped =convert_species(sorted_grouped)
+    
+    #sorted_grouped.to_csv('cnn.csv',index=False)
 
     padding = 2 
     widths = {}
@@ -826,7 +1155,7 @@ def write_significance(sorted_grouped,out_file,labeled_sp):
     SPACE_SEP = ' ' * padding
     TABSTOP = 8  
 
-    with open('./DAFT_Significance_'+out_file+'.txt', 'w') as oe:
+    with open('./DAFT_Test_'+out_file+'.txt', 'w') as oe:
         oe.write(f"Species Tree = {essential.to_newick_with_id(labeled_sp)}\n")
         oe.write("=" * 40 + "\n")
 
@@ -836,8 +1165,16 @@ def write_significance(sorted_grouped,out_file,labeled_sp):
             
             header = ''
             for i, col in enumerate(cols, 1):  
-                header += f"{col:<{widths[col]}}"
-                if i < len(cols):  
+                if correction_flag:
+                        if  col in ['Z-value-uncle','Z-value-sibling']:
+                            header += f"{col:<{widths[col]}}"
+                        elif col in ['comparison_uncle']:
+                            header += f"{col:<{widths[col]}}"
+                        else:
+                            header += f"{col:<{widths[col]}}"
+                else:
+                    header += f"{col:<{widths[col]}}"
+                if i < len(cols): 
                     header += TAB_STR if col in SPECIAL_AFTER else SPACE_SEP
             header += "\n"
 
@@ -850,7 +1187,40 @@ def write_significance(sorted_grouped,out_file,labeled_sp):
                 for i, col in enumerate(cols, 1):
                     val = row[col] if col in row else np.nan
                     s = essential.render_val(col, val)
-                    line += f"{s:<{widths[col]}}"
+                    if correction_flag:
+                        if col =='Test_count' and row['Test_lineage']: #'uncle_count','sibling_count']:
+                            s = str(s)+'/'+str(int(row['test_count_population'])) if col in row else np.nan
+                            line += f"{s:<{widths[col]}}"
+                        elif col =='uncle_count' and row['comparison_uncle']: #'uncle_count','sibling_count']:
+                            s = str(s)+'/'+str(int(row['uncle_count_population'])) if col in row else np.nan
+                            line += f"{s:<{widths[col]}}"
+                        elif col =='sibling_count' and row['comparison_sibling']: #'uncle_count','sibling_count']:
+                            s = str(s)+'/'+str(int(row['sibling_count_population'])) if col in row else np.nan
+                            line += f"{s:<{widths[col]}}"
+                        elif col =='Z-value-sibling': #'uncle_count','sibling_count']:
+                            val1 = row['Z-value-sibling_corrected_scaled_down'] if 'Z-value-sibling_corrected_scaled_down' in row else np.nan
+                            s1 = essential.render_val('Z-value-sibling_corrected_scaled_down', val1)
+                            s = str(s)+'|'+str(s1) if col in row else np.nan
+                            line += f"{s:<{widths[col]}}"
+                        elif col =='Z-value-uncle': #'uncle_count','sibling_count']:
+                            val1 = row['Z-value-uncle_corrected_scaled_down'] if 'Z-value-uncle_corrected_scaled_down' in row else np.nan
+                            s1 = essential.render_val('Z-value-uncle_corrected_scaled_down', val1)
+                            s = str(s)+'|'+str(s1) if col in row else np.nan
+                            line += f"{s:<{widths[col]}}"
+                        elif col in ['Z-value-sibling_corrected_scaled_down','Z-value-uncle_corrected_scaled_down']:
+                            continue
+                        elif col =='comparison_uncle':
+                            w = widths[col]
+                            line += f"{s:<{w}}"
+                        else:
+                            w = widths[col]
+                            line += f"{s:<{w}}"
+
+
+                    else:
+                        w = widths[col]
+                        line += f"{s:<{w}}"
+                        #line += f"{s:<{widths[col]}}"
                     if i < len(cols):
                         
                         line += TAB_STR if col in SPECIAL_AFTER else SPACE_SEP
@@ -872,6 +1242,20 @@ def convert_excel(out):
         exit_code = os.WEXITSTATUS(status) if hasattr(os, "WEXITSTATUS") else (status >> 8)
         if exit_code != 0:
             raise RuntimeError(f"DAFT_produce_excel.py failed with code {exit_code}")
+        
+        
+def convert_excel_corrected(out):
+        script = "./DAFT_produce_excel_correction.py"
+        argv = [
+                sys.executable,         
+                script,
+                "--output",out,
+                
+            ]
+        status = os.spawnv(os.P_WAIT, sys.executable, argv)
+        exit_code = os.WEXITSTATUS(status) if hasattr(os, "WEXITSTATUS") else (status >> 8)
+        if exit_code != 0:
+            raise RuntimeError(f"DAFT_produce_excel_correction.py failed with code {exit_code}")
 
 def clean_folder(out):
         script = "./clean_folder.py"
@@ -948,7 +1332,7 @@ def extract_mrca_linage(sp_string,lin1,focal):
                     #li+=[lim for lim in leaves if lim if not essential.isequal(lim,focal)]
     return li
         
-
+'''
 def correct_accounting_by_product(data,leaf1,where_at,leaf2,uncle,sp_string):
     
     new_gt_2 = '(('+leaf1+','+where_at+'),'+uncle+')'
@@ -1028,7 +1412,7 @@ def correct_accounting_by_product(data,leaf1,where_at,leaf2,uncle,sp_string):
             
     
         
-    return count_l,count_k#,
+    return count_k,count_l#,
 '''
 
 
@@ -1112,7 +1496,6 @@ def correct_accounting_by_product(data,leaf1,where_at,leaf2,uncle,sp_string):
     
         
     return count_l,count_k#,
-''' 
 
 def correct_accounting(data,leaf1,where_at,leaf2,uncle):
     print(leaf1,where_at,leaf2,uncle)
@@ -1295,8 +1678,6 @@ def recurssive_correction(data,old_clade,where_at,scale,lineage_middle,sp_string
     
                             
                     
-    lineage_middle_mrca= extract_mrca_linage(sp_string,old_clade.to_newick()[:-1],where_at[:-1])
-    lineage_middle_full= extract_mrca_linage(sp_string,old_clade.to_newick()[:-1],sp_string)
 
                     
     while stack:
@@ -1305,7 +1686,7 @@ def recurssive_correction(data,old_clade,where_at,scale,lineage_middle,sp_string
         if current_node.isLeaf:
             continue
         else:
-            if hop<3:
+            if hop<7:
                 stack.append((current_node.leftChild,hop+1))
                 stack.append((current_node.rightChild,hop+1))
                 
@@ -1329,12 +1710,13 @@ def recurssive_correction(data,old_clade,where_at,scale,lineage_middle,sp_string
                         count_l,count_k,kiase,taxa_mrca= correct_accounting(data,leaf1[:-1],where_at[:-1],remining_lineage1.to_newick()[:-1],sp_string)
                     
                         print(leaf1[:-1],leaf2[:-1] ,count_l,count_k,('-------------------------------'))
-                        new_count_sibling +=  1.5* (count_l+count_k)
-                        new_count_test +=  1.5* (count_l+count_k)
-                        new_count_uncle +=  1.5* (count_l+count_k)
+                        new_count_sibling +=  1.5*(count_l+count_k)
+                        new_count_test +=  1.5*(count_l+count_k)
+                        new_count_uncle +=   1.5*(count_l+count_k)
                         
 
                
+                        '''
                         count_l,count_k,kiase,taxa_mrca= correct_accounting(data,leaf2[:-1],where_at[:-1],remining_lineage2.to_newick()[:-1],sp_string)
                         #print(lf[0][:-1],where_at[:-1],lf[1][:-1],line[:-1],count_l,count_k)
                         #print('0000'*50)
@@ -1343,7 +1725,13 @@ def recurssive_correction(data,old_clade,where_at,scale,lineage_middle,sp_string
                         new_count_sibling +=  1.5* (count_l+count_k)
                         new_count_test +=  1.5* (count_l+count_k)
                         new_count_uncle +=  1.5* (count_l+count_k)
-                        
+                        '''
+            
+            
+                    lineage_middle_mrca= extract_mrca_linage(sp_string,current_node.to_newick()[:-1],where_at[:-1])
+                    lineage_middle_full= extract_mrca_linage(sp_string,current_node.to_newick()[:-1],sp_string)
+                    print(old_clade.to_newick(),lineage_middle_full,lineage_middle_mrca,where_at)
+                    #exit()
 
                     taxa_mrca =current_node.taxa
                     lineage_middle_mrca = [ined[:-1] for ined in lineage_middle_mrca]
@@ -1352,7 +1740,7 @@ def recurssive_correction(data,old_clade,where_at,scale,lineage_middle,sp_string
                     leaves_from_above =find_level_from_above(addr_mrca)
                     
                     expansion_factor = max(0,leaves_from_above-2)
-                    lineage_middle =lineage_middle_full[:-1]
+                    lineage_middle =lineage_middle_full
                     
                     mid_len= len(lineage_middle_mrca)
                     mid_len=0
@@ -1362,12 +1750,13 @@ def recurssive_correction(data,old_clade,where_at,scale,lineage_middle,sp_string
 
                     flag=True
                     index=0
+                    '''
                     if flag_4:
                         if NNI_SP_test>=1 or hop+1>2:
                             lineage_middle =[]
                         else:
-                            lineage_middle = lineage_middle_full[mid_len:-1]
-                    
+                            lineage_middle = lineage_middle_full[mid_len:]
+                    '''
                     print('===>',len(lineage_middle),index)
                     print(lineage_middle)
                     while flag and index<len(lineage_middle):
@@ -1382,21 +1771,21 @@ def recurssive_correction(data,old_clade,where_at,scale,lineage_middle,sp_string
                         else:
                             count_l,count_k= correct_accounting_by_product(data,leaf1[:-1],where_at[:-1],leaf2[:-1],line,sp_string)
 
-                        
-                        if (count_l+count_k) <2:
+                        print('==>CCOUNT',count_k+count_l)
+                        if (count_l+count_k) <0:
                             flag=False
 
                         else:
                             if not essential.isequal_set(line,test_comparision_sibling) and not essential.isequal_set(line,test_comparison_uncle):
-                                new_count_test +=  1.5* (count_l+count_k)
+                                new_count_test +=  1.5*(count_l+count_k)
                                 
                             if sibling_test_count:
                                 if not essential.isequal_set(line,sibling_comparision_sibling):
-                                    new_count_sibling +=  1.5* (count_l+count_k)
+                                    new_count_sibling +=  1.5*(count_l+count_k)
                                 
                             if uncle_test_count:        
                                 if not essential.isequal_set(line,uncle_comparision_sibling):
-                                    new_count_uncle +=  1.5* (count_l+count_k)
+                                    new_count_uncle +=  1.5*(count_l+count_k)
                             
                     '''
                     for line in lineage_middle:
@@ -1450,6 +1839,7 @@ def search_address(sorted_grouped, old_clade, where_at,flag):
     df_filtered_where_at = sorted_grouped[
         sorted_grouped[flag].apply(lambda x: essential.isequal(x, where_at))
     ]
+    import pprint
     pprint.pprint(df_filtered_where_at.to_dict())
     to_return = {'uncle': [], 'sib': [], 'uncle_idx': [], 'sib_idx': []}
     
@@ -1477,6 +1867,7 @@ def search_address_reverse(sorted_grouped, old_clade, where_at,flag):
     df_filtered_where_at = sorted_grouped[
         sorted_grouped['Where_at'].apply(lambda x: essential.isequal(x, where_at))
     ]
+    
     pprint.pprint(df_filtered_where_at.to_dict())
     to_return = {'uncle': [], 'sib': [], 'uncle_idx': [], 'sib_idx': []}
     
@@ -1615,10 +2006,10 @@ def correct_count(data,sorted_grouped,sp_string):
                 u_sib= old_count_sib+1.5*new_count+new_count_sibling
                 for ied in idx_sib:
                     sorted_grouped.loc[ied,'sibling_count']=u_sib
-                
+          
     print('84356'*100)
     for idx, row in sorted_grouped.iterrows():
-        if not row['Sib_leaf_'+flag_f] and row[flag_f]:
+        if not row['Sib_leaf_'+flag_f] and row[flag_f] and row['Sib_leaf_'+flag]:
             old_count= row['total_count']
             old_clade =row[flag_f]
             where_at = row[flag]
@@ -1726,37 +2117,6 @@ def correct_count(data,sorted_grouped,sp_string):
 
 
 
-def parse1():
-    parser = argparse.ArgumentParser(description="IQTree on Simphy and dupcoal")
-    parser.add_argument('--sp', type=str, help="Species tree")
-    parser.add_argument('--gt', type=str, help="Gene tree list")
-    #parser.add_argument('--lineages',type=lambda s: s.split('/'),help="'/'-separated list of lineages (e.g. l1/l2)")
-    parser.add_argument('--output', type=str, help="Name of output file")
-    parser.add_argument('--direction', type=int,default=0, help="Run DAFT_Direction.py")
-    parser.add_argument('--excel', type=int,default=0, help="Produce Excel")
-    parser.add_argument('--sibling', type=str, default='0', help="Run sibling test")
-    
-    args = parser.parse_args()
-    return args
-
-
-parser = parse1()
-essential= daft_essential()
-reco =reconcils()
-red= readWrite.readWrite()
-Il=ILS.ILS()
-
-sp_string = parser.sp
-#lineages = parser.lineages 
-gene_treefile =parser.gt
-produce_excel=parser.excel
-run_direction=parser.direction
-#print(id_it(sp_string))
-#exit()
-#lineage1= lineages[0]
-#lineage2= lineages[1]
-sibling_flag=parser.sibling
-out_file=parser.output#+'_'+lineage1+'_'+lineage2
 
 
 lis=[]
@@ -1776,16 +2136,24 @@ newick_lineage= address_to_newick(list_sp_tree)
 sib_lineage= find_sib_lineage_pair(data)
 
 
-result = accounting(data,sib_lineage)    
+#print('done0')
+result,results1 = accounting(data,sib_lineage,out_file)    
+
+#print('done1')
 sibling_list= essential.find_sibling(sp,[])
+#print('done11')
 uncle_list= essential.find_uncle(sp,[])
+#print('done12')
+#account_junk(results1)
+#print('done13')
 
+grouped,sorted_grouped,df = sorting_arrangement(result)
 
-grouped,sorted_grouped,df = sorting_arrangement()
-
-
+#print('done2')
 sorted_grouped= put_sibling_uncle(grouped,sorted_grouped,df)
-sorted_grouped=put_z(sorted_grouped,grouped)
+
+#print('done3')
+sorted_grouped=put_z(sorted_grouped,grouped,correct_flag)
 node_map,branch_map,labeled_sp= essential.id_it(sp_string)
 sorted_grouped_converted= essential.idfy_it(sorted_grouped,node_map)
 
@@ -1793,12 +2161,16 @@ sorted_grouped_converted= essential.idfy_it(sorted_grouped,node_map)
 pd.DataFrame(branch_map).to_csv('branch_map.csv',index=False)
 #print(sorted_grouped)
 #exit()
-write_significance(sorted_grouped_converted,out_file,labeled_sp)
+write_significance(sorted_grouped,out_file,labeled_sp,correct_flag)
 
 if produce_excel:
-    convert_excel(out_file)
+    if correct_flag:
+        convert_excel_corrected(out_file)
+    else:
+        convert_excel(out_file)
 if run_direction:
-    call_direction(sorted_grouped,gene_treefile,sp,out_file)
+    #call_direction(sorted_grouped,gene_treefile,sp,out_file)
+    call_direction(sorted_grouped,gene_treefile,sp,out_file,demography,correct_flag,path)
         
 clean_folder(out_file)
 
