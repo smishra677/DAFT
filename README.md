@@ -1,4 +1,4 @@
-# DAFT User Guide
+# DAFT  Version 1.0  User Guide
 
 
 DAFT, the **Discordant Attachment Frequency Tool**, is a Python package for detecting and characterizing introgression from a rooted species tree and a collection of gene trees.
