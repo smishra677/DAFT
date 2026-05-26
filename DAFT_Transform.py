@@ -598,7 +598,7 @@ write_intro1={'Moves':[],'Replicate':[],'NNI':[]}
 
 # Cache reconciliation output by gene tree index.
 # This assumes the same gene tree file and same gene tree order are used across runs.
-CACHE_DIR = "gene_tree_reconciliation_cache"
+CACHE_DIR = "djiNNI_cache"
 os.makedirs(CACHE_DIR, exist_ok=True)
 
 def get_reconciliation_cache_path(gene_tree_index):
