@@ -90,8 +90,8 @@ pip install numpy pandas matplotlib igraph ete3 openpyxl rich
 The most important dependencies are:
 
 ```text
-numpy
-pandas
+pandas==2.2.2
+numpy==1.26.4
 matplotlib
 igraph
 ete3
