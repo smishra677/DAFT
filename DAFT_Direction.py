@@ -271,7 +271,7 @@ def write_direction(df,network_output,sp,out_filec):
         
 
         # Write Data Table 1
-        f.write("DATA TABLE1\n")
+        f.write("DATA TABLE1 (ONLY NNI > 1) \n")
         #print([TABLE1_COL,widths_full])
         
         
@@ -307,7 +307,7 @@ def write_direction(df,network_output,sp,out_filec):
 
         
         # Write Data Table 2 (Bidirectional Data)
-        f.write("DATA TABLE2 (BIDIRECTIONAL)\n")
+        f.write("DATA TABLE2 (BIDIRECTIONAL) (ONLY NNI > 1) \n")
         header = ""
         for i, c in enumerate(TABLE2_COL, 1):
             header += f"{c:<{widths_full[c]}}"
@@ -337,7 +337,7 @@ def write_direction(df,network_output,sp,out_filec):
         f.write("\n")
 
         # Write Data Table 2 (Bidirectional Data)
-        f.write("INFERRED RELATIONS:\n")
+        f.write("INFERRED RELATIONS (ONLY NNI > 1) :\n")
         f.write("=" * 80 + "\n")
         for ide, row in df.iterrows():
             NNI_between = row['NNI_']
@@ -361,7 +361,7 @@ def write_direction(df,network_output,sp,out_filec):
         f.write("\n") 
         f.write("\n")
         f.write("=" * 80 + "\n")
-        f.write('Network: ' + network_output+'\n')
+        f.write('Network (ONLY NNI > 1) :  ' + network_output+'\n')
         f.write("*" * 80 + "\n")
         f.write("\n") 
         f.write("\n") 
@@ -734,7 +734,7 @@ df_converted= essential.idfy_it_direction(df,node_map)
 #print(sp_labeled.to_newick())
 #exit()
 #put it in a network
-df_net = df[(df['NNI_']>0)]
+df_net = df[(df['NNI_']>1)]
 
 sp_labeled =essential.put_network_in_tree(df_net,sp_labeled)
 network_output=essential.to_network(sp_labeled)
