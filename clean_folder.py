@@ -23,7 +23,7 @@ dst_dir_results = Path("DAFT_results")
 dst_dir_extra.mkdir(exist_ok=True)
 dst_dir_results.mkdir(exist_ok=True)
 
-prefixes = ("introgression", "rev", "result" , "djiNNI", "list_")
+prefixes = ("introgression", "rev", "result" , "djiNNI", "list_","Summary")
 #prefixes = ("introgression", "rev", "result" , "djiNNI")
 
 

@@ -22,9 +22,10 @@ warnings.filterwarnings(
 def parse1():
     parser = argparse.ArgumentParser(description="DAFT Test")
 
-    parser.add_argument('--sp', type=str, help="Species tree")
+    parser.add_argument('--sp', type=str, default=None, help="Species tree as Newick text")
+    parser.add_argument('--sp_file', type=str, default=None, help="File containing species tree")
     parser.add_argument('--gt', type=str, help="Gene tree list")
-    parser.add_argument('--path', type=str, default="./DAFT_utils" ,help="Path to daft_util")
+    parser.add_argument('--path', type=str, default="./DAFT_utils", help="Path to daft_util")
     parser.add_argument('--output', type=str, help="Name of output file")
     parser.add_argument('--direction', type=int, default=0, help="Run DAFT_Direction.py")
     parser.add_argument('--excel', type=int, default=0, help="Produce Excel")
@@ -33,6 +34,17 @@ def parse1():
     parser.add_argument('--demography', type=str, help="demography file")
 
     args = parser.parse_args()
+
+    if args.sp_file:
+        with open(args.sp_file, "r", encoding="utf-8") as f:
+            args.sp = f.read().strip()
+
+    if not args.sp:
+        parser.error("Please provide species tree using --sp or --sp_file")
+
+    if not args.sp.endswith(";"):
+        args.sp += ";"
+
     return args
 
 
@@ -2127,6 +2139,7 @@ total_count_=[]
 
 data=pd.read_csv(gene_treefile, sep=',').to_numpy()
 
+#print(data)
 sp= red.parse(sp_string)
 sp.label_internal()
 
@@ -2161,7 +2174,7 @@ sorted_grouped_converted= essential.idfy_it(sorted_grouped,node_map)
 pd.DataFrame(branch_map).to_csv('branch_map.csv',index=False)
 #print(sorted_grouped)
 #exit()
-write_significance(sorted_grouped,out_file,labeled_sp,correct_flag)
+write_significance(sorted_grouped_converted,out_file,labeled_sp,correct_flag)
 
 if produce_excel:
     if correct_flag:
