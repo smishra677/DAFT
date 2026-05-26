@@ -1073,9 +1073,14 @@ DAFT_extras/
 
 ## 16. Rich Progress Dashboard and Verbose Output
 
+`DAFT_Direction.py` and `DAFT_Transform.py` can print a rich terminal progress display during DAFT runs. This display is meant to help users monitor long analyses while gene trees are being reconciled, transformed, or loaded from cache.
+
 `DAFT_Transform.py` uses `rich` to show a terminal progress dashboard during the djiNNI transformation step.
 
-The dashboard can be controlled with:
+<img width="976" height="527" alt="image" src="https://github.com/user-attachments/assets/8f8244ed-3754-4e08-89b2-54e748092eaa" />
+
+
+The dashboard can be enabled with:
 
 ```bash
 --progress 1
@@ -1087,23 +1092,169 @@ or disabled with:
 --progress 0
 ```
 
-`DAFT_Direction.py` and `DAFT_Transform.py` also accept:
+When progress output is enabled, DAFT may show a rich dashboard header such as:
 
-```bash
---verbose 1
+```text
+DAFT Direction / djiNNI
 ```
 
-for more detailed terminal output, or:
+The dashboard reports the current status of the analysis, including the number of gene trees detected, the number of completed gene trees, elapsed wall time, average time per gene tree, estimated remaining time, and total runtime.
 
-```bash
---verbose 0
+For example, during `DAFT_Direction.py` / `djiNNI`, the dashboard may show progress for reconciling gene trees and the lineage pair currently being compared. A progress value such as `96/96` means that all 96 detected gene trees have been processed.
+
+The line:
+
+```text
+Loading cached reconciliation for gene tree index ...
 ```
 
-for quieter output.
+means that DAFT found a previously computed reconciliation result in `djiNNI_cache` and is loading it instead of recalculating that gene tree from scratch. This can make repeated runs faster when the same gene tree file and same gene tree order are used.
 
-When `DAFT_Direction.py` calls `DAFT_Transform.py`, these flags can be passed through the workflow so the direction step can be run either with progress messages or quietly.
+The field:
 
----
+```text
+Significant pair
+```
+
+shows the lineage pair currently being evaluated by djiNNI. For example:
+
+```text
+E; vs ((F,G),(I,C));
+```
+
+means that DAFT is comparing the direction relationship between `E;` and `((F,G),(I,C));`.
+
+The field:
+
+```text
+Total gene trees detected
+```
+
+shows the total number of gene trees passed to the djiNNI direction step.
+
+The field:
+
+```text
+Completed gene trees
+```
+
+shows how many gene trees have already been processed out of the total.
+
+The field:
+
+```text
+Elapsed wall time
+```
+
+shows the real time that has passed since the current djiNNI run started.
+
+The field:
+
+```text
+avg time/tree
+```
+
+shows the average processing time per gene tree.
+
+The field:
+
+```text
+Remaining time
+```
+
+shows the estimated time left for the current djiNNI run.
+
+The field:
+
+```text
+Total runtime
+```
+
+shows the estimated or final total runtime for the displayed run.
+
+After the rich dashboard finishes, DAFT prints a final runtime summary.
+
+```text
+Total gene trees
+```
+
+is the total number of gene trees used in the direction analysis.
+
+```text
+Reconciled from scratch
+```
+
+is the number of gene trees that were newly reconciled during the current run.
+
+```text
+Loaded from cache
+```
+
+is the number of gene trees that were loaded from `djiNNI_cache` instead of being recalculated.
+
+```text
+Total elapsed wall time
+```
+
+is the final real runtime for the complete djiNNI direction analysis.
+
+### Lineage comparison counts
+
+After the djiNNI run, DAFT prints a section called:
+
+```text
+Lineage comparison counts
+```
+
+This section summarizes how many gene trees support each direction relationship for the significant lineage pair being tested.
+
+For example:
+
+```text
+E; > ((F,G),(I,C));: 30
+E; < ((F,G),(I,C));: 0
+E; == ((F,G),(I,C));: 66
+```
+
+The `>` symbol means that the first lineage had a higher movement/support count than the second lineage for that gene tree comparison.
+
+For example:
+
+```text
+E; > ((F,G),(I,C));: 30
+```
+
+means that 30 gene trees supported `E;` as having the higher movement/support count compared with `((F,G),(I,C));`.
+
+The `<` symbol means that the second lineage had a higher movement/support count than the first lineage for that gene tree comparison.
+
+For example:
+
+```text
+E; < ((F,G),(I,C));: 0
+```
+
+means that 0 gene trees supported `((F,G),(I,C));` as having the higher movement/support count compared with `E;`.
+
+The `==` symbol means that the two lineages had equal movement/support counts for that gene tree comparison.
+
+For example:
+
+```text
+E; == ((F,G),(I,C));: 66
+```
+
+means that 66 gene trees had equal counts between `E;` and `((F,G),(I,C));`.
+
+In the current implementation, when the two lineages are tied under the `==` case, DAFT resolves the tie using `np.random.choice`. This means the `==` category represents gene trees where the comparison was tied or unresolved by the count comparison, and the downstream moved lineage is chosen randomly between the two lineages.
+
+Therefore:
+
+- `>` counts gene trees where lineage 1 had greater support.
+- `<` counts gene trees where lineage 2 had greater support.
+- `==` counts tied cases, which are resolved randomly using `np.random.choice`.
+
+These counts help summarize the direction signal across gene trees before the final donor/receiver interpretation is written to the DAFT Direction output.
 
 ## 17. Troubleshooting
 
