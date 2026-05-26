@@ -821,6 +821,45 @@ DAFT_Direction_output.txt
 
 ---
 
+## djiNNI Cache
+
+`DAFT_Direction.py` / `djiNNI` may create a cache folder in the main DAFT working directory:
+
+`djiNNI_cache/`
+
+This folder stores previously computed reconciliation results for gene trees. The purpose of the cache is to make repeated `djiNNI` runs faster by reusing results that were already calculated.
+
+The cache is tied to the gene tree order used during the run. This means the cache is only safe to reuse when you are running DAFT on the same gene tree dataset and the gene trees are in the same order as the previous run.
+
+### When to keep `djiNNI_cache/`
+
+You can keep the cache folder if you are rerunning DAFT on the same gene tree file and the gene tree order has not changed.
+
+For example, it is safe to keep the cache if:
+
+- `test_data.csv` is the same file
+- gene trees are in the same order
+- only the lineage pair or output name changed
+
+In this case, keeping `djiNNI_cache/` can save time because DAFT can reuse previously computed reconciliation results.
+
+### When to delete or move `djiNNI_cache/`
+
+Delete or move the cache folder before running DAFT if you are using a different dataset.
+
+You should also delete or move the cache if:
+
+- you changed the gene tree CSV file
+- you added gene trees
+- you removed gene trees
+- you reordered gene trees
+- you are running a completely different analysis
+- you are not sure whether the current cache matches the current gene tree file
+
+If the cache folder was created from a different gene tree file or a different gene tree order, DAFT may reuse reconciliation results that do not belong to the current dataset.
+
+---
+
 ## 14. Understanding `DAFT_Direction_output.txt`
 
 The direction output file usually contains these sections:
