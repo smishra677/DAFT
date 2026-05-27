@@ -49,7 +49,7 @@ donor/receiver inference + introgression network
 Clone the DAFT repository and move into the code directory:
 
 ```bash
-git clone https://github.com/<your-username>/DAFT.git
+git clone https://github.com/smishra677/DAFT.git
 cd DAFT
 ```
 
@@ -76,18 +76,11 @@ If you run DAFT from another location, pass the utility path explicitly using:
 
 ---
 
-## 2. Install Dependencies
+## 2. Install DAFT
 
+For full installation details, please read [`INSTALL.md`](INSTALL.md).
 
-DAFT requires Python 3.
-
-Install the required Python packages:
-
-```bash
-pip install numpy pandas matplotlib igraph ete3 openpyxl rich
-```
-
-The most important dependencies are:
+DAFT requires Python 3 and the following Python packages:
 
 ```text
 pandas==2.2.2
@@ -99,6 +92,40 @@ openpyxl
 rich
 ```
 
+From the DAFT directory, install the dependencies:
+
+```bash
+python -m pip install -r requirements.txt
+```
+
+Then install DAFT:
+
+```bash
+python -m pip install -e .
+```
+
+After installation, the main DAFT commands are available from the command line:
+
+```bash
+daft-test --help
+daft-direction --help
+daft-transform --help
+```
+
+The installed commands automatically locate `DAFT_utils`.
+
+DAFT can also be run directly from the original scripts:
+
+```bash
+python3 DAFT_Test.py
+python3 DAFT_Direction.py
+```
+
+When running the original scripts from outside the DAFT directory, pass the utility path with:
+
+```bash
+--path /path/to/DAFT_utils
+```
 
 ---
 
@@ -153,13 +180,12 @@ The current code reads the CSV using `pandas.read_csv(...).to_numpy()` and uses 
 
 ## 4. Quick Start: Run the Full DAFT Workflow
 
-The easiest way to run DAFT is to run `DAFT_Test.py` and let it automatically call `DAFT_Direction.py`.
+The main DAFT workflow starts with `daft-test`. When `--direction 1` is used, DAFT also runs `daft-direction` on the significant lineage pairs.
 
 ```bash
-python3 DAFT_Test.py \
+daft-test \
   --sp "(A,(((W,V),(B,U)),((((K,L),(M,N)),(J,((E,(D,H)),((C,I),(G,F))))),(T,(S,(O,((Q,R),P)))))));" \
   --gt "test_data.csv" \
-  --path "./DAFT_utils" \
   --output "output" \
   --sibling 1 \
   --excel 1 \
@@ -175,6 +201,19 @@ This command:
 - writes Excel output with `--excel 1`
 - automatically runs direction inference with `--direction 1`
 
+The same workflow can also be run with the original script:
+
+```bash
+python3 DAFT_Test.py \
+  --sp "(A,(((W,V),(B,U)),((((K,L),(M,N)),(J,((E,(D,H)),((C,I),(G,F))))),(T,(S,(O,((Q,R),P)))))));" \
+  --gt "test_data.csv" \
+  --path "./DAFT_utils" \
+  --output "output" \
+  --sibling 1 \
+  --excel 1 \
+  --direction 1
+```
+
 After the run finishes, DAFT organizes output files into:
 
 ```text
@@ -186,13 +225,12 @@ DAFT_extras/
 
 ## 5. Recommended First Run
 
-For a first analysis, we recommend running the significance step first without automatic direction inference:
+For a first analysis, run the significance step first without automatic direction inference:
 
 ```bash
-python3 DAFT_Test.py \
+daft-test \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
-  --path "./DAFT_utils" \
   --output "output" \
   --sibling 1 \
   --excel 1 \
@@ -210,16 +248,36 @@ DAFT_results/branch_map.csv
 After identifying significant lineage pairs, run direction inference manually:
 
 ```bash
-python3 DAFT_Direction.py \
+daft-direction \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
-  --path "./DAFT_utils" \
-  --lineages "[('B;', 'K;'), ('M;', 'E;')]" \
+  --lineages "[(\'C;\', \'H;\')]" \
   --verbose 1 \
   --output "output"
 ```
 
 This two-step workflow is the safest way to understand what DAFT is doing.
+
+The original script commands are also supported:
+
+```bash
+python3 DAFT_Test.py \
+  --sp "<species_tree_newick>" \
+  --gt "test_data.csv" \
+  --path "./DAFT_utils" \
+  --output "output" \
+  --sibling 1 \
+  --excel 1 \
+  --direction 0
+
+python3 DAFT_Direction.py \
+  --sp "<species_tree_newick>" \
+  --gt "test_data.csv" \
+  --path "./DAFT_utils" \
+  --lineages "[(\'C;\', \'H;\')]" \
+  --verbose 1 \
+  --output "output"
+```
 
 ---
 
@@ -707,16 +765,25 @@ Here, the corrected value is:
 
 ## 12. Running DAFT Direction Separately
 
-You can run `DAFT_Direction.py` directly when you already know which lineage pairs you want to test.
+Run DAFT Direction when you already know which lineage pairs you want to test.
 
-Example:
+```bash
+daft-direction \
+  --sp "(A,(((W,V),(B,U)),((((K,L),(M,N)),(J,((E,(D,H)),((C,I),(G,F))))),(T,(S,(O,((Q,R),P)))))));" \
+  --gt "test_data.csv" \
+  --lineages "[(\'B;\', \'K;\'), (\'M;\', \'E;\')]" \
+  --verbose 1 \
+  --output "output"
+```
+
+The same command can also be run with the original script:
 
 ```bash
 python3 DAFT_Direction.py \
   --sp "(A,(((W,V),(B,U)),((((K,L),(M,N)),(J,((E,(D,H)),((C,I),(G,F))))),(T,(S,(O,((Q,R),P)))))));" \
   --gt "test_data.csv" \
   --path "./DAFT_utils" \
-  --lineages "[('B;', 'K;'), ('M;', 'E;')]" \
+  --lineages "[(\'B;\', \'K;\'), (\'M;\', \'E;\')]" \
   --verbose 1 \
   --output "output"
 ```
@@ -982,10 +1049,9 @@ This network can be visualized using a tree or network visualization tool that s
 Use this when you only want DAFT significance results:
 
 ```bash
-python3 DAFT_Test.py \
+daft-test \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
-  --path "./DAFT_utils" \
   --output "output" \
   --sibling 1 \
   --excel 1 \
@@ -1007,10 +1073,9 @@ DAFT_results/branch_map.csv
 Use this when lineages or clades are observed unequally across gene trees:
 
 ```bash
-python3 DAFT_Test.py \
+daft-test \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
-  --path "./DAFT_utils" \
   --output "output" \
   --sibling 1 \
   --excel 1 \
@@ -1027,11 +1092,10 @@ Use the corrected Z-score when interpreting significance.
 Use this after inspecting the significance output:
 
 ```bash
-python3 DAFT_Direction.py \
+daft-direction \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
-  --path "./DAFT_utils" \
-  --lineages "[('B;', 'K;'), ('M;', 'E;')]" \
+  --lineages "[(\'B;\', \'K;\'), (\'M;\', \'E;\')]" \
   --verbose 1 \
   --output "output"
 ```
@@ -1049,25 +1113,16 @@ DAFT_Direction_output.txt
 Use this when you want DAFT to run significance and direction inference together:
 
 ```bash
-python3 DAFT_Test.py \
+daft-test \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
-  --path "./DAFT_utils" \
   --output "output" \
   --sibling 1 \
   --excel 1 \
   --direction 1
 ```
 
-Main outputs:
-
-```text
-DAFT_results/DAFT_Test_output.txt
-DAFT_results/DAFT_Test_output.xlsx
-DAFT_results/DAFT_Direction_output.txt
-DAFT_results/branch_map.csv
-DAFT_extras/
-```
+The original script commands are still supported. Add `--path "./DAFT_utils"` when using `python3 DAFT_Test.py` or `python3 DAFT_Direction.py` directly.
 
 ---
 
@@ -1351,6 +1406,23 @@ DAFT_results/branch_map.csv
 ```
 
 to map output labels back to the original species tree.
+
+---
+
+### `daft-test: command not found`
+
+Install DAFT from the repository root:
+
+```bash
+python -m pip install -e .
+```
+
+Then check the command:
+
+```bash
+which daft-test
+daft-test --help
+```
 
 ---
 
