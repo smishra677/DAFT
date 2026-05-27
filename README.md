@@ -101,7 +101,7 @@ python -m pip install -r requirements.txt
 Then install DAFT:
 
 ```bash
-python -m pip install -e .
+python -m pip install .
 ```
 
 After installation, the main DAFT commands are available from the command line:
