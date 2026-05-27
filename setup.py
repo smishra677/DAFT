@@ -24,7 +24,7 @@ setup(
     ),
     long_description=long_description,
     long_description_content_type="text/markdown",
-    author="Sarthak R. Mishra",
+    author="Sarthak R. Mishra, Laia Pomar Pallarès, Robert Lanfear, Matthew W. Hahn",
     author_email="samishr@iu.edu",
     url="https://github.com/smishra677/DAFT",
     license="MIT",
