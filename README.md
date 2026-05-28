@@ -134,13 +134,13 @@ When running the original scripts from outside the DAFT directory, pass the util
 DAFT needs two inputs:
 
 1. A rooted species tree in Newick format
-2. A CSV file containing gene trees in Newick format
+2. A gene tree file containing gene trees in Newick format
 
 ---
 
 ## Species Tree
 
-The species tree is passed directly with the `--sp` argument.
+The species tree can be passed directly with the `--sp` argument, or read from a file with the `--sp_file` argument.
 
 Example:
 
@@ -154,9 +154,15 @@ In the command line, this becomes:
 --sp "(A,(((W,V),(B,U)),((((K,L),(M,N)),(J,((E,(D,H)),((C,I),(G,F))))),(T,(S,(O,((Q,R),P)))))));"
 ```
 
+The same species tree can also be saved in a plain text file and passed with:
+
+```bash
+--sp_file "species_tree.txt"
+```
+
 ---
 
-## Gene Tree CSV
+## Gene Tree File
 
 The gene tree file is passed with the `--gt` argument.
 
@@ -175,6 +181,15 @@ gt
 ```
 
 The current code reads the CSV using `pandas.read_csv(...).to_numpy()` and uses the first column as the gene tree column, so gene trees should be placed in the first column.
+
+DAFT also accepts a simple non-CSV tree-list file. In this format, each line contains one Newick gene tree:
+
+```text
+(A,((B,C),D));
+((A,B),(C,D));
+```
+
+When a non-CSV file is passed with `--gt`, DAFT converts it internally to a CSV file with a single `gt` column.
 
 ---
 
@@ -251,7 +266,7 @@ After identifying significant lineage pairs, run direction inference manually:
 daft-direction \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
-  --lineages "[(\'C;\', \'H;\')]" \
+  --lineages_file "lineages.txt" \
   --verbose 1 \
   --output "output"
 ```
@@ -274,7 +289,7 @@ python3 DAFT_Direction.py \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
   --path "./DAFT_utils" \
-  --lineages "[(\'C;\', \'H;\')]" \
+  --lineages_file "lineages.txt" \
   --verbose 1 \
   --output "output"
 ```
@@ -295,14 +310,34 @@ Example:
 
 ---
 
+### `--sp_file`
+
+File containing the species tree in Newick format.
+
+Example:
+
+```bash
+--sp_file "species_tree.txt"
+```
+
+Use either `--sp` or `--sp_file`.
+
+---
+
 ### `--gt`
 
-CSV file containing gene trees.
+Gene tree file. This can be a CSV file or a simple non-CSV tree-list file.
 
 Example:
 
 ```bash
 --gt "test_data.csv"
+```
+
+A simple tree-list file can also be used:
+
+```bash
+--gt "gene_trees.trees"
 ```
 
 ---
@@ -767,11 +802,19 @@ Here, the corrected value is:
 
 Run DAFT Direction when you already know which lineage pairs you want to test.
 
+Create a plain text file containing the lineage pairs:
+
+```text
+[('B;', 'K;'), ('M;', 'E;')]
+```
+
+Then pass this file with `--lineages_file`:
+
 ```bash
 daft-direction \
   --sp "(A,(((W,V),(B,U)),((((K,L),(M,N)),(J,((E,(D,H)),((C,I),(G,F))))),(T,(S,(O,((Q,R),P)))))));" \
   --gt "test_data.csv" \
-  --lineages "[(\'B;\', \'K;\'), (\'M;\', \'E;\')]" \
+  --lineages_file "lineages.txt" \
   --verbose 1 \
   --output "output"
 ```
@@ -783,7 +826,7 @@ python3 DAFT_Direction.py \
   --sp "(A,(((W,V),(B,U)),((((K,L),(M,N)),(J,((E,(D,H)),((C,I),(G,F))))),(T,(S,(O,((Q,R),P)))))));" \
   --gt "test_data.csv" \
   --path "./DAFT_utils" \
-  --lineages "[(\'B;\', \'K;\'), (\'M;\', \'E;\')]" \
+  --lineages_file "lineages.txt" \
   --verbose 1 \
   --output "output"
 ```
@@ -805,9 +848,17 @@ Species tree in Newick format.
 
 ---
 
+### `--sp_file`
+
+File containing the species tree in Newick format.
+
+Use either `--sp` or `--sp_file`.
+
+---
+
 ### `--gt`
 
-CSV file containing gene trees.
+Gene tree file. This can be a CSV file or a simple non-CSV tree-list file.
 
 ---
 
@@ -840,14 +891,20 @@ Example:
 
 ---
 
-### `--lineages`
+### `--lineages_file`
 
-A Python-style list of lineage pairs.
+Plain text file containing a Python-style list of lineage pairs.
 
-Example:
+Example file contents:
+
+```text
+[('B;', 'K;'), ('M;', 'E;')]
+```
+
+Example command argument:
 
 ```bash
---lineages "[('B;', 'K;'), ('M;', 'E;')]"
+--lineages_file "lineages.txt"
 ```
 
 Each tuple contains one pair of lineages to test.
@@ -1095,7 +1152,7 @@ Use this after inspecting the significance output:
 daft-direction \
   --sp "<species_tree_newick>" \
   --gt "test_data.csv" \
-  --lineages "[(\'B;\', \'K;\'), (\'M;\', \'E;\')]" \
+  --lineages_file "lineages.txt" \
   --verbose 1 \
   --output "output"
 ```
