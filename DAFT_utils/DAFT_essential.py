@@ -10,6 +10,9 @@ from utils_reconcILS import *
 from reconcILS import *
 import numpy as np
 import warnings
+from pathlib import Path
+
+
 
 warnings.filterwarnings(
     "ignore",
@@ -33,6 +36,34 @@ class daft_essential:
         #self.red= readWrite.readWrite()
         #self.Il=ILS.ILS()
         np.random.seed(42)
+
+
+    def convert_gt_to_csv(self,gt_file):
+        gt_file = Path(gt_file)
+
+        if gt_file.suffix.lower() == ".csv":
+            return str(gt_file)
+
+        data = {"gt": []}
+
+        with open(gt_file, "r", encoding="utf-8") as f:
+            for line in f:
+                tree = line.strip()
+
+                if tree:
+                    data["gt"].append(tree)
+
+        if not data["gt"]:
+            raise ValueError(f"Gene tree file is empty: {gt_file}")
+
+        df = pd.DataFrame(data)
+
+        # Save as CSV
+        csv_file = gt_file.with_suffix(".csv")
+        df.to_csv(csv_file, index=False)
+
+        return str(csv_file)
+
 
 
     def find_sibling(self,gt,returni):
@@ -609,7 +640,12 @@ class daft_essential:
             L2_count_i = df.at[i, 'Count2']
             minZ_i=min(L1_count_i,L2_count_i)
             maxZ_i=max(L1_count_i,L2_count_i)
-            Z_score= (minZ_i-maxZ_i)/ math.sqrt(L1_count_i+L2_count_i)
+            
+            denomi =L1_count_i+L2_count_i
+            if denomi ==0:
+                Z_score=np.nan
+            else:
+                Z_score= (minZ_i-maxZ_i)/ math.sqrt(L1_count_i+L2_count_i)
             #if Z_score<-0.4:
             #continue
             df.at[i,'Z_score'] = Z_score
@@ -656,12 +692,21 @@ class daft_essential:
                 if found_k==1:
                     df.at[i,'minor_sibling'] = df.at[found_j, 'Lineage2']
                     df.at[i,'minor_sibling_count'] = df.at[found_j, 'Count2']
-                    Z_score_sib= (L2_count_j-minZ_i)/ math.sqrt(minZ_i+L2_count_j)
+                    denomi = minZ_i+L2_count_j
+                    
+                    if denomi==0:
+                        Z_score_sib=np.nan
+                    else:
+                        Z_score_sib= (L2_count_j-minZ_i)/ math.sqrt(minZ_i+L2_count_j)
 
                 else:
                     df.at[i,'minor_sibling'] = df.at[found_j, 'Lineage1']
                     df.at[i,'minor_sibling_count'] = df.at[found_j, 'Count1']
-                    Z_score_sib= (L1_count_j-minZ_i)/ math.sqrt(minZ_i+L1_count_j)
+                    denomi= minZ_i+L1_count_j
+                    if denomi==0:
+                        Z_score_sib=np.nan
+                    else:
+                        Z_score_sib= (L1_count_j-minZ_i)/ math.sqrt(minZ_i+L1_count_j)
 
                 df.at[i,'Z_score_sibling']=Z_score_sib
 

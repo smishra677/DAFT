@@ -18,33 +18,56 @@ warnings.filterwarnings(
     category=DeprecationWarning,
 )
 
+def read_list_file(file_path):
+    with open(file_path, "r", encoding="utf-8") as f:
+        return ast.literal_eval(f.read())
+
 
 def parse1():
     parser = argparse.ArgumentParser(description="Input to DAFT Direction")
 
-    parser.add_argument('--sp', type=str, help="Species tree")
+    parser.add_argument('--sp', type=str, default=None, help="Species tree as Newick text")
+    parser.add_argument('--sp_file', type=str, default=None, help="File containing species tree")
     parser.add_argument('--gt', type=str, help="List of gene trees")
     parser.add_argument('--path', type=str, default="./DAFT_utils", help="Path to DAFT_utils")
     parser.add_argument('--verbose', type=int, default=1, help="Verbose mode. 1 = yes, 0 = no")
 
     parser.add_argument(
-        '--lineages',
-        type=lambda s: ast.literal_eval(s),
-        help="List of lineage tuples to check direction, e.g. \"[(1,2), (3,4)]\""
+        '--lineages_file',
+        type=str,
+        required=True,
+        help="File containing list of lineage tuples"
     )
 
     parser.add_argument(
-        '--lineagesN',
-        default='[]',
-        type=lambda s: ast.literal_eval(s),
-        help="List of lineage tuples, e.g. \"[(1,2), (3,4)]\""
+        '--lineagesN_file',
+        type=str,
+        default=None,
+        help="Optional file containing non-unique lineage tuples"
     )
 
     parser.add_argument('--output', type=str, help="Name of output file")
 
     args = parser.parse_args()
-    return args
 
+    if args.sp_file:
+        with open(args.sp_file, "r", encoding="utf-8") as f:
+            args.sp = f.read().strip()
+
+    if not args.sp:
+        parser.error("Please provide species tree using --sp or --sp_file")
+
+    if not args.sp.endswith(";"):
+        args.sp += ";"
+
+    args.lineages = read_list_file(args.lineages_file)
+
+    if args.lineagesN_file:
+        args.lineagesN = read_list_file(args.lineagesN_file)
+    else:
+        args.lineagesN = []
+
+    return args
 
 parser = parse1()
 
@@ -58,12 +81,6 @@ from utils_reconcILS import *
 from DAFT_essential import *
 
 
-sp_string = parser.sp
-gene_treefile = parser.gt
-lineages = parser.lineages
-lineages_bidrectional = parser.lineagesN
-out_filec = parser.output
-verbose=parser.verbose
 
 
 total_count_cutoff = 5
@@ -73,6 +90,12 @@ reco =reconcils()
 red= readWrite.readWrite()
 essential= daft_essential()
 
+sp_string = parser.sp
+gene_treefile = essential.convert_gt_to_csv(parser.gt)
+lineages = parser.lineages
+lineages_bidrectional = parser.lineagesN
+out_filec = parser.output
+verbose=parser.verbose
 np.random.seed(42)
 
 

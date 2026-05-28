@@ -5,6 +5,7 @@ import argparse
 import copy
 import warnings
 import pprint
+from pathlib import Path
 
 warnings.filterwarnings(
     "ignore",
@@ -19,12 +20,13 @@ warnings.filterwarnings(
 )
 
 
+
 def parse1():
     parser = argparse.ArgumentParser(description="DAFT Test")
 
     parser.add_argument('--sp', type=str, default=None, help="Species tree as Newick text")
     parser.add_argument('--sp_file', type=str, default=None, help="File containing species tree")
-    parser.add_argument('--gt', type=str, help="Gene tree list")
+    parser.add_argument('--gt', type=str, required=True, help="Gene tree file: CSV or simple tree-list file")
     parser.add_argument('--path', type=str, default="./DAFT_utils", help="Path to daft_util")
     parser.add_argument('--output', type=str, help="Name of output file")
     parser.add_argument('--direction', type=int, default=0, help="Run DAFT_Direction.py")
@@ -45,6 +47,7 @@ def parse1():
     if not args.sp.endswith(";"):
         args.sp += ";"
 
+    
     return args
 
 
@@ -71,7 +74,7 @@ Il = ILS.ILS()
 
 sp_string = parser.sp
 # lineages = parser.lineages
-gene_treefile = parser.gt
+gene_treefile = essential.convert_gt_to_csv(parser.gt)
 produce_excel = parser.excel
 run_direction = parser.direction
 correct_flag = parser.correct
@@ -83,6 +86,7 @@ demography = parser.demography
 # lineage2 = lineages[1]
 sibling_flag = parser.sibling
 out_file = parser.output  # + '_' + lineage1 + '_' + lineage2
+#parser.gt = essential.convert_gt_to_csv(parser.gt)
 
 
 '''
@@ -276,18 +280,30 @@ def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,p
         script = "./DAFT_Direction.py"
         sp = sp_string
         output =out
+        
+        lineages_file = Path(output).with_suffix(".lineages.txt")
+        lineagesN_file = Path(output).with_suffix(".lineagesN.txt")
+        
+        
+        with open(lineages_file, "w", encoding="utf-8") as f:
+            f.write(repr(list_unique))
+
+        with open(lineagesN_file, "w", encoding="utf-8") as f:
+            f.write(repr(list_non_unique))
 
         argv = [
-            sys.executable,         
+            sys.executable,
             script,
             "--sp", str(sp),
             "--gt", str(gene_treefile),
-            "--path",path,
-            "--verbose",str(1),
-            "--lineages", repr(list_unique),  
-            "--lineagesN", repr(list_non_unique),  
+            "--path", path,
+            "--verbose", str(1),
+            "--lineages_file", str(lineages_file),
+            "--lineagesN_file", str(lineagesN_file),
             "--output", output,
         ]
+        
+        
         status = os.spawnv(os.P_WAIT, sys.executable, argv)
         exit_code = os.WEXITSTATUS(status) if hasattr(os, "WEXITSTATUS") else (status >> 8)
         if exit_code != 0:
