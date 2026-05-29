@@ -764,6 +764,8 @@ corrected Z-score: -0.73
 
 In this example, the raw test looks significant, but the corrected test does not. This means the apparent signal was partly caused by unequal lineage availability.
 
+***IMPORTANT NOTE: biologically significant results should have significant Z-scores BOTH before and after correction. We do not recommend using results that are only significant after correction. 
+
 ---
 
 ## 11. Interpreting Z-scores
