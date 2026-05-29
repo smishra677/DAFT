@@ -1491,11 +1491,11 @@ When reporting DAFT results, include:
 
 1. The species tree used.
 2. The number of gene trees analyzed.
-3. Whether `--correct 1` was used.
-4. Whether sibling comparisons were used.
+3. Whether `--correct 1` was used in addition to the standard run.
+4. Whether sibling comparisons, avuncular comparisons, or both were used.
 5. The Z-score threshold used for significance.
 6. The significant lineage pairs.
-7. The DAFT Direction donor/receiver inference, if direction inference was run.
+7. The DAFT Direction donor/recipient inference, if direction inference was run.
 8. Whether bidirectional introgression was inferred.
 9. The final network, if reported.
 
@@ -1503,9 +1503,9 @@ Example language:
 
 ```text
 We ran DAFT using a rooted species tree and 2,000 gene trees. 
-Significance was assessed using avuncular and sibling comparisons. 
+Significance was assessed using both avuncular and sibling comparisons. 
 Lineage pairs with Z <= -1.96 and sufficient supporting counts were passed to DAFT Direction/djiNNI. 
-Direction inference was performed using NNI reconciliation, and the lineage with the higher movement count was interpreted as the receiver.
+Direction inference was performed using NNI reconciliation, and the lineage with the higher movement-count was interpreted as the recipient.
 ```
 
 ---
