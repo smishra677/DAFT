@@ -1129,7 +1129,7 @@ DAFT_results/branch_map.csv
 
 ### Workflow B: corrected significance
 
-Use this when lineages or clades are observed unequally across gene trees:
+After running DAFT in normal mode, users can check to see if results are still significant after correction. This mode corrects for cases in which branches or clades are observed are missing:
 
 ```bash
 daft-test \
@@ -1142,7 +1142,7 @@ daft-test \
   --direction 0
 ```
 
-Use the corrected Z-score when interpreting significance.
+Use the uncorrected and corrected Z-scores together when interpreting significance.
 
 ---
 
