@@ -15,13 +15,13 @@ DAFT has two main components:
    - Implemented in `DAFT_Test.py`
    - Counts discordant attachments between branches of a species tree across gene trees
    - Tests whether a lineage pair appears together more often than expected
-   - Reports test counts, comparison counts, and Z-scores
+   - Reports test counts, comparison counts, and Z-scores for both the sister and avuncular tests
 
 2. **DAFT Direction**
    - Implemented in `DAFT_Direction.py`
    - Also referred to as `djiNNI`
    - Uses NNI-based reconciliation to infer the likely direction of introgression
-   - Reports donor and receiver lineages
+   - Reports donor and recipient lineages
    - Produces an inferred introgression network
 
 A typical DAFT workflow is:
@@ -39,7 +39,7 @@ significant lineage pairs
 DAFT_Direction.py
         |
         v
-donor/receiver inference + introgression network
+donor/recipient inference + introgression network
 ```
 
 ---
@@ -1034,7 +1034,7 @@ Major_Moved
 
 `Major_Moved` is the lineage with the higher movement count.
 
-DAFT interprets `Major_Moved` as the likely receiver lineage.
+DAFT interprets `Major_Moved` as the likely recipient lineage.
 
 ---
 
@@ -1062,7 +1062,7 @@ A strongly negative Z-score supports a bidirectional signal.
 
 ## `INFERRED RELATIONS`
 
-This section reports the inferred donor and receiver.
+This section reports the inferred donor and recipient.
 
 Example:
 
@@ -1368,7 +1368,7 @@ Therefore:
 - `<` counts gene trees where lineage 2 had greater support.
 - `==` counts tied cases, which are resolved randomly using `np.random.choice`.
 
-These counts help summarize the direction signal across gene trees before the final donor/receiver interpretation is written to the DAFT Direction output.
+These counts help summarize the direction signal across gene trees before the final donor/recipient interpretation is written to the DAFT Direction output.
 
 ## 17. Troubleshooting
 
