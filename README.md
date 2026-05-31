@@ -401,7 +401,7 @@ The sibling comparison gives an additional control comparison for the test linea
 
 ### `--excel`
 
-Controls whether DAFT writes Excel output.
+Controls whether DAFT writes Excel output. This output format can be useful for very large species trees, as the standard output becomes very messy. The Excel formatted output creates a separate sheet for each focal species.
 
 ```text
 1 = write Excel output
