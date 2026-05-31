@@ -728,24 +728,17 @@ The format:
 5.00005/2000
 ```
 
-means the attachment was observed about 5 times, and that lineage was observed 2000 times in the full gene tree set.
+means the attachment was observed about 5 times, and that the lineage was observed 2000 times in the full gene tree set.
 
 The format:
 
 ```text
-5e-05/779
+5e-05/215
 ```
 
-means the attachment count was 0, but DAFT added a very small pseudo-count.
+means the avuncular attachment count was 0, but DAFT added a very small pseudo-count, and that the lineage was observed 215 times in the full gene tree set.
+.
 
-In the second row:
-
-```text
-Test_count:     1.00005/803
-sibling_count:  5e-05/779
-```
-
-The test lineage was observed 803 times in the gene tree set, while its sibling comparison was observed 779 times.
 
 Correction makes the comparison fair by scaling counts according to how often each lineage or clade was available to be observed.
 
@@ -772,7 +765,7 @@ In this example, the raw test looks significant, but the corrected test does not
 
 DAFT uses negative Z-scores to identify unusually high discordant attachment frequencies.
 
-A commonly used cutoff is:
+A commonly used cutoff (for a nominal p-value < 0.05) is:
 
 ```text
 Z <= -1.96
@@ -780,7 +773,7 @@ Z <= -1.96
 
 More negative values indicate stronger evidence that the test lineage attaches to the focal lineage more often than expected.
 
-In corrected output, focus on the corrected Z-score, which appears after the vertical bar:
+In corrected output, DAFT also reports the corrected Z-score, which appears after the vertical bar:
 
 ```text
 raw_Z | corrected_Z
