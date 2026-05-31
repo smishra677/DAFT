@@ -618,7 +618,7 @@ NNI_sp  Test_lineage  Test_count  comparison_uncle  uncle_count  Z-value-uncle  
 
 ---
 
-## Significance Output Columns
+## Test Output Columns
 
 ### `Focal_lineage`
 
