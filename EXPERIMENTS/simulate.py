@@ -1,8 +1,6 @@
 import msprime
 import sys
 import os
-sys.path.append("./DAFT-main/DAFT_utils")
-sys.path.append("./DAFT-main/DAFT_utils/reconcILS")
 sys.path.append("./DAFT_utils")
 sys.path.append("./DAFT_utils/reconcILS")
 from reconcILS import *
