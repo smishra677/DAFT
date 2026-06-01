@@ -246,12 +246,6 @@ This records the intended outgroup, but it does not reroot the input trees. To e
 --rooting A --forced 1
 ```
 
-For an outgroup clade, use a comma-separated list:
-
-```bash
---rooting A,B --forced 1
-```
-
 Use this only if the listed taxa form the intended outgroup. If you intentionally want DAFT to continue without rerooting even when roots are inconsistent, use:
 
 ```bash
