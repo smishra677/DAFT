@@ -1182,6 +1182,52 @@ If the cache folder was created from a different gene tree file or a different g
 
 ## 14. Understanding `DAFT_Direction_output.txt`
 
+## DAFT Direction
+```text
+SIGNIFICANT PAIRS
+================================================================================
+BETWEEN 26 AND 23                           4 NNI APART 
+BETWEEN 26 AND 22                           4 NNI APART 
+BETWEEN 38 AND 42                           1 NNI APART 
+BETWEEN 17 AND 25                           1 NNI APART 
+********************************************************************************
+
+
+
+DATA TABLE1 (ONLY NNI > 1) 
+====================================================================================
+Significant_Pairs  Total_gene_trees  Lineage1  Count1  Lineage2  Count2  Major_Moved
+====================================================================================
+26 AND 23          35                26        35      23        0       26         
+26 AND 22          11                26        11      22        0       26         
+************************************************************************************
+
+
+
+DATA TABLE2 (BIDIRECTIONAL) (ONLY NNI > 1) 
+================================================================================================================
+Significant_Pairs  Minor_Moved  Minor_sibling  Total_gene_trees  Minor_sibling_count  Minor_moved_count  Z_score           
+================================================================================================================
+26 AND 23          23           22             11                0                    0                  -                 
+26 AND 22          22           23             35                0                    0                  -                 
+****************************************************************************************************************
+
+
+
+INFERRED RELATIONS (ONLY NNI > 1) :
+================================================================================
+26 AND 23                 RECEIVER:26 AND Donor:23
+26 AND 22                 RECEIVER:26 AND Donor:22
+********************************************************************************
+
+
+================================================================================
+Network (ONLY NNI > 1) :  (((((((P[&label=7],(R[&label=9],Q[&label=10])),O[&label=11]),S[&label=12]),T[&label=13]),(((((F[&label=19],G[&label=20]),((#H2,I[&label=22]),(#H1,C[&label=23]))),((((H[&label=26])#H1)#H2,D[&label=27]),E[&label=28])),J[&label=29]),((N[&label=32],M[&label=33]),(L[&label=35],K[&label=36])))),((U[&label=39],B[&label=40]),(V[&label=42],W[&label=43]))),A[&label=44]);
+********************************************************************************
+```
+
+
+
 The direction output file usually contains these sections:
 
 ```text
