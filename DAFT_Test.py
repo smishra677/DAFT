@@ -33,7 +33,7 @@ def parse1():
     parser.add_argument('--direction', type=int, default=0, help="Run DAFT_Direction.py")
     parser.add_argument('--excel', type=int, default=0, help="Produce Excel")
     parser.add_argument('--correct', type=int, default=0, help="Run correction test")
-    parser.add_argument('--sibling', type=str, default='0', help="Run sibling test")
+    parser.add_argument('--sibling', type=int, default=0, help="Run sibling test")
     parser.add_argument('--demography', type=str, help="demography file")
     parser.add_argument('--rooting', type=str, default=None, help="Outgroup taxon")
     parser.add_argument('--forced', type=int, default=0, help="Force rerooting using --rooting")
@@ -202,11 +202,11 @@ def print_extension(console,message,out):
 
     with open(log_path, "a", encoding="utf-8") as log:
         validate.print_panel(
-            "DAFT warning",
+            "DAFT Message",
             message,
             log,
             console,
-            "yellow",
+            "blue",
         )
         
         
@@ -305,7 +305,7 @@ def extract_direction(out):
         
 
 
-def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,path,dji_cache_input_hash,random_seed,verbose):
+def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,path,dji_cache_input_hash,random_seed,verbose,sibling_flag):
     #sp= red.parse(sp_string)
 
     sp.label_internal()
@@ -1310,19 +1310,27 @@ def write_significance(sorted_grouped,out_file,labeled_sp,correction_flag):
     
     sorted_grouped.rename(columns={"Where_at": "Focal_lineage"}, inplace=True)
     
-        
-    sorted_grouped.rename(columns={"test_count_population": "Test_appearance"}, inplace=True)
-    sorted_grouped["Test_appearance"] = sorted_grouped["Test_appearance"].astype(int)
+            
+    if "test_count_population" in sorted_grouped.columns:
+        sorted_grouped.rename(columns={"test_count_population": "Test_appearance"}, inplace=True)
+    if "Test_appearance" in sorted_grouped.columns:
+        sorted_grouped["Test_appearance"] = sorted_grouped["Test_appearance"].astype(int)
 
-    sorted_grouped.rename(columns={"uncle_count_population": "uncle_appearance"}, inplace=True)
-    sorted_grouped["uncle_appearance"] = sorted_grouped["uncle_appearance"].astype(int)
+    if "uncle_count_population" in sorted_grouped.columns:
+        sorted_grouped.rename(columns={"uncle_count_population": "uncle_appearance"}, inplace=True)
+    if "uncle_appearance" in sorted_grouped.columns:
+        sorted_grouped["uncle_appearance"] = sorted_grouped["uncle_appearance"].astype(int)
 
-    sorted_grouped.rename(columns={"sibling_count_population": "sibling_appearance"}, inplace=True)
-    sorted_grouped["sibling_appearance"] = sorted_grouped["sibling_appearance"].astype(int)
-    
-    sorted_grouped.rename(columns={"Z-value-uncle_corrected_scaled_down": "Z-value-uncle_corrected"}, inplace=True)
-    sorted_grouped.rename(columns={"Z-value-sibling_corrected_scaled_down": "Z-value-sibling_corrected"}, inplace=True)
-    
+    if "sibling_count_population" in sorted_grouped.columns:
+        sorted_grouped.rename(columns={"sibling_count_population": "sibling_appearance"}, inplace=True)
+    if "sibling_appearance" in sorted_grouped.columns:
+        sorted_grouped["sibling_appearance"] = sorted_grouped["sibling_appearance"].astype(int)
+
+    if "Z-value-uncle_corrected_scaled_down" in sorted_grouped.columns:
+        sorted_grouped.rename(columns={"Z-value-uncle_corrected_scaled_down": "Z-value-uncle_corrected"}, inplace=True)
+
+    if "Z-value-sibling_corrected_scaled_down" in sorted_grouped.columns:
+        sorted_grouped.rename(columns={"Z-value-sibling_corrected_scaled_down": "Z-value-sibling_corrected"}, inplace=True)
     
     #sorted_grouped =convert_species(sorted_grouped)
     
@@ -2366,7 +2374,7 @@ if produce_excel:
 if run_direction:
     #call_direction(sorted_grouped,gene_treefile,sp,out_file)
     #call_direction(sorted_grouped,gene_treefile,sp,out_file,demography,correct_flag,path)
-    call_direction(sorted_grouped,gene_treefile,sp,out_file,demography,correct_flag,path,dji_cache_input_hash,random_seed,verbose)
+    call_direction(sorted_grouped,gene_treefile,sp,out_file,demography,correct_flag,path,dji_cache_input_hash,random_seed,verbose,sibling_flag)
         
 clean_folder(out_file)
 
