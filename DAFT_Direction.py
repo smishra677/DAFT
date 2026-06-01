@@ -21,6 +21,19 @@ warnings.filterwarnings(
 def read_list_file(file_path):
     with open(file_path, "r", encoding="utf-8") as f:
         return ast.literal_eval(f.read())
+    
+    
+def clean_folder(out):
+        script = "./clean_folder.py"
+        argv = [
+                sys.executable,         
+                script,
+                "--output",out,
+            ]
+        status = os.spawnv(os.P_WAIT, sys.executable, argv)
+        exit_code = os.WEXITSTATUS(status) if hasattr(os, "WEXITSTATUS") else (status >> 8)
+        if exit_code != 0:
+            raise RuntimeError(f"clean_folder.py failed with code {exit_code}")
 
 
 def parse1():
@@ -47,7 +60,15 @@ def parse1():
     )
 
     parser.add_argument('--output', type=str, help="Name of output file")
-
+    
+    parser.add_argument('--rooting', type=str, default=None, help="Outgroup taxon or comma-separated outgroup taxa")
+    parser.add_argument('--forced', type=int, default=0, help="Force rerooting using --rooting")
+    parser.add_argument('--allow_inconsistent_rooting', type=int, default=0, help="Continue even if rooting is inconsistent")
+    parser.add_argument('--cache_hash', type=str, default=None, help="Input hash used for djiNNI cache")
+    parser.add_argument('--ignore_duplication', type=int, default=0, help="Ignore gene tree containing duplication and continue")
+    parser.add_argument('--random_seed', type=int, default=42, help="Random seed for djiNNI")
+    
+    
     args = parser.parse_args()
 
     if args.sp_file:
@@ -79,6 +100,7 @@ sys.path.append(path + "/reconcILS")
 from reconcILS import *
 from utils_reconcILS import *
 from DAFT_essential import *
+from DAFT_validate import *
 
 
 
@@ -89,6 +111,7 @@ indiv_count_cutoff = 5
 reco =reconcils()
 red= readWrite.readWrite()
 essential= daft_essential()
+validate= daft_validate()
 
 sp_string = parser.sp
 gene_treefile = essential.convert_gt_to_csv(parser.gt)
@@ -96,7 +119,29 @@ lineages = parser.lineages
 lineages_bidrectional = parser.lineagesN
 out_filec = parser.output
 verbose=parser.verbose
-np.random.seed(42)
+
+ignore_duplicate =parser.ignore_duplication
+force_root=parser.forced
+allow_incos=parser.allow_inconsistent_rooting
+to_root=parser.rooting
+random_seed=parser.random_seed
+np.random.seed(int(random_seed))
+
+
+        
+if parser.cache_hash:
+    djiNNI_hash = parser.cache_hash
+    validation = validate.validateme('djiNNI',sp_string,gene_treefile,out_filec,parser,to_root,force_root,allow_incos,ignore_duplicate,verbose,hashed=1)
+
+    
+else:
+    validation = validate.validateme('djiNNI',sp_string,gene_treefile,out_filec,parser,to_root,force_root,allow_incos,ignore_duplicate,verbose,hashed=0)
+
+    sp_string = validation.species_tree_newick
+    gene_treefile = validation.gene_treefile
+    djiNNI_hash = validation.input_hash
+
+
 
 
 
@@ -391,7 +436,7 @@ def write_direction(df,network_output,sp,out_filec):
         f.write("\n")
 
 
-def aggregrate_lineage(dfe,lineage1,lineage2):
+def aggregrate_lineage(dfe,lineage1,lineage2,output):
     count_lineage1=0
     count_lineage2=0
     leni=[]
@@ -412,9 +457,9 @@ def aggregrate_lineage(dfe,lineage1,lineage2):
     aggregated_data = df.groupby(['From_Where_moved','What_moved','Sibling']).agg(
         total_count=('Replicate', 'count')
     )
-    aggregated_data.to_csv('introgression_1_group.csv', index=True)
+    aggregated_data.to_csv(f'introgression_1_group_{output}.csv', index=True)
 
-    df = pd.read_csv("./introgression_1_group.csv", sep=',')
+    df = pd.read_csv(f"./introgression_1_group_{output}.csv", sep=',')
     return df,count_lineage1,count_lineage2
 
 def collapse_clade(df):
@@ -565,7 +610,7 @@ def find_equal(visited,querry):
         
         
 
-def run_tranform(data,lineages_bidrectional,sp_string,list_df,path,verbose):
+def run_tranform(data,out_filec,lineages_bidrectional,sp_string,list_df,path,verbose,djiNNI_hash,random_seed):
     vis=[]
     for lineageM, lineage2 in lineages_bidrectional:
         #print('Testing Direction for: ',lineageM,lineage2)
@@ -604,16 +649,18 @@ def run_tranform(data,lineages_bidrectional,sp_string,list_df,path,verbose):
                 #print(lineages1)
 
                 #print('asasas',verbose)
-                output = "out"
+                #output = out_filec
                 argv = [
                     sys.executable, script,
                     "--sp", str(sp_string),
                     "--lineages", str(lineages1),
                     "--path", path,
-                    "--verbose", str(1),
+                    "--verbose", str(verbose),
                     "--gt_list", *filtered_data,
                     "--gt_list_index", *map(str, index_data),
-                    "--output", str('out'),
+                    "--cache_hash", str(djiNNI_hash),
+                    "--random_seed", str(random_seed),
+                    "--output", out_filec,
                 ]
                 status = os.spawnv(os.P_WAIT, sys.executable, argv)
                 exit_code = status if os.name == "nt" else (status >> 8) 
@@ -622,7 +669,7 @@ def run_tranform(data,lineages_bidrectional,sp_string,list_df,path,verbose):
                     raise RuntimeError(f"DAFT_Transform.py exited with code {exit_code}")
 
 
-                df=pd.read_csv('./djiNNI_out_'+lineage1[:-1]+'_'+lineage2[:-1]+'.csv',sep=',')
+                df=pd.read_csv('./djiNNI_'+out_filec+'_'+lineage1[:-1]+'_'+lineage2[:-1]+'.csv',sep=',')
                 #print(df)
                 
                 #import pprint
@@ -645,7 +692,7 @@ def run_tranform(data,lineages_bidrectional,sp_string,list_df,path,verbose):
                 sp.label_internal()
                 
                 
-                df,count_lineage1,count_lineage2= aggregrate_lineage(dfe,lineage1,lineage2)
+                df,count_lineage1,count_lineage2= aggregrate_lineage(dfe,lineage1,lineage2,out_filec)
                 #print(list_df)
                 df= collapse_clade(df)
 
@@ -708,8 +755,8 @@ def add_sibling_bidirection(pairs,sp):
 
 #print(lineages_bidrectional)
 
-data=pd.read_csv(gene_treefile, sep=',').to_numpy()
-
+#data=pd.read_csv(gene_treefile, sep=',').to_numpy()
+data = validate.read_gene_tree_data(gene_treefile)
 
 
 sp =red.parse(sp_string)
@@ -723,11 +770,10 @@ if len(lineages_bidrectional)==0:
 
 
 #print(lineages_bidrectional)
-run_tranform(data,lineages_bidrectional,sp_string,list_df,path,verbose)
-
+run_tranform(data,out_filec,lineages_bidrectional,sp_string,list_df,path,verbose,djiNNI_hash,random_seed)
 
 df = pd.DataFrame(list_df)
-df.to_csv('results1.csv',index=False)
+#df.to_csv(f'results1_{out_filec}.csv',index=False)
 
 
 
@@ -744,7 +790,7 @@ df =df[df.inUnique==True]
 df = df[(df['Count1']+df['Count2'])>total_count_cutoff &  (df['Count1']>indiv_count_cutoff) & (df['Count2']>indiv_count_cutoff)]
 
 #df,sp_string1= convert_species(df,sp_string)
-df.to_csv('results1.csv',index=False)
+#df.to_csv(f'results1_{out_filec}.csv',index=False)
 
 df['NNI_'] = df.apply(
     lambda row: essential.find_dist_string(sp, row['Lineage1'], row['Lineage2']),
@@ -765,3 +811,4 @@ network_output=essential.to_network(sp_labeled)
 #print(df)fp
 #print(sp_labeled.to_newick())
 write_direction(df_converted,network_output,sp,out_filec)
+clean_folder(out_filec)

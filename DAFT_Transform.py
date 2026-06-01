@@ -45,7 +45,7 @@ def parse1():
 
     parser.add_argument('--sp', type=str, help="Species tree")
     parser.add_argument('--path', type=str, default="./DAFT_utils", help="Path to DAFT_utils")
-    parser.add_argument('--verbose', type=int, default=1, help="Verbose mode. 1 = yes, 0 = no")
+    #parser.add_argument('--verbose', type=int, default=1, help="Verbose mode. 1 = yes, 0 = no")
     parser.add_argument(
         '--lineages',
         type=lambda s: s.split('/'),
@@ -56,14 +56,15 @@ def parse1():
     parser.add_argument('--gt_list_index', nargs='+', help="List of gene trees index for caching")
 
     parser.add_argument(
-        '--progress',
+        '--verbose',
         type=int,
-        default=1,
+        default=0,
         help="Show DAFT/djiNNI progress dashboard. 1 = yes, 0 = no"
     )
 
     parser.add_argument('--output', type=str, help="Name of output file")
-
+    parser.add_argument('--cache_hash', type=str, default="no_hash", help="Input hash used for djiNNI cache")
+    parser.add_argument('--random_seed', type=int, default=42, help="Random seed for djiNNI")
     args = parser.parse_args()
     return args
 
@@ -92,9 +93,13 @@ lis = []
 
 gt_list = parser.gt_list
 gt_list_index = parser.gt_list_index
-show_progress = parser.progress == 1
+#show_progress = parser.progress == 1
 verbose = parser.verbose == 1
 
+
+djiNNI_hash=parser.cache_hash
+random_seed =parser.random_seed
+np.random.seed(random_seed)
 
 
 essential = daft_essential()
@@ -102,6 +107,16 @@ reco = reconcils()
 red = readWrite.readWrite()
 
 
+
+def print_extension(message,out=output.split('_')[0]):
+   
+    log_path = out + "_djiNNI_log.txt"
+
+    with open(log_path, "a", encoding="utf-8") as log:
+        log.write(message+'\n')
+        
+   
+       
 def format_seconds(seconds):
     seconds = int(max(seconds, 0))
     h = seconds // 3600
@@ -122,11 +137,17 @@ def get_progress_checkpoints(total):
 
 
 class DAFTProgress:
-    def __init__(self, total_trees, lineage1, lineage2):
+    def __init__(self, total_trees, lineage1, lineage2,verbose):
         self.total_trees = total_trees
         self.lineage1 = lineage1
         self.lineage2 = lineage2
         self.start_wall_time = time.perf_counter()
+        self.verbose=verbose
+
+        self.console = None
+        self.progress = None
+        self.task_id = None
+        self.live = None
 
         # Runtime estimate excludes cache hits.
         self.uncached_time = 0.0
@@ -135,26 +156,27 @@ class DAFTProgress:
         self.completed = 0
         self.closed = False
         self.checkpoints = get_progress_checkpoints(total_trees)
-
-        self.console = Console()
-        self.progress = Progress(
-            SpinnerColumn(),
-            TextColumn("[bold cyan]Reconciling gene trees"),
-            BarColumn(),
-            TaskProgressColumn(),
-            TextColumn("[bold]{task.completed}/{task.total}"),
-            TimeElapsedColumn(),
-            TimeRemainingColumn(),
-            expand=True,
-        )
-        self.task_id = self.progress.add_task("DAFT/djiNNI", total=total_trees)
-        self.live = Live(
-            self._render(),
-            console=self.console,
-            refresh_per_second=4,
-            transient=False,
-        )
-        self.live.start()
+        
+        if verbose:
+                self.console = Console()
+                self.progress = Progress(
+                SpinnerColumn(),
+                TextColumn("[bold cyan]Reconciling gene trees"),
+                BarColumn(),
+                TaskProgressColumn(),
+                TextColumn("[bold]{task.completed}/{task.total}"),
+                TimeElapsedColumn(),
+                TimeRemainingColumn(),
+                expand=True,
+                )
+                self.task_id = self.progress.add_task("DAFT/djiNNI", total=total_trees)
+                self.live = Live(
+                self._render(),
+                console=self.console,
+                refresh_per_second=4,
+                transient=False,
+                )
+                self.live.start()
 
     #def record_cached(self):
     #self.cached_count += 1
@@ -235,8 +257,12 @@ class DAFTProgress:
                         border_style="red",
                         padding=(1, 2),
                 )
+
     def update(self, completed):
         self.completed = completed
+
+        if not self.verbose:
+            return
 
         self.progress.update(self.task_id, completed=completed)
         self.live.update(self._render())
@@ -244,6 +270,9 @@ class DAFTProgress:
             self.close()
 
     def close(self):
+        if not self.verbose:
+            return
+
         if self.closed:
             return
         self.closed = True
@@ -414,6 +443,7 @@ def max_round(value_tracker,moves):
 
         #print(pool)
         return pool,max(pool.values())
+
 def find_all_lineage(tree,sp):
         ret=[]
         stack=[tree]
@@ -599,11 +629,27 @@ write_intro1={'Moves':[],'Replicate':[],'NNI':[]}
 # Cache reconciliation output by gene tree index.
 # This assumes the same gene tree file and same gene tree order are used across runs.
 CACHE_DIR = "djiNNI_cache"
-os.makedirs(CACHE_DIR, exist_ok=True)
+CACHE_RUN_DIR = os.path.join(CACHE_DIR, djiNNI_hash)
+os.makedirs(CACHE_RUN_DIR, exist_ok=True)
 
+
+print_extension("="*40)
+
+print_extension(f"Comparision lineages {lineage1} and {lineage2}")
+
+
+
+if verbose:
+        print("djiNNI cache hash:", djiNNI_hash)
+        print("djiNNI cache directory:", CACHE_RUN_DIR)
+        print_extension(f"djiNNI cache hash: {djiNNI_hash}")
+        print_extension(f"djiNNI cache directory: {CACHE_RUN_DIR}")
+
+print_extension("="*40)   
+
+ 
 def get_reconciliation_cache_path(gene_tree_index):
-        return os.path.join(CACHE_DIR, f"gene_tree_{gene_tree_index}.pkl")
-
+        return os.path.join(CACHE_RUN_DIR, f"gene_tree_{gene_tree_index}.pkl")
 
 lineage_stats= initialize_counter(lineage1,lineage2)
 
@@ -618,8 +664,8 @@ done=[]
 
 
 progress = None
-if show_progress:
-        progress = DAFTProgress(len(gt_list), lineage1, lineage2)
+
+progress = DAFTProgress(len(gt_list), lineage1, lineage2,verbose)
 
 for tree_number,gene_tree in enumerate(gt_list):
         completed = tree_number + 1
@@ -681,8 +727,9 @@ for tree_number,gene_tree in enumerate(gt_list):
 
                 if os.path.exists(reconciliation_cache_path):
                         #if not show_progress:
-                        #if verbose:
-                        print(f"Loading cached reconciliation for gene tree index {k}")
+                        if verbose:
+                                print(f"Loading cached reconciliation for gene tree index {k}")
+                        print_extension(f"Loading cached reconciliation for gene tree index {k}")
                         with open(reconciliation_cache_path, "rb") as cache_file:
                                 cached_reconciliation = pickle.load(cache_file)
 
@@ -762,4 +809,5 @@ for tree_number,gene_tree in enumerate(gt_list):
                 intro_df= pd.DataFrame(write_intro)
                 intro_df.to_csv('djiNNI_'+output+'.csv', index=False)
                 
-render_lineage_stats(lineage_stats)
+if verbose:
+        render_lineage_stats(lineage_stats)

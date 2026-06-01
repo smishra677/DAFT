@@ -7,6 +7,7 @@ import warnings
 import pprint
 from pathlib import Path
 
+
 warnings.filterwarnings(
     "ignore",
     message="Downcasting object dtype arrays on .*fillna.*",
@@ -34,6 +35,12 @@ def parse1():
     parser.add_argument('--correct', type=int, default=0, help="Run correction test")
     parser.add_argument('--sibling', type=str, default='0', help="Run sibling test")
     parser.add_argument('--demography', type=str, help="demography file")
+    parser.add_argument('--rooting', type=str, default=None, help="Outgroup taxon")
+    parser.add_argument('--forced', type=int, default=0, help="Force rerooting using --rooting")
+    parser.add_argument('--allow_inconsistent_rooting', type=int, default=0, help="Continue even if rooting is inconsistent")
+    parser.add_argument('--ignore_duplication', type=int, default=0, help="Ignore gene tree containing duplication and continue")
+    parser.add_argument('--random_seed', type=int, default=42, help="Random seed for djiNNI")
+    parser.add_argument('--verbose', type=int, default=0, help="Verbose mode. 1 = yes, 0 = no")
 
     args = parser.parse_args()
 
@@ -64,9 +71,11 @@ sys.path.append(path)
 from reconcILS import *
 from utils_reconcILS import *
 from DAFT_essential import *
+from DAFT_validate  import *
 
 
 essential = daft_essential()
+validate= daft_validate()
 reco = reconcils()
 red = readWrite.readWrite()
 Il = ILS.ILS()
@@ -86,8 +95,30 @@ demography = parser.demography
 # lineage2 = lineages[1]
 sibling_flag = parser.sibling
 out_file = parser.output  # + '_' + lineage1 + '_' + lineage2
-#parser.gt = essential.convert_gt_to_csv(parser.gt)
+ignore_duplicate =parser.ignore_duplication
+force_root=parser.forced
+allow_incos=parser.allow_inconsistent_rooting
+to_root=parser.rooting
+random_seed =parser.random_seed
+verbose=parser.verbose
 
+validation = validate.validateme('DAFT',
+    sp_string,
+    gene_treefile,
+    out_file,
+    parser,
+    to_root,
+    force_root,
+    allow_incos,
+    ignore_duplicate,
+    verbose,
+    hashed=0
+)
+
+sp_string = validation.species_tree_newick
+gene_treefile = validation.gene_treefile
+dji_cache_input_hash = validation.input_hash
+console=validate.console
 
 '''
 def render_val(col, v):
@@ -163,6 +194,22 @@ def filter_data(data,lineage1,lineage2):
     
     return filtered_data
 
+
+
+def print_extension(console,message,out):
+   
+    log_path = out + "_DAFT_log.txt"
+
+    with open(log_path, "a", encoding="utf-8") as log:
+        validate.print_panel(
+            "DAFT warning",
+            message,
+            log,
+            console,
+            "yellow",
+        )
+        
+        
 def extract_truth(demography):
     text = open(demography).read()
 
@@ -258,8 +305,12 @@ def extract_direction(out):
         
 
 
-def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,path):
+def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,path,dji_cache_input_hash,random_seed,verbose):
+    #sp= red.parse(sp_string)
+
+    sp.label_internal()
     
+    list_sp_tree=reco.get_get_current_lineages(sp,[])
     list_unique= filter_direction(sorted_grouped,-1.96,6,0,out,correct_flag)
     #print(list_unique)
     #exit()
@@ -272,10 +323,31 @@ def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,p
 
     
     if len(list_unique)==0:
+        
         print('Zero Significant')
+        print_extension(console,"Zero Significant pairs found",out)
+        #validate.print_panel("DAFT warning","Zero Significant pairs found",validate.log,console,"yellow")
 
     else:
         #list_non_unique=pairs1
+        dum= pd.read_csv(f"./Summary_{out}.csv")
+        #sib_sig= dum[]
+        sib_sig = len(dum[dum["flag"] == 2])
+        uncle_sig = len(dum[dum["flag"] == 1])
+        uncle_test= load_data_struct(list_sp_tree,1)
+        #sibling_test_dic= load_data_struct(list_sp_tree,2)
+        
+       
+        
+        
+        print_extension(console,f"{uncle_sig} pairs of {uncle_test} total tested pairs of uncle test passed the direction thresholds of Z<=-1.96 and count>=6",out)
+        if sibling_flag:
+            sibling_test= load_data_struct(list_sp_tree,2)
+        
+            #sibling_test_pd =pd.DataFrame.from_dict(sibling_test_dic, orient="index")
+            #sibling_test= np.sum(sibling_test_pd >= 0)*5
+            print_extension(console,f"{sib_sig} pairs of {int(sibling_test/2)} total tested pairs of sibling test passed the direction thresholds of Z<=-1.96 and count>=6",out)
+        
 
         script = "./DAFT_Direction.py"
         sp = sp_string
@@ -297,9 +369,11 @@ def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,p
             "--sp", str(sp),
             "--gt", str(gene_treefile),
             "--path", path,
-            "--verbose", str(1),
+            "--verbose", str(verbose),
             "--lineages_file", str(lineages_file),
             "--lineagesN_file", str(lineagesN_file),
+            "--cache_hash", str(dji_cache_input_hash),
+            "--random_seed", str(random_seed),
             "--output", output,
         ]
         
@@ -514,13 +588,13 @@ def accounting(data,sib_lineage,out_file):
 
                 #pd.DataFrame(result).to_csv('rev_n.csv',index=False) 
     
-    pd.DataFrame(result).to_csv('rev_n.csv',index=False) 
+    pd.DataFrame(result).to_csv(f'rev_n_{out_file}.csv',index=False) 
 
 
     result1_df = pd.DataFrame(list(result1.items()), columns=['Topo', 'junk_count'])
     #result1_df
     result1_df.to_csv('rev_all_'+out_file+'.csv',index=False)
-    result1_df.to_csv('rev_all_corrected.csv',index=False)
+    result1_df.to_csv('rev_all_corrected_'+out_file+'.csv',index=False)
              
     #pd.DataFrame(result1).to_csv('rev_all_'+out_file+'.csv',index=False)
              
@@ -845,8 +919,47 @@ def account_junk(df):
             collapsed.append(row.to_dict())
 
     result = pd.DataFrame(collapsed)
-    result.to_csv('./rev_all_corrected.csv')    
-    
+    result.to_csv('./rev_all_corrected_'+out_file+'.csv')    
+   
+   
+
+def load_data_struct(list_sp_tree,flag):
+    data_struct ={}
+    count=0
+    for lin1 in list_sp_tree:
+        if not  lin1.parent:
+            continue
+        lin1_newick=lin1.to_newick()
+        
+        lin1_sibling = [sib_ for sib_ in lin1.parent.children if sib_!=lin1][0]
+        #list_sp_tree_newick+=[lin.to_newick()]
+        data_struct[lin1_newick]={}
+        for lin2 in list_sp_tree:
+            if  not  lin2.parent:
+                continue
+            lin2_newick =lin2.to_newick()
+            #if not essential.isequal(lin2.to_newick(), lin.to_newick()):
+            if flag==2:
+                if  not essential.is_in(lin1_sibling.to_newick(),lin2_newick) and not essential.is_in(lin2_newick,lin1_sibling.to_newick()) and not essential.is_in(lin1_newick, lin2_newick) and not essential.is_in(lin2_newick, lin1_newick) and not essential._is_sibling(lin1_newick,lin2_newick,sp_string) :
+                    data_struct[lin1_newick][lin2_newick]=0
+                    #data_struct[lin1.to_newick()][lin2_newick]=''
+                    count=count+1
+                    #data_struct[lin2_newick][lin1_newick]=''
+                else:
+                    data_struct[lin1_newick][lin2_newick]=''
+                    #data_struct[lin1_newick][lin2_newick]=''
+            else:
+                if  not essential.is_in(lin1_sibling.to_newick(),lin2_newick) and not essential.is_in(lin2_newick,lin1_sibling.to_newick()) and not essential.is_in(lin1_newick, lin2_newick) and not essential.is_in(lin2_newick, lin1_newick) and not essential._is_uncle(lin1_newick,lin2_newick,sp_string) :
+                    data_struct[lin1_newick][lin2_newick]=0
+                    count=count+1
+                    #data_struct[lin1.to_newick()][lin2_newick]=''
+                    #data_struct[lin2_newick][lin1_newick]=''
+                else:
+                    data_struct[lin1_newick][lin2_newick]=''
+                    #data_struct[lin1_newick][lin2_newick]=''
+        
+    return count
+ 
     
 def filter_direction(sorted_grouped,Z,tc,nni,out,correct_flag):
     if not correct_flag:
@@ -925,10 +1038,10 @@ def filter_direction(sorted_grouped,Z,tc,nni,out,correct_flag):
 
     
     #filtered_df_3= convert_species(filtered_df_3)
-    if os.path.exists("./Summary.csv"):
-        filtered_df_3.to_csv("./Summary.csv", mode="a", header=False, index=False)
+    if os.path.exists(f"./Summary_{out}.csv"):
+        filtered_df_3.to_csv(f"./Summary_{out}.csv", mode="a", header=False, index=False)
     else:
-        filtered_df_3.to_csv("./Summary.csv", mode="w", header=True, index=False)
+        filtered_df_3.to_csv(f"./Summary_{out}.csv", mode="w", header=True, index=False)
         
     '''
     filtered_df_1_down = sorted_grouped[
@@ -1078,16 +1191,16 @@ def put_z(sorted_grouped,grouped,correct_flag):
     #print('done4')
     if correct_flag:
         sibling_counts_population = (
-            sorted_grouped.apply(essential._sibling_population_count, axis=1,args=(grouped,))
+            sorted_grouped.apply(essential._sibling_population_count, axis=1,args=(grouped,out_file))
         )
         
         uncle_counts_population = (
-            sorted_grouped.apply(essential._uncle_population_count, axis=1,args=(grouped,))
+            sorted_grouped.apply(essential._uncle_population_count, axis=1,args=(grouped,out_file))
         )
         
         
         test_counts_population = (
-            sorted_grouped.apply(essential._test_population_count, axis=1,args=(grouped,))
+            sorted_grouped.apply(essential._test_population_count, axis=1,args=(grouped,out_file))
         )
         
         #print('done5')
@@ -1106,7 +1219,7 @@ def put_z(sorted_grouped,grouped,correct_flag):
         sorted_grouped['test_count_population'] = test_counts_population
         
         #essential.compute_z(sorted_grouped,'sibling',df)
-        sorted_grouped.to_csv('debug.csv',index=False)
+        #sorted_grouped.to_csv('debug.csv',index=False)
         #exit()
         
         #essential.compute_z(sorted_grouped,'sibling',df)
@@ -1138,31 +1251,79 @@ def put_z(sorted_grouped,grouped,correct_flag):
 def write_significance(sorted_grouped,out_file,labeled_sp,correction_flag):
     sorted_grouped = sorted_grouped.sort_values(by=[ 'NNI_sp'])
 
-    cols = [
-        'NNI_sp',
-        'Test_lineage',
-        'Test_count',
-        'comparison_uncle',
-        'uncle_count',
-        'Z-value-uncle',
-        'comparison_sibling',
-        'sibling_count',
-        'Z-value-sibling',
-    ]
+    if correction_flag:
+        cols = [
+            'NNI_sp',
+            'Test_lineage',
+            'Test_appearance',
+            'Test_count',
+            'comparison_uncle',
+            'uncle_appearance',
+            'uncle_count',
+            'Z-value-uncle',
+            'Z-value-uncle_corrected',
+            'comparison_sibling',
+            'sibling_count',
+            'sibling_appearance',
+            'Z-value-sibling',
+            'Z-value-sibling_corrected',
+        ]
 
-    if sibling_flag == '0':
+        if sibling_flag == '0':
+            cols = [
+                'NNI_sp',
+                'Test_lineage',
+                'Test_appearance',
+                'Test_count',
+                'comparison_uncle',
+                'uncle_appearance',
+                'uncle_count',
+                'Z-value-uncle',
+                'Z-value-uncle_corrected',
+            ]
+    else:
         cols = [
             'NNI_sp',
             'Test_lineage',
             'Test_count',
             'comparison_uncle',
             'uncle_count',
-            'Z-value-uncle'
+            'Z-value-uncle',
+            'comparison_sibling',
+            'sibling_count',
+            'Z-value-sibling',
         ]
+
+        if sibling_flag == '0':
+            cols = [
+                'NNI_sp',
+                'Test_lineage',
+                'Test_count',
+                'comparison_uncle',
+                'uncle_count',
+                'Z-value-uncle'
+            ]
 
     sorted_grouped.rename(columns={"What_moved": "Test_lineage"}, inplace=True)
     sorted_grouped.rename(columns={"total_count": "Test_count"}, inplace=True)
+    sorted_grouped["Test_count"] = np.floor(sorted_grouped["Test_count"]).astype(int)
+    
     sorted_grouped.rename(columns={"Where_at": "Focal_lineage"}, inplace=True)
+    
+        
+    sorted_grouped.rename(columns={"test_count_population": "Test_appearance"}, inplace=True)
+    sorted_grouped["Test_appearance"] = sorted_grouped["Test_appearance"].astype(int)
+
+    sorted_grouped.rename(columns={"uncle_count_population": "uncle_appearance"}, inplace=True)
+    sorted_grouped["uncle_appearance"] = sorted_grouped["uncle_appearance"].astype(int)
+
+    sorted_grouped.rename(columns={"sibling_count_population": "sibling_appearance"}, inplace=True)
+    sorted_grouped["sibling_appearance"] = sorted_grouped["sibling_appearance"].astype(int)
+    
+    sorted_grouped.rename(columns={"Z-value-uncle_corrected_scaled_down": "Z-value-uncle_corrected"}, inplace=True)
+    sorted_grouped.rename(columns={"Z-value-sibling_corrected_scaled_down": "Z-value-sibling_corrected"}, inplace=True)
+    
+    
     #sorted_grouped =convert_species(sorted_grouped)
     
     #sorted_grouped.to_csv('cnn.csv',index=False)
@@ -1215,6 +1376,7 @@ def write_significance(sorted_grouped,out_file,labeled_sp,correction_flag):
                 for i, col in enumerate(cols, 1):
                     val = row[col] if col in row else np.nan
                     s = essential.render_val(col, val)
+                    '''
                     if correction_flag:
                         if col =='Test_count' and row['Test_lineage']: #'uncle_count','sibling_count']:
                             s = str(s)+'/'+str(int(row['test_count_population'])) if col in row else np.nan
@@ -1244,11 +1406,14 @@ def write_significance(sorted_grouped,out_file,labeled_sp,correction_flag):
                             w = widths[col]
                             line += f"{s:<{w}}"
 
-
-                    else:
-                        w = widths[col]
-                        line += f"{s:<{w}}"
-                        #line += f"{s:<{widths[col]}}"
+                    '''
+                    #if correction_flag:
+                            
+                        
+                    #else:
+                    w = widths[col]
+                    line += f"{s:<{w}}"
+                    #line += f"{s:<{widths[col]}}"
                     if i < len(cols):
                         
                         line += TAB_STR if col in SPECIAL_AFTER else SPACE_SEP
@@ -2153,7 +2318,8 @@ what_moved = []
 total_count_=[]
 
 
-data=pd.read_csv(gene_treefile, sep=',').to_numpy()
+#data=pd.read_csv(gene_treefile, sep=',').to_numpy()
+data = validate.read_gene_tree_data(gene_treefile)
 
 #print(data)
 sp= red.parse(sp_string)
@@ -2199,7 +2365,8 @@ if produce_excel:
         convert_excel(out_file)
 if run_direction:
     #call_direction(sorted_grouped,gene_treefile,sp,out_file)
-    call_direction(sorted_grouped,gene_treefile,sp,out_file,demography,correct_flag,path)
+    #call_direction(sorted_grouped,gene_treefile,sp,out_file,demography,correct_flag,path)
+    call_direction(sorted_grouped,gene_treefile,sp,out_file,demography,correct_flag,path,dji_cache_input_hash,random_seed,verbose)
         
 clean_folder(out_file)
 

@@ -17,11 +17,15 @@ output =parser.output
 
 
 src_dir = Path(".")
-dst_dir_extra = Path("DAFT_extras")
-dst_dir_results = Path("DAFT_results")
+dst_dir_extra = Path(f"DAFT_extras_{output}")
+dst_dir_results = Path(f"DAFT_results_{output}")
+dst_dir_log = Path(f"DAFT_log_{output}")
 
 dst_dir_extra.mkdir(exist_ok=True)
 dst_dir_results.mkdir(exist_ok=True)
+dst_dir_log.mkdir(exist_ok=True)
+
+
 
 prefixes = ("introgression", "rev", "result" , "djiNNI", "list_","Summary")
 #prefixes = ("introgression", "rev", "result" , "djiNNI")
@@ -32,10 +36,18 @@ for csv in src_dir.glob("*.csv"):
         shutil.move(csv, dst_dir_extra / csv.name)
 
 
-shutil.move(
-    f"DAFT_Test_{output}.txt",
-    Path(dst_dir_results, f"DAFT_Test_{output}.txt")
-)
+prefixes_log = (output)
+#prefixes = ("introgression", "rev", "result" , "djiNNI")
+
+
+for csv in src_dir.glob("*.txt"):
+    if csv.name.startswith(prefixes_log):
+        shutil.move(csv, dst_dir_log / csv.name)
+
+for csv in src_dir.glob("*.csv"):
+    if csv.name.startswith(prefixes_log):
+        shutil.move(csv, dst_dir_log / csv.name)
+
 
 
 
@@ -51,3 +63,12 @@ for src, dst in files:
         shutil.move(src, dst_dir_results / dst)
     except FileNotFoundError:
         pass
+    
+
+try:
+    shutil.move(
+        f"DAFT_Test_{output}.txt",
+        Path(dst_dir_results, f"DAFT_Test_{output}.txt")
+    )
+except:
+    pass

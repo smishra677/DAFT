@@ -859,7 +859,7 @@ class daft_essential:
 
 
     def render_val(self,col, v):
-        if col in ('Z-value-uncle', 'Z-value-sibling','Z-value-sibling_corrected_scaled_down','Z-value-uncle_corrected_scaled_down'):
+        if col in ('Z-value-uncle', 'Z-value-sibling','Z-value-sibling_corrected','Z-value-uncle_corrected'):
             return '-' if pd.isna(v) or v=='' else f"{float(v):.2f}"
         elif col in ('total_count', 'uncle_count', 'sibling_count','Z_score_sibling','Minor_moved_count'):
             if pd.isna(v) or v =='':
@@ -898,11 +898,11 @@ class daft_essential:
         return grouped.loc[mask1&mask2, 'total_count'].sum()
 
 
-    def _sibling_population_count(self,row,grouped):
+    def _sibling_population_count(self,row,grouped,out_file):
         siblings = row['comparison_sibling']
         mask = grouped['Where_at'].apply(lambda x: self.isequal_set(x, siblings))
         total = grouped.loc[mask, 'total_count'].sum()
-        dfer =pd.read_csv('./rev_all_corrected.csv')
+        dfer =pd.read_csv(f'./rev_all_corrected_{out_file}.csv')
         
         mask1 = dfer['Topo'].apply(lambda x: self.isequal_set(x, siblings))
         total1 = dfer.loc[mask1, 'junk_count'].sum()
@@ -910,23 +910,23 @@ class daft_essential:
         return (total+total1) if (total > 0) else pd.NA
     
     
-    def _uncle_population_count(self,row,grouped):
+    def _uncle_population_count(self,row,grouped,out_file):
         uncle = row['comparison_uncle']
         mask = grouped['Where_at'].apply(lambda x: self.isequal_set(x, uncle))
         total = grouped.loc[mask, 'total_count'].sum()
-        dfer =pd.read_csv('./rev_all_corrected.csv')
+        dfer =pd.read_csv(f'./rev_all_corrected_{out_file}.csv')
         
         mask1 = dfer['Topo'].apply(lambda x: self.isequal_set(x, uncle))
         total1 = dfer.loc[mask1, 'junk_count'].sum()
         #total1=0
         return (total+total1) if (total > 0) else pd.NA
     
-    def _test_population_count(self,row,grouped):
+    def _test_population_count(self,row,grouped,out_file):
         test = row['What_moved']
         mask = grouped['Where_at'].apply(lambda x: self.isequal_set(x, test))
         total = grouped.loc[mask, 'total_count'].sum()
         
-        dfer =pd.read_csv('./rev_all_corrected.csv')
+        dfer =pd.read_csv(f'./rev_all_corrected_{out_file}.csv')
         mask1 = dfer['Topo'].apply(lambda x: self.isequal_set(x, test))
         total1 = dfer.loc[mask1, 'junk_count'].sum()
         #total1=0

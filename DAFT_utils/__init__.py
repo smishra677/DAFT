@@ -26,7 +26,11 @@ def __getattr__(name: str):
     if name == "daft_essential":
         from .DAFT_essential import daft_essential
         return daft_essential
+
+    elif name == "daft_validate":
+        from .DAFT_validate import daft_validate
+        return daft_validate
     raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
 
 
-__all__ = ["daft_essential"]
+__all__ = ["daft_essential","daft_validate"]

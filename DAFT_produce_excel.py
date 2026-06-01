@@ -4,76 +4,100 @@ import argparse
 
 
 def parse1():
-    parser = argparse.ArgumentParser(description="IQTree on Simphy and dupcoal")
-   
-    parser.add_argument('--output', type=str, help="Name of output file")
-    
+    parser = argparse.ArgumentParser(description="Convert DAFT txt output to Excel")
+    parser.add_argument('--output', type=str, required=True, help="Name of output file")
     args = parser.parse_args()
     return args
 
-parser = parse1()
-output =parser.output
+
+def split_cols(line):
+    """
+    Split DAFT text columns.
+    Handles both multiple spaces and tabs.
+    """
+    return [p.strip() for p in re.split(r"\t+|\s{2,}", line.strip()) if p.strip()]
 
 
-input_file = "DAFT_Test_"+output+".txt"
-output_file = "DAFT_Test_"+output+".xlsx"
+args = parse1()
+output = args.output
 
-columns = [
-    "NNI_sp",
-    "Test_lineage",
-    "total_count",
-    "comparison_uncle",
-    "uncle_count",
-    "Z_value_uncle",
-    "comparison_sibling",
-    "sibling_count",
-    "Z_value_sibling",
-]
+input_file = "DAFT_Test_" + output + ".txt"
+output_file = "DAFT_Test_" + output + ".xlsx"
 
 with open(input_file) as f:
     lines = [l.rstrip() for l in f]
 
 blocks = []
+
 current_focal = None
+current_header = None
 current_rows = []
 
+
+def save_current_block():
+    if current_focal and current_header and current_rows:
+        blocks.append((current_focal, current_header, current_rows))
+
+
 for line in lines:
+    line = line.rstrip()
+
     if line.startswith("Focal_lineage ="):
-        if current_focal and current_rows:
-            blocks.append((current_focal, current_rows))
+        save_current_block()
+
         current_focal = line.replace("Focal_lineage =", "").strip()
+        current_header = None
         current_rows = []
         continue
 
-    if not re.match(r"^\d+", line):
+    # Detect selected columns from your DAFT text output
+    if line.startswith("NNI_sp"):
+        current_header = split_cols(line)
         continue
 
-    prt = [p.strip() for p in re.split(r"\s{2,}", line)]
+    # Skip separators and non-data lines
+    if not current_header:
+        continue
 
-    if len(prt) == 7:
-        prt.insert(5, "")
-        prt.append("")
-    elif len(prt) == 8:
-        if re.match(r"-?\d+(\.\d+)?$", prt[-1]):
-            prt.insert(5, "")
-        else:
-            prt.append("")
+    if not line or line.startswith("=") or line.startswith("-"):
+        continue
 
-    while len(prt) < 9:
-        prt.append("")
-    prt = prt[:9]
+    # Data rows usually start with NNI_sp value
+    if not re.match(r"^\d+", line.strip()):
+        continue
 
-    current_rows.append(prt)
+    row = split_cols(line)
 
-if current_focal and current_rows:
-    blocks.append((current_focal, current_rows))
+    # Pad missing columns
+    while len(row) < len(current_header):
+        row.append("")
+
+    # Trim extra values if any
+    row = row[:len(current_header)]
+
+    current_rows.append(row)
+
+save_current_block()
 
 with pd.ExcelWriter(output_file, engine="openpyxl") as writer:
     catalog = pd.DataFrame(
-        [{"Focal_lineage": focal, "Comparison": f"{i}"} for i, (focal, row) in enumerate(blocks, 1)]
+        [
+            {
+                "Comparison": f"Comparison_{i}",
+                "Focal_lineage": focal,
+                "Rows": len(rows),
+            }
+            for i, (focal, header, rows) in enumerate(blocks, 1)
+        ]
     )
+
     catalog.to_excel(writer, sheet_name="Catalog", index=False)
-    for i, (focal, rows) in enumerate(blocks, 1):
-        df = pd.DataFrame(rows, columns=columns)
+
+    for i, (focal, header, rows) in enumerate(blocks, 1):
+        df = pd.DataFrame(rows, columns=header)
         df.insert(0, "Focal_lineage", focal)
-        df.to_excel(writer, sheet_name=f"Comparison_{i}", index=False)
+
+        sheet_name = f"Comparison_{i}"
+        df.to_excel(writer, sheet_name=sheet_name, index=False)
+
+print(f"Excel file written to: {output_file}")
