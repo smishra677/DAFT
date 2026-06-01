@@ -1,4 +1,4 @@
-# DAFT simulation and accuracy scripts
+# DAFT Simulation and Accuracy Scripts
 
 This folder contains the scripts used to generate simulated datasets, add NNI noise to selected gene-tree datasets, run DAFT, and summarize accuracy.
 
@@ -14,9 +14,15 @@ These scripts reproduce the simulation experiments from the paper **"New approac
 6. ete3
 7. matplotlib
 
+Please move these files to the main folder:
+
+```text
+./DAFT-main
+```
+
 ## Scripts
 
-### Simulation scripts
+### Simulation Scripts
 
 `simulate.py` generates the simulated species trees, demography files, and gene-tree lists used by DAFT.
 
@@ -30,11 +36,11 @@ DATA_SET/list_<simulation_id>.csv
 
 The `list_<simulation_id>.csv` files are the gene-tree input files used by DAFT.
 
-### Add NNI noise
+### Add NNI Noise
 
 `add_noise.py` adds NNI error to an existing simulated gene-tree file.
 
-The input file should be a CSV with a column called:
+The input file should be a CSV file with a column named:
 
 ```text
 gt
@@ -49,10 +55,10 @@ python add_noise.py --file DATA_SET --og list_A.csv --error 2 --out list_A_error
 Arguments:
 
 ```text
---file    folder containing the gene-tree CSV
---og      original gene-tree CSV file name
---error   mean NNI error used for the Poisson draw
---out     output prefix
+--file    Folder containing the gene-tree CSV
+--og      Original gene-tree CSV file name
+--error   Mean NNI error used for the Poisson draw
+--out     Output prefix
 ```
 
 The script writes:
@@ -71,7 +77,7 @@ gt,NNI
 
 where `gt` is the noisy gene tree and `NNI` is the number of NNI moves applied to that tree.
 
-### DAFT batch script
+### DAFT Batch Script
 
 `big_batch_it.py` runs DAFT on all simulated datasets.
 
@@ -84,7 +90,7 @@ DATA_SET/demography_<simulation_id>
 
 The dictionary `sim_dict` maps each simulation ID to the DAFT command template used for that simulation.
 
-The script chunks each gene-tree list, runs DAFT on each chunk, moves the djiNNI cache for each chunk into `DAFT_extras`, and saves final DAFT results for each simulation.
+The script chunks each gene-tree list, runs DAFT on each chunk, moves the djiNNI cache for each chunk into `DAFT_extras`, and saves the final DAFT results for each simulation.
 
 Typical output:
 
@@ -92,7 +98,7 @@ Typical output:
 RESULTS/DAFT_results_<simulation_id>
 ```
 
-### Direction extraction
+### Direction Extraction
 
 Run the direction extraction script before running the djiNNI accuracy script.
 
@@ -106,7 +112,7 @@ python accuracy_extract_direction.py
 Summary_direction.csv
 ```
 
-### djiNNI direction accuracy
+### djiNNI Direction Accuracy
 
 `accuracy_djiNNI.py` compares DAFT direction results against the known simulated donor and receiver pairs.
 
@@ -120,9 +126,9 @@ In `accuracy_djiNNI.py`, the expected introgression links are written as:
 expected = [(donor, receiver)]
 ```
 
-This is important because the DAFT direction table stores receiver and donor in separate columns.
+This is important because the DAFT direction table stores receivers and donors in separate columns.
 
-### True-positive accuracy
+### True-Positive Accuracy
 
 `accuracy_tp.py` summarizes true-positive recovery across the simulated datasets.
 
@@ -130,7 +136,7 @@ This is important because the DAFT direction table stores receiver and donor in 
 python accuracy_tp.py
 ```
 
-The script uses the known expected introgression links for each simulation and compares them against DAFT output summaries.
+The script uses the known expected introgression links for each simulation and compares them against the DAFT output summaries.
 
 Typical output:
 
@@ -139,11 +145,11 @@ Results_rate_uncle_M_TT.csv
 Results_rate_sibling_M_TT.csv
 ```
 
-These files report the total simulations checked, false negatives, true positives, false-negative rate, and true-positive rate for the uncle-style and sibling-style tests.
+These files report the total number of simulations checked, false negatives, true positives, the false-negative rate, and the true-positive rate for the uncle-style and sibling-style tests.
 
-### False-positive accuracy
+### False-Positive Accuracy
 
-`accuracy_fp.py` summarizes false-positive calls across simulations where particular lineage-pair tests should not be inferred as introgression.
+`accuracy_fp.py` summarizes false-positive calls across simulations where specific lineage-pair tests should not be inferred as introgression.
 
 ```bash
 python accuracy_fp.py
@@ -156,9 +162,9 @@ Results_rate_uncle.csv
 Results_rate_sibling.csv
 ```
 
-These files report the total tests checked, false positives, true positives, false-positive rate, and true-positive rate for the uncle-style and sibling-style tests.
+These files report the total number of tests checked, false positives, true positives, the false-positive rate, and the true-positive rate for the uncle-style and sibling-style tests.
 
-### Other helper scripts
+### Other Helper Scripts
 
 ```text
 extract_gante.py
@@ -169,7 +175,7 @@ compare_demography_files.py
 
 `compare_demography_files.py` compares demography files generated by different simulation scripts.
 
-## Sequence of actions
+## Sequence of Actions
 
 1. Generate simulated data.
 
@@ -177,7 +183,7 @@ compare_demography_files.py
 python simulate.py
 ```
 
-2. Optional: add NNI noise to selected gene-tree files.
+2. Optionally, add NNI noise to selected gene-tree files.
 
 ```bash
 python add_noise.py --file DATA_SET --og list_A.csv --error 2 --out list_A_error_2
@@ -189,7 +195,7 @@ python add_noise.py --file DATA_SET --og list_A.csv --error 2 --out list_A_error
 python big_batch_it.py
 ```
 
-4. Extract inferred directions from DAFT output.
+4. Extract inferred directions from the DAFT output.
 
 ```bash
 python accuracy_extract_direction.py

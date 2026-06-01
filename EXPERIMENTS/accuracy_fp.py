@@ -1,6 +1,6 @@
 import sys
-sys.path.append("../DAFT_utils/reconcILS/")
-sys.path.append("../DAFT_utils/")
+sys.path.append("./DAFT_utils/reconcILS/")
+sys.path.append("./DAFT_utils/")
 from reconcILS import *
 from utils_reconcILS import *
 import pandas as pd
@@ -205,7 +205,7 @@ def get_data(val,sp_string,flag):
     list_sp_tree=reco.get_get_current_lineages(sp,[])
     #pprint.pprint(list_sp_tree)
     data_struct= load_data_struct(list_sp_tree,flag)
-    pprint.pprint(data_struct)
+    #pprint.pprint(data_struct)
 
     #list_sp_tree_newick=[]
 
@@ -287,21 +287,21 @@ C=' (A,(((W,V),(B,U)),((((K,L),(M,N)),(J,((E,(D,H)),((C,I),(G,F))))),(T,(S,(O,((
 
 
 
-val_key = [(A,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_A'),
-           (B,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_B'),
-           (C,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_C'),
-           (A,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_D'),
-           (B,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_E'),
-           (C,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_F'),
-           (A,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_G'),
-           (B,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_H'),
-           (C,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_I'),
-           (A,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_J'),
-           (B,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_K'),
-           (C,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_L'),
-           (A,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_J_1'),
-           (B,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_K_1'),
-           (C,'/N/u/samishr/Quartz/Desktop/DAFT_from_github/RESULTS/RESULTS/APRIL_19/DAFT_results_L_1'),]
+val_key = [(A,'./RESULTS/RESULTS/APRIL_19/DAFT_results_A'),
+           (B,'./RESULTS/RESULTS/APRIL_19/DAFT_results_B'),
+           (C,'./RESULTS/RESULTS/APRIL_19/DAFT_results_C'),
+           (A,'./RESULTS/RESULTS/APRIL_19/DAFT_results_D'),
+           (B,'./RESULTS/RESULTS/APRIL_19/DAFT_results_E'),
+           (C,'./RESULTS/RESULTS/APRIL_19/DAFT_results_F'),
+           (A,'./RESULTS/RESULTS/APRIL_19/DAFT_results_G'),
+           (B,'./RESULTS/RESULTS/APRIL_19/DAFT_results_H'),
+           (C,'./RESULTS/RESULTS/APRIL_19/DAFT_results_I'),
+           (A,'./RESULTS/RESULTS/APRIL_19/DAFT_results_J'),
+           (B,'./RESULTS/RESULTS/APRIL_19/DAFT_results_K'),
+           (C,'./RESULTS/RESULTS/APRIL_19/DAFT_results_L'),
+           (A,'./RESULTS/RESULTS/APRIL_19/DAFT_results_J_1'),
+           (B,'./RESULTS/RESULTS/APRIL_19/DAFT_results_K_1'),
+           (C,'./RESULTS/RESULTS/APRIL_19/DAFT_results_L_1'),]
 
 
 

@@ -3,6 +3,51 @@ import subprocess
 import os
 import shutil
 import glob
+import csv
+
+def merge_summary():
+    input_files = [f"./DAFT_extras_{i}/Summary_{i}.csv" for i in range(1, 11)]
+    output_file = "Summary.csv"
+
+    standard_file = input_files[0]
+
+    if not os.path.exists(standard_file):
+        raise FileNotFoundError(f"Standard header file not found: {standard_file}")
+
+    
+    
+    with open(standard_file, "r", newline="") as fin:
+        reader = csv.reader(fin)
+        header = next(reader)
+
+    with open(output_file, "w", newline="") as fout:
+        writer = csv.writer(fout)
+        writer.writerow(header)
+
+        for file in input_files:
+            if not os.path.exists(file):
+                print(f"Warning: {file} does not exist. Skipping.")
+                continue
+
+            with open(file, "r", newline="") as fin:
+                reader = csv.DictReader(fin)
+                file_header = reader.fieldnames
+
+                if file_header != header:
+                    print(f"Warning: Header mismatch in {file}. Reordering by column name.")
+
+                    missing_cols = [col for col in header if col not in file_header]
+                    extra_cols = [col for col in file_header if col not in header]
+
+                    if missing_cols:
+                        print(f"  Missing columns in {file}: {missing_cols}")
+                    if extra_cols:
+                        print(f"  Extra columns in {file}: {extra_cols}")
+
+                for row in reader:
+                    writer.writerow([row.get(col, "") for col in header])
+
+    print(f"Created {output_file} using header from {standard_file}")
 
 
 
@@ -94,6 +139,7 @@ DCMD_3 = [
     "--sibling", "1",
     "--excel", "1",
     "--direction", "1",
+    "--allow_inconsistent_rooting", "1",
                 
 ]
 
@@ -103,6 +149,7 @@ DCMD_2 = [
     "--sibling", "1",
     "--excel", "1",
     "--direction", "1",
+    "--allow_inconsistent_rooting", "1",
 ]
 
 DCMD_1 = [
@@ -111,7 +158,7 @@ DCMD_1 = [
     "--sibling", "1",
     "--excel", "1",
     "--direction", "1",
-    
+    "--allow_inconsistent_rooting", "1",
     
 ]
 
@@ -123,6 +170,7 @@ DCMD_4 = [
     "--excel", "1",
     "--direction", "1",
     "--correct", "1",
+    "--allow_inconsistent_rooting", "1",
     
 ]
 
@@ -178,7 +226,7 @@ for key, val in sim_dict.items():
     else:
         DAFT_CMD = DCMD_1
 
-    INPUT_CSV = "/N/slate/samishr/daft-e/DATA_SET/list_" + key + ".csv"
+    INPUT_CSV = "./DATA_SET/list_" + key + ".csv"
     print(INPUT_CSV)
     os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -198,14 +246,14 @@ for key, val in sim_dict.items():
         
         cmd = DAFT_CMD + [
                 "--gt", chunk_csv,
-                "--demography", '/N/slate/samishr/daft-e/DATA_SET/demography_' + key,
+                "--demography", './DATA_SET/demography_' + key,
                 "--output", str(i+1)
             ]
         if key in ['G','H','I','Q','R','S','T','T_6','T_7']:
 
             cmd = DAFT_CMD + [
                 "--gt", chunk_csv,
-                "--demography", '/N/slate/samishr/daft-e/DATA_SET/demography_' + key,
+                "--demography", './DATA_SET/demography_' + key,
                 "--output", str(i+1),
                 "--correct", "1",
                 
@@ -237,27 +285,44 @@ for key, val in sim_dict.items():
         
     #exit()
 
+    merge_summary()
     #subprocess.run(["mv", "./overall_result.csv", "./DAFT_results/overall_result.csv"], check=True)
-    subprocess.run(["mv", "./Summary.csv", "./DAFT_results/Summary.csv"], check=True)
-    files_e = glob.glob("./*lineage.txt") + glob.glob("./*lineageN.txt")
-
-    if files_e:
-        subprocess.run(["mv", *files_e, "./DAFT_extras/"], check=True)
-    
-    subprocess.run(["python", "./excel_direction.py"], check=True)
-    
-    base_dir = "/N/slate/samishr/daft-e/RESULTS/RESULTS/APRIL_19"
+    os.makedirs("./DAFT_results", exist_ok=True)
+    base_dir = "./RESULTS/RESULTS/APRIL_19"
     os.makedirs(base_dir, exist_ok=True)
-
+    
     dest_dir = f"{base_dir}/DAFT_results_{key}"
 
+    prefixes = ["DAFT_results", "DAFT_extras", "DAFT_log"]
+
+    for prefix in prefixes:
+        for i in range(1, 11):
+            src = f"./{prefix}_{i}"
+            dst = f"./{dest_dir}/{prefix}_{i}"
+
+            if os.path.exists(src):
+                shutil.move(src, dst)
+            else:
+                print(f"Warning: {src} does not exist")
+
+    subprocess.run(
+        ["mv", "./Summary.csv", f"./{dest_dir}/Summary.csv"],
+        check=True
+    )
+
+  
+
+
+
+
+    '''
     subprocess.run([
         "mv",
         "./DAFT_results",
         dest_dir
     ], check=True)
     
-    
+    '''
     
     
     
