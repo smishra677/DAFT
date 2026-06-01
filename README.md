@@ -62,7 +62,7 @@ DAFT_Transform.py
 DAFT_produce_excel.py
 DAFT_produce_excel_correction.py
 clean_folder.py
-excel_direction.py
+daft/
 DAFT_utils/
 ```
 
@@ -136,6 +136,8 @@ DAFT needs two inputs:
 1. A rooted species tree in Newick format
 2. A gene tree file containing gene trees in Newick format
 
+The species tree and gene trees should be rooted and bifurcating. Branch lengths are not required. Taxon names must be consistent between the species tree and the gene trees; gene trees may contain fewer taxa than the species tree, but they should not contain taxa absent from the species tree.
+
 ---
 
 ## Species Tree
@@ -193,6 +195,100 @@ When a non-CSV file is passed with `--gt`, DAFT converts it internally to a CSV 
 
 ---
 
+## Input Validation and Runtime Checks
+
+DAFT validates input files before running the main analysis. These checks are meant to make DAFT runs reproducible: a successful run should make clear which trees were analyzed, how they were rooted, which gene trees were excluded, and which output files should be inspected before interpreting results.
+
+| Check | What DAFT expects | What to do if it fails |
+|---|---|---|
+| Species tree | One rooted, bifurcating Newick tree | Fix the species tree or provide it with `--sp_file` |
+| Gene trees | One rooted, bifurcating Newick tree per row or line | Fix malformed Newick strings before running DAFT |
+| Semicolons | Each complete tree ends with `;` | Add the final semicolon to incomplete tree strings |
+| Taxon names | Gene-tree taxa are present in the species tree | Make taxon labels identical across files |
+| Missing taxa | Allowed in gene trees and reported as warnings | Inspect the log and taxon report before interpretation |
+| Duplicate taxa | Not allowed by default | Fix the tree, or intentionally skip duplicate-containing gene trees with `--ignore_duplication 1` |
+| Rooting | Gene trees are rooted consistently with the species tree | Reroot with `--rooting OUTGROUP --forced 1`, or intentionally continue with `--allow_inconsistent_rooting 1` |
+| Lineage-pair file | `DAFT_Direction.py` receives a valid Python-style list from `--lineages_file` | Fix brackets, commas, quotes, and tuple structure |
+
+### Duplicate taxa
+
+By default, DAFT stops if a tree contains duplicate taxa.
+
+```text
+(A,(B,B));
+```
+
+To skip gene trees with duplicate taxa instead of failing the full run, use:
+
+```bash
+--ignore_duplication 1
+```
+
+When duplicate-containing gene trees are skipped, DAFT writes a cleaned gene-tree file:
+
+```text
+<output>_duplicate_removed_gene_trees.csv
+```
+
+Use this option deliberately. Skipping trees changes the dataset used by the analysis and may change downstream significance and direction results.
+
+### Rooting
+
+DAFT expects rooted species trees and rooted gene trees. To report an outgroup without changing the trees, use:
+
+```bash
+--rooting A
+```
+
+This records the intended outgroup, but it does not reroot the input trees. To explicitly reroot the species tree and gene trees, use:
+
+```bash
+--rooting A --forced 1
+```
+
+For an outgroup clade, use a comma-separated list:
+
+```bash
+--rooting A,B --forced 1
+```
+
+Use this only if the listed taxa form the intended outgroup. If you intentionally want DAFT to continue without rerooting even when roots are inconsistent, use:
+
+```bash
+--allow_inconsistent_rooting 1
+```
+
+### Validation logs and audit files
+
+DAFT writes validation and audit files using the output prefix supplied with `--output`.
+
+| File | Produced by | Meaning |
+|---|---|---|
+| `<output>_DAFT_log.txt` | `DAFT_Test.py` | Run options, input paths, validation checks, warnings, and failures |
+| `<output>_djiNNI_log.txt` | `DAFT_Direction.py` | Direction-stage validation and djiNNI run log |
+| `<output>_taxon_report.csv` | validation stage | Taxon presence across species tree and gene trees |
+| `<output>_rooted_gene_trees.csv` | when `--forced 1` is used | Gene trees after forced rerooting |
+| `<output>_duplicate_removed_gene_trees.csv` | when `--ignore_duplication 1` removes trees | Gene trees retained after duplicate-containing trees are skipped |
+
+After cleanup, these validation files are placed in:
+
+```text
+DAFT_log_<output>/
+```
+
+The taxon report contains:
+
+```text
+original_taxon
+in_species_tree
+gene_tree_count
+daft_internal_name
+```
+
+Use the taxon report to confirm that all taxon names were interpreted as intended.
+
+---
+
 ## 4. Quick Start: Run the Full DAFT Workflow
 
 The main DAFT workflow starts with `daft-test`. When `--direction 1` is used, DAFT also runs `daft-direction` on the significant lineage pairs.
@@ -229,11 +325,12 @@ python3 DAFT_Test.py \
   --direction 1
 ```
 
-After the run finishes, DAFT organizes output files into:
+After the run finishes, DAFT organizes output files into folders named with the output label:
 
 ```text
-DAFT_results/
-DAFT_extras/
+DAFT_results_<output>/
+DAFT_extras_<output>/
+DAFT_log_<output>/
 ```
 
 ---
@@ -255,9 +352,9 @@ daft-test \
 Then inspect:
 
 ```text
-DAFT_results/DAFT_Test_output.txt
-DAFT_results/DAFT_Test_output.xlsx
-DAFT_results/branch_map.csv
+DAFT_results_<output>/DAFT_Test_<output>.txt
+DAFT_results_<output>/DAFT_Test_<output>.xlsx
+DAFT_results_<output>/branch_map.csv
 ```
 
 After identifying significant lineage pairs, run direction inference manually:
@@ -370,7 +467,7 @@ Example:
 --output "output"
 ```
 
-This produces files such as:
+For example, when `--output "output"` is used, DAFT may produce:
 
 ```text
 DAFT_Test_output.txt
@@ -414,10 +511,10 @@ Example:
 --excel 1
 ```
 
-When enabled, DAFT creates:
+When enabled, DAFT creates an Excel file named with the output label:
 
 ```text
-DAFT_Test_output.xlsx
+DAFT_Test_<output>.xlsx
 ```
 
 ---
@@ -514,51 +611,133 @@ means the raw count comparison looked significant, but after scaling by lineage 
 
 ---
 
-### `--demography`
+### `--rooting`
 
-Optional demography file argument used in simulation or truth-checking workflows.
+Outgroup taxon, or comma-separated outgroup taxa, used for rooting checks or explicit rerooting.
 
 Example:
 
 ```bash
---demography "demography_M.txt"
+--rooting A
 ```
 
-For normal empirical analyses, this may not be needed.
+By itself, `--rooting` records the intended outgroup but does not change the trees.
+
+---
+
+### `--forced`
+
+Controls whether DAFT reroots the species tree and gene trees using the outgroup supplied with `--rooting`.
+
+```text
+1 = reroot using the supplied outgroup
+0 = do not reroot
+```
+
+Example:
+
+```bash
+--rooting A --forced 1
+```
+
+---
+
+### `--allow_inconsistent_rooting`
+
+Controls whether DAFT is allowed to continue when gene-tree roots are inconsistent with the species-tree root.
+
+```text
+1 = continue with the input roots unchanged
+0 = stop if inconsistent rooting is detected
+```
+
+Use this only when the rooting difference is intentional.
+
+---
+
+### `--ignore_duplication`
+
+Controls whether DAFT skips gene trees containing duplicate taxa.
+
+```text
+1 = skip duplicate-containing gene trees and continue
+0 = stop when duplicate taxa are detected
+```
+
+Example:
+
+```bash
+--ignore_duplication 1
+```
+
+When this option removes trees, DAFT writes:
+
+```text
+<output>_duplicate_removed_gene_trees.csv
+```
+
+---
+
+### `--random_seed`
+
+Random seed used in the djiNNI direction step when tied movement counts must be resolved.
+
+Example:
+
+```bash
+--random_seed 42
+```
+
+---
+
+### `--verbose`
+
+Controls validation messages and the djiNNI progress display.
+
+```text
+1 = print progress and validation information
+0 = quieter output
+```
+
+Example:
+
+```bash
+--verbose 1
+```
 
 ---
 
 ## 7. Main Output Folders
 
-DAFT organizes output into two folders.
+DAFT organizes output into folders named with the output label.
 
 ---
 
-## `DAFT_results/`
+## `DAFT_results_<output>/`
 
 This folder contains the main output files.
 
 Typical files include:
 
 ```text
-DAFT_Test_output.txt
-DAFT_Test_output.xlsx
-DAFT_Direction_output.txt
+DAFT_Test_<output>.txt
+DAFT_Test_<output>.xlsx
+DAFT_Direction_<output>.txt
 branch_map.csv
-important_output.csv
+important_<output>.csv
 ```
 
 Some files only appear when the corresponding option is enabled.
 
 For example:
 
-- `DAFT_Test_output.xlsx` appears when `--excel 1`
-- `DAFT_Direction_output.txt` appears when `--direction 1` or when direction inference is run separately
+- `DAFT_Test_<output>.xlsx` appears when `--excel 1`
+- `DAFT_Direction_<output>.txt` appears when `--direction 1` or when direction inference is run separately
 - `branch_map.csv` maps DAFT branch labels back to the original species tree
 
 ---
 
-## `DAFT_extras/`
+## `DAFT_extras_<output>/`
 
 This folder contains extra files created during the direction workflow.
 
@@ -575,12 +754,28 @@ The exact file names depend on the lineage pair and argument order.
 
 ---
 
+## `DAFT_log_<output>/`
+
+This folder contains validation logs and audit files. Typical files include:
+
+```text
+<output>_DAFT_log.txt
+<output>_djiNNI_log.txt
+<output>_taxon_report.csv
+<output>_rooted_gene_trees.csv
+<output>_duplicate_removed_gene_trees.csv
+```
+
+Some files appear only when the corresponding option is used. For example, `<output>_rooted_gene_trees.csv` appears when DAFT is run with `--rooting OUTGROUP --forced 1`, and `<output>_duplicate_removed_gene_trees.csv` appears when `--ignore_duplication 1` removes duplicate-containing trees.
+
+---
+
 ## 8. Understanding `branch_map.csv`
 
 DAFT labels branches internally. The file:
 
 ```text
-DAFT_results/branch_map.csv
+DAFT_results_<output>/branch_map.csv
 ```
 
 maps these internal branch labels back to the original species tree.
@@ -906,19 +1101,23 @@ Each tuple contains one pair of lineages to test.
 
 ---
 
-### `--lineagesN`
+### `--lineagesN_file`
 
-Optional argument for bidirectional testing.
+Optional file containing non-unique or bidirectional lineage tuples.
 
-Example:
+Example file contents:
 
-```bash
---lineagesN "[(['(1,2);', '3;'], '4;')]"
+```text
+[(['(1,2);', '3;'], '4;')]
 ```
 
-This provides extra sibling information used in the bidirectional test.
+Example command argument:
 
-If this argument is not provided, the current code attempts to infer the required sibling information automatically.
+```bash
+--lineagesN_file "lineagesN.txt"
+```
+
+Most manual runs do not need this argument. When `DAFT_Test.py` runs direction inference automatically, it writes the needed lineage files and passes them to `DAFT_Direction.py`.
 
 ---
 
@@ -932,11 +1131,19 @@ Example:
 --output "output"
 ```
 
-This produces:
+For example, when `--output "output"` is used, this produces:
 
 ```text
 DAFT_Direction_output.txt
 ```
+
+---
+
+### `--rooting`, `--forced`, `--allow_inconsistent_rooting`, `--ignore_duplication`, `--random_seed`
+
+These options have the same meaning in `DAFT_Direction.py` as in `DAFT_Test.py`.
+
+Use `--rooting OUTGROUP --forced 1` to explicitly reroot before direction inference. Use `--allow_inconsistent_rooting 1` only when you intentionally want to keep inconsistent roots unchanged. Use `--ignore_duplication 1` only when you want DAFT to skip duplicate-containing gene trees instead of stopping.
 
 ---
 
@@ -1113,9 +1320,9 @@ daft-test \
 Main outputs:
 
 ```text
-DAFT_results/DAFT_Test_output.txt
-DAFT_results/DAFT_Test_output.xlsx
-DAFT_results/branch_map.csv
+DAFT_results_<output>/DAFT_Test_<output>.txt
+DAFT_results_<output>/DAFT_Test_<output>.xlsx
+DAFT_results_<output>/branch_map.csv
 ```
 
 ---
@@ -1155,7 +1362,7 @@ daft-direction \
 Main output:
 
 ```text
-DAFT_Direction_output.txt
+DAFT_Direction_<output>.txt
 ```
 
 ---
@@ -1180,7 +1387,7 @@ The original script commands are still supported. Add `--path "./DAFT_utils"` wh
 
 ## 16. Rich Progress Dashboard and Verbose Output
 
-`DAFT_Direction.py` and `DAFT_Transform.py` can print a rich terminal progress display during DAFT runs. This display is meant to help users monitor long analyses while gene trees are being reconciled, transformed, or loaded from cache.
+`DAFT_Direction.py` and `DAFT_Transform.py` can print a rich terminal progress display during DAFT runs when `--verbose 1` is used. This display is meant to help users monitor long analyses while gene trees are being reconciled, transformed, or loaded from cache.
 
 `DAFT_Transform.py` uses `rich` to show a terminal progress dashboard during the djiNNI transformation step.
 
@@ -1190,16 +1397,16 @@ The original script commands are still supported. Add `--path "./DAFT_utils"` wh
 The dashboard can be enabled with:
 
 ```bash
---progress 1
+--verbose 1
 ```
 
-or disabled with:
+or made quieter with:
 
 ```bash
---progress 0
+--verbose 0
 ```
 
-When progress output is enabled, DAFT may show a rich dashboard header such as:
+When verbose output is enabled, DAFT may show a rich dashboard header such as:
 
 ```text
 DAFT Direction / djiNNI
@@ -1438,11 +1645,12 @@ In that case, inspect the significance output and run `DAFT_Direction.py` manual
 
 ### Output files are not in the main folder
 
-This is expected. DAFT moves outputs into:
+This is expected. DAFT moves outputs into folders named with the output label:
 
 ```text
-DAFT_results/
-DAFT_extras/
+DAFT_results_<output>/
+DAFT_extras_<output>/
+DAFT_log_<output>/
 ```
 
 Check those folders after the run.
@@ -1454,7 +1662,7 @@ Check those folders after the run.
 Use:
 
 ```text
-DAFT_results/branch_map.csv
+DAFT_results_<output>/branch_map.csv
 ```
 
 to map output labels back to the original species tree.
