@@ -316,8 +316,8 @@ def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,p
     #exit()
     #list_unique =[]
     sibling_list= essential.find_sibling(sp,[])
-    if demography.split('demography_')[-1].strip() in ['A','B','C','D','E','F','G','H','I','J','K','L','J_1','K_1','L_1']:
-        list_unique=[]
+    #if demography.split('demography_')[-1].strip() in ['A','B','C','D','E','F','G','H','I','J','K','L','J_1','K_1','L_1']:
+    #list_unique=[]
         
     list_non_unique=add_sibling_bidirection(sorted_grouped,list_unique,sibling_list)
 
