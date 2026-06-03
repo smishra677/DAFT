@@ -1,6 +1,6 @@
 # Tutorial: Running DAFT on the Gante et al. cichlid dataset
 
-This tutorial shows how we used DAFT and djiNNI on the Tanganyikan cichlid gene trees from Gante et al. [1]. The goal is not only to reproduce the DAFT result, but also to show the full workflow a biologist would follow on their own dataset:
+This tutorial shows how we used DAFT and djiNNI on the Tanganyikan cichlid gene trees from Gante et al. [1]. The goal is not only to reproduce the DAFT result, but also to show the full workflow to follow on a new dataset:
 
 ```text
 get gene trees + species tree
