@@ -621,7 +621,7 @@ Run DAFT Direction when you already know which lineage pairs you want to test.
 Create a plain text file containing the lineage pairs:
 
 ```text
-[('B;', 'K;'), ('M;', 'E;')]
+[('C;', 'H;'), ('M;', 'E;')]
 ```
 
 Then pass this file with `--lineages_file`:
@@ -650,7 +650,7 @@ python3 DAFT_Direction.py \
 This tests direction for:
 
 ```text
-B; and K;
+C; and H;
 M; and E;
 ```
 
