@@ -424,7 +424,6 @@ DAFT organizes output into folders named with the output label. The exact files 
 | `DAFT_results_<output>/` | `DAFT_Test_<output>.xlsx` | `--excel 1` | Excel version of the DAFT Test output, useful for large species trees. |
 | `DAFT_results_<output>/` | `DAFT_Direction_<output>.txt` | `--direction 1`, or a separate DAFT Direction run | Main fixed-width text output from `DAFT_Direction.py`. |
 | `DAFT_results_<output>/` | `branch_map.csv` | Standard DAFT run | Maps DAFT numeric branch IDs back to species-tree branches. Use this file to interpret numeric lineage IDs in the output. |
-| `DAFT_results_<output>/` | `important_<output>.csv` | Not produced by standard runs; may appear only in older or custom workflows | Additional summary file for significant results, if produced. |
 | `DAFT_extras_<output>/` | `djiNNI_<output>_<lineage1_id>_<lineage2_id>.csv` | Direction inference | Intermediate djiNNI comparison file. Numeric IDs are used to avoid very long file names when lineage descriptions contain full species names. |
 | `DAFT_extras_<output>/` | Other `introgression*`, `rev*`, `result*`, `list_*`, or `Summary*` CSV files | Direction inference / djiNNI internals | Extra files useful for inspecting gene-tree-level evidence and debugging the djiNNI step. |
 | `DAFT_log_<output>/` | `<output>_DAFT_log.txt` | Validation / DAFT Test | Human-readable validation and run log. |
