@@ -1,6 +1,6 @@
 # Tutorial: Running DAFT on the Gante et al. cichlid dataset
 
-This tutorial shows how we used DAFT and djiNNI on the Tanganyikan cichlid gene trees from Gante et al. The goal is not only to reproduce the DAFT result, but also to show the full workflow a biologist would follow on their own dataset:
+This tutorial shows how we used DAFT and djiNNI on the Tanganyikan cichlid gene trees from Gante et al. [1]. The goal is not only to reproduce the DAFT result, but also to show the full workflow a biologist would follow on their own dataset:
 
 ```text
 get gene trees + species tree
@@ -17,7 +17,7 @@ We intentionally walk through the extraction and formatting steps instead of onl
 
 ## Requirements
 
-Before starting, install DAFT and the Python packages needed by this tutorial.
+Before starting, install DAFT and the Python packages needed by this tutorial [3].
 
 ```bash
 pip install -r requirements.txt
@@ -31,7 +31,7 @@ The tutorial assumes you are working from the main `DAFT-main` repository folder
 
 ## Step 1: Download the Gante et al. gene trees
 
-Download the Gante et al. RAxML gene trees from Dryad (for your convience its provided in ./dataset folder):
+Download the Gante et al. RAxML gene trees from Dryad [2] (for your convience its provided in ./dataset folder):
 
 ```text
 https://datadryad.org/dataset/doi:10.5061/dryad.jr67t
@@ -168,7 +168,7 @@ Each number is a DAFT branch ID. For example:
 | `11` | `Mz` |
 | `12` | `On` |
 
-It is helpful to plot this labelled tree before interpreting the output. One option is to paste the labelled species tree into iTOL and turn on branch labels. In iTOL, go to the advanced display options and show labels/metadata so that the DAFT branch IDs are visible.
+It is helpful to plot this labelled tree before interpreting the output. One option is to paste the labelled species tree into iTOL [4] and turn on branch labels. In iTOL, go to the advanced display options and show labels/metadata so that the DAFT branch IDs are visible.
 
 The labelled tree should look like this:
 
@@ -337,8 +337,8 @@ Z-value-sibling_corrected = -13.11
 
 This remains significant.
 
+⚠️ **Caution:** This is only a statistical correction. We recommend keeping significant pairs only when both the raw and corrected Z-scores are significant, to increase detection confidence and reduce false positives. For example: `Z-value-uncle <= -1.96` and `Z-value-uncle_corrected <= -1.96`, or `Z-value-sibling <= -1.96` and `Z-value-sibling_corrected <= -1.96`.
 
-Caution: This is just a stastical correction , hence we suggest taking signifcant pairs where both corrected and uncorrection z-scores are significant to increase the power of detection and decrease false positives.  ie.  Z-value-uncle<=-1.96 and  	Z-value-uncle_corrected<=-1.96  or Z-value-sibling<=-1.96	Z-value-sibling_corrected<=-1.96
 
 A conservative approach is to keep pairs where the raw and corrected values both support significance. In this example, correction does not change the final set of significant pairs:
 
@@ -532,7 +532,7 @@ DAFT Direction also outputs an Extended Newick network:
 Network (ONLY NNI > 1) :  ((((((((Ol[&label=6])#H2,Pu[&label=7]))#H1,Br[&label=8]),Gr[&label=9]),((#H1,Ma[&label=10]),#H2)),Mz[&label=11]),On[&label=12]);
 ```
 
-You can paste this Extended Newick string into an online network viewer such as IcyTree:
+You can paste this Extended Newick string into an online network viewer such as IcyTree [5]:
 
 ```text
 https://icytree.org/
@@ -565,7 +565,7 @@ Ma -> Ol
 
 The other three pairs are 1 NNI apart. They may still be biologically informative, but DAFT Direction cannot determine donor and receiver for them.
 
-The important lesson is that DAFT significant pairs should be interpreted as candidate branch-pair signals. They are the starting point for biological interpretation, not automatically a one-to-one list of independent introgression events.
+⚠️ **The important lesson is that DAFT significant pairs should be interpreted as candidate branch-pair signals. They are the starting point for biological interpretation, not automatically a one-to-one list of independent introgression events.**
 
 ---
 
@@ -593,3 +593,17 @@ The general workflow remains the same:
 ```
 
 This is the same logic used in the Gante example, but it can be applied to any dataset with a rooted species tree and a set of gene trees.
+
+---
+
+## References
+
+[1] Gante, H. F., Matschiner, M., Malmstrøm, M., Jakobsen, K. S., Jentoft, S., & Salzburger, W. (2016). Genomics of speciation and introgression in Princess cichlid fishes from Lake Tanganyika. *Molecular Ecology*, 25, 6143–6161. https://doi.org/10.1111/mec.13767
+
+[2] Gante, H. F., Matschiner, M., Malmstrøm, M., Jakobsen, K. S., Jentoft, S., & Salzburger, W. (2016). Data from: Genomics of speciation and introgression in Princess cichlid fishes from Lake Tanganyika. Dryad. https://doi.org/10.5061/dryad.jr67t
+
+[3] Sukumaran, J., & Holder, M. T. (2010). DendroPy: A Python library for phylogenetic computing. *Bioinformatics*, 26, 1569–1571. https://doi.org/10.1093/bioinformatics/btq228
+
+[4] Letunic, I., & Bork, P. (2021). Interactive Tree Of Life (iTOL) v5: An online tool for phylogenetic tree display and annotation. *Nucleic Acids Research*, 49, W293–W296. https://doi.org/10.1093/nar/gkab301
+
+[5] Vaughan, T. G. (2017). IcyTree: Rapid browser-based visualization for phylogenetic trees and networks. *Bioinformatics*, 33, 2392–2394. https://doi.org/10.1093/bioinformatics/btx155
