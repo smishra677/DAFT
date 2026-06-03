@@ -629,7 +629,8 @@ def run_tranform(data,out_filec,lineages_bidrectional,sp_string,list_df,path,ver
             index_data=[]
 
             for idex, gt in enumerate(data):
-                gt =gt[0]
+                #print(gt)
+                gt =gt[0].replace('e-', '0')
                 gt_tr= red.parse(gt)
                 gt_tr.label_internal()
                 if  essential.current_address(taxa_1,gt_tr) and essential.current_address(taxa_2,gt_tr) and reco.get_current_sister(gt_tr,taxa_1)==taxa_2:
