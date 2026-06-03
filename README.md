@@ -402,7 +402,6 @@ Use this table as the argument reference for `daft-test` or `python3 DAFT_Test.p
 | `--excel` | No | `0` | `1` or `0` | `--excel 1` | Controls whether DAFT writes `DAFT_Test_<output>.xlsx`. The Excel output is useful when the text output is too large to inspect comfortably. |
 | `--direction` | No | `0` | `1` or `0` | `--direction 1` | Controls whether DAFT automatically runs `DAFT_Direction.py` after DAFT Test. `1` runs direction inference on significant pairs; `0` only runs DAFT Test. |
 | `--correct` | No | `0` | `1` or `0` | `--correct 1` | Controls whether DAFT reports corrected output. `1` adds appearance columns and corrected Z-score columns; `0` reports uncorrected output only. |
-| `--demography` | No | `None` | Path to a demography file | `--demography "demography.txt"` | Optional parser argument for demography-related workflows. Standard DAFT Test runs do not require it. |
 | `--rooting` | No | `None` | Outgroup taxon, or comma-separated outgroup taxa | `--rooting A` | Records the intended outgroup for rooting checks. When used with `--forced 1`, DAFT reroots the species tree and gene trees using this outgroup. |
 | `--forced` | No | `0` | `1` or `0` | `--rooting A --forced 1` | Controls explicit rerooting. `1` reroots using `--rooting`; `0` does not reroot. |
 | `--allow_inconsistent_rooting` | No | `0` | `1` or `0` | `--allow_inconsistent_rooting 1` | Controls whether DAFT continues when gene-tree roots are inconsistent with the species-tree root. Use `1` only when the inconsistency is intentional. |
