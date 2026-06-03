@@ -130,6 +130,7 @@ When running the original scripts from outside the DAFT directory, pass the util
 ---
 
 ## 3. Prepare Input Files
+For more hands-on tutorial that walks through preparing input files, running DAFT, and interpreting the output, see [`Tutorial/tutorial.md`](./Tutorial/tutorial.md).
 
 DAFT needs two inputs:
 
