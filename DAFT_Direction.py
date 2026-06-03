@@ -788,8 +788,9 @@ df1['original_index'] = df.index
 unique_pairs = df1.drop_duplicates(subset=['Lineage1_s', 'Lineage2_s'])
 df = df.loc[unique_pairs['original_index']]
 df =df[df.inUnique==True]
-df = df[(df['Count1']+df['Count2'])>total_count_cutoff &  (df['Count1']>indiv_count_cutoff) & (df['Count2']>indiv_count_cutoff)]
-
+#df = df[((df['Count1']+df['Count2'])>total_count_cutoff) &  (df['Count1']>indiv_count_cutoff) & (df['Count2']>indiv_count_cutoff)]
+df = df[((df['Count1']+df['Count2'])>total_count_cutoff)]
+#print(df.to_csv('some_test.cxv'))
 #df,sp_string1= convert_species(df,sp_string)
 #df.to_csv(f'results1_{out_filec}.csv',index=False)
 
