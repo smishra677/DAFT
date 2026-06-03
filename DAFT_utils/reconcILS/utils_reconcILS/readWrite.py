@@ -713,7 +713,7 @@ class readWrite:
             name, length, delim, ch = next(tokens).groups(0)
             tre.taxa= name
             if name!=0:
-                tre.taxa= name.split('_')[0]
+                tre.taxa= name
                 tre.numbered_taxa=name
                 tre.isLeaf= True
             if ch == "(":
@@ -761,7 +761,7 @@ class readWrite:
             name, length, delim, ch = next(tokens).groups(0)
             tre.taxa = name
             if name:
-                tre.taxa = ''.join(name.split('_')[:2])
+                tre.taxa = name #''.join(name.split('_')[:2])
                 tre.numbered_taxa = name
                 tre.isLeaf = True
 

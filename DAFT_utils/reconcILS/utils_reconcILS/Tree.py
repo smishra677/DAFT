@@ -435,7 +435,7 @@ class Tree:
             #print(name)
             tre.taxa= name
             if name!=0:
-                tre.taxa= ''.join(name.split('_')[:2])
+                tre.taxa= name#''.join(name.split('_')[:2])
                 tre.numbered_taxa=name
                 tre.isLeaf= True
             if ch == "(":

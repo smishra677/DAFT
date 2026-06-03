@@ -88,7 +88,7 @@ output = parser.output
 lineage1 = lineages[0]
 lineage2 = lineages[1]
 
-output = output + '_' + lineage1[:-1] + '_' + lineage2[:-1]
+
 lis = []
 
 gt_list = parser.gt_list

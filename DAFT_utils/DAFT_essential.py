@@ -460,7 +460,35 @@ class daft_essential:
 
         return pairs
 
+    def map_id_tag(self,val,sp_labeled):
+        stack=[sp_labeled]
 
+        while stack:
+            tr = stack.pop()
+
+            if tr:
+                if self.isequal(val,tr.to_newick()):
+                    return str(tr.id_map_tag)
+
+                stack.append(tr.leftChild)
+                stack.append(tr.rightChild)
+
+        return None
+
+
+    def dji_output_name(self,out_filec,sp_string,lineage1,lineage2):
+        node_map,branch_map,sp_labeled = self.id_it(sp_string)
+
+        lineage1_id = self.map_id_tag(lineage1,sp_labeled)
+        lineage2_id = self.map_id_tag(lineage2,sp_labeled)
+
+        if lineage1_id is None:
+            lineage1_id = self.short_output_token(lineage1)
+
+        if lineage2_id is None:
+            lineage2_id = self.short_output_token(lineage2)
+
+        return str(out_filec) + "_" + str(lineage1_id) + "_" + str(lineage2_id)
 
     def write_events_network(self,tree):
             if tree.isLeaf:

@@ -650,6 +650,8 @@ def run_tranform(data,out_filec,lineages_bidrectional,sp_string,list_df,path,ver
 
                 #print('asasas',verbose)
                 #output = out_filec
+                djiNNI_output_name= essential.dji_output_name(out_filec,sp_string,lineage1,lineage2)
+                
                 argv = [
                     sys.executable, script,
                     "--sp", str(sp_string),
@@ -660,7 +662,7 @@ def run_tranform(data,out_filec,lineages_bidrectional,sp_string,list_df,path,ver
                     "--gt_list_index", *map(str, index_data),
                     "--cache_hash", str(djiNNI_hash),
                     "--random_seed", str(random_seed),
-                    "--output", out_filec,
+                    "--output", djiNNI_output_name,
                 ]
                 status = os.spawnv(os.P_WAIT, sys.executable, argv)
                 exit_code = status if os.name == "nt" else (status >> 8) 
@@ -668,8 +670,7 @@ def run_tranform(data,out_filec,lineages_bidrectional,sp_string,list_df,path,ver
                 if exit_code != 0:
                     raise RuntimeError(f"DAFT_Transform.py exited with code {exit_code}")
 
-
-                df=pd.read_csv('./djiNNI_'+out_filec+'_'+lineage1[:-1]+'_'+lineage2[:-1]+'.csv',sep=',')
+                df=pd.read_csv('./djiNNI_'+djiNNI_output_name+'.csv',sep=',')
                 #print(df)
                 
                 #import pprint
@@ -799,6 +800,8 @@ df['NNI_'] = df.apply(
 
 
 node_map,branch_map,sp_labeled= essential.id_it(sp_string)
+
+pd.DataFrame(branch_map).to_csv('branch_map.csv',index=False)
 df_converted= essential.idfy_it_direction(df,node_map)
 #print(sp_labeled.to_newick())
 #exit()
