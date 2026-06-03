@@ -35,7 +35,8 @@ class daft_essential:
         #self.reco =reconcils()
         #self.red= readWrite.readWrite()
         #self.Il=ILS.ILS()
-        np.random.seed(42)
+        #np.random.seed(42)
+        pass
 
 
     def convert_gt_to_csv(self,gt_file):
