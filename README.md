@@ -389,378 +389,51 @@ python3 DAFT_Direction.py \
 
 ## 6. DAFT Test Arguments
 
-### `--sp`
-
-Species tree in Newick format.
-
-Example:
-
-```bash
---sp "(A,(((W,V),(B,U)),((((K,L),(M,N)),(J,((E,(D,H)),((C,I),(G,F))))),(T,(S,(O,((Q,R),P)))))));"
-```
-
----
-
-### `--sp_file`
-
-File containing the species tree in Newick format.
-
-Example:
-
-```bash
---sp_file "species_tree.txt"
-```
-
-Use either `--sp` or `--sp_file`.
-
----
-
-### `--gt`
-
-Gene tree file. This can be a CSV file or a simple non-CSV tree-list file.
-
-Example:
-
-```bash
---gt "test_data.csv"
-```
-
-A simple tree-list file can also be used:
-
-```bash
---gt "gene_trees.trees"
-```
-
----
-
-### `--path`
-
-Path to the DAFT utility folder. The default is:
-
-```bash
---path "./DAFT_utils"
-```
-
-Use this when running a DAFT script from outside the repository root or when `DAFT_utils/` is stored elsewhere.
-
-Example:
-
-```bash
---path "/path/to/DAFT_utils"
-```
-
----
-
-### `--output`
-
-Output label used in output file names.
-
-Example:
-
-```bash
---output "output"
-```
-
-For example, when `--output "output"` is used, DAFT may produce:
-
-```text
-DAFT_Test_output.txt
-DAFT_Test_output.xlsx
-DAFT_Direction_output.txt
-```
-
----
-
-### `--sibling`
-
-Controls whether DAFT includes sibling comparisons.
-
-```text
-1 = run sibling comparisons
-0 = do not run sibling comparisons
-```
-
-Example:
-
-```bash
---sibling 1
-```
-
-The sibling comparison gives an additional control comparison for the test lineage.
-
----
-
-### `--excel`
-
-Controls whether DAFT writes Excel output. This output format can be useful for very large species trees, as the standard output becomes very messy. The Excel formatted output creates a separate sheet for each focal species.
-
-```text
-1 = write Excel output
-0 = do not write Excel output
-```
-
-Example:
-
-```bash
---excel 1
-```
-
-When enabled, DAFT creates an Excel file named with the output label:
-
-```text
-DAFT_Test_<output>.xlsx
-```
-
----
-
-### `--direction`
-
-Controls whether DAFT automatically runs direction inference after the significance test.
-
-```text
-1 = automatically run DAFT_Direction.py
-0 = only run DAFT_Test.py
-```
-
-Example:
-
-```bash
---direction 1
-```
-
-When this is enabled, DAFT selects significant lineage pairs and passes them to `DAFT_Direction.py`.
-
-The automatic direction step currently uses:
-
-```text
-Z-score cutoff: -1.96
-Minimum count cutoff: 6
-```
-
-This means DAFT Direction is only run on lineage pairs with both a strong enough Z-score and enough supporting gene-tree counts.
-
----
-
-### `--correct`
-
-Controls whether DAFT scales counts by the number of times each lineage or clade is observed in the gene tree set.
-
-```text
-1 = run corrected DAFT output
-0 = run uncorrected DAFT output
-```
-
-Example:
-
-```bash
---correct 1
-```
-
-Use `--correct 1` when some lineages or clades appear in fewer gene trees than others.
-
-This can happen when:
-
-- ILS is high
-- an internal clade does not form in many gene trees
-- some taxa are missing from some gene trees
-- one comparison lineage is available many more times than another
-
-Without correction, DAFT may compare raw attachment counts between lineages that were not equally available to be observed. This can make a test look significant simply because one comparison lineage was seen in many more gene trees than another.
-
-With correction enabled, DAFT reports counts as:
-
-```text
-attachment_count / total_lineage_count
-```
-
-For example:
-
-```text
-5.00005/2000
-```
-
-means that the attachment was observed about 5 times, and the tested lineage was observed 2000 times across the input gene trees.
-
-Another example:
-
-```text
-5e-05/779
-```
-
-means that the attachment count was 0, but DAFT added a very small pseudo-count so the corrected calculation can be performed safely.
-
-When correction is enabled, Z-score columns may appear as:
-
-```text
-uncorrected_Z | corrected_Z
-```
-
-For example:
-
-```text
--2.24|-0.73
-```
-
-means the raw count comparison looked significant, but after scaling by lineage availability, the corrected score was no longer significant.
-
----
-
-### `--rooting`
-
-Outgroup taxon, or comma-separated outgroup taxa, used for rooting checks or explicit rerooting.
-
-Example:
-
-```bash
---rooting A
-```
-
-By itself, `--rooting` records the intended outgroup but does not change the trees.
-
----
-
-### `--forced`
-
-Controls whether DAFT reroots the species tree and gene trees using the outgroup supplied with `--rooting`.
-
-```text
-1 = reroot using the supplied outgroup
-0 = do not reroot
-```
-
-Example:
-
-```bash
---rooting A --forced 1
-```
-
----
-
-### `--allow_inconsistent_rooting`
-
-Controls whether DAFT is allowed to continue when gene-tree roots are inconsistent with the species-tree root.
-
-```text
-1 = continue with the input roots unchanged
-0 = stop if inconsistent rooting is detected
-```
-
-Use this only when the rooting difference is intentional.
-
----
-
-### `--ignore_duplication`
-
-Controls whether DAFT skips gene trees containing duplicate taxa.
-
-```text
-1 = skip duplicate-containing gene trees and continue
-0 = stop when duplicate taxa are detected
-```
-
-Example:
-
-```bash
---ignore_duplication 1
-```
-
-When this option removes trees, DAFT writes:
-
-```text
-<output>_duplicate_removed_gene_trees.csv
-```
-
----
-
-### `--random_seed`
-
-Random seed used in the djiNNI direction step when tied movement counts must be resolved.
-
-Example:
-
-```bash
---random_seed 42
-```
-
----
-
-### `--verbose`
-
-Controls validation messages and the djiNNI progress display.
-
-```text
-1 = print progress and validation information
-0 = quieter output
-```
-
-Example:
-
-```bash
---verbose 1
-```
+Use this table as the argument reference for `daft-test` or `python3 DAFT_Test.py`.
+
+| Argument | Required? | Default | Input format / allowed values | Example | Meaning / output effect |
+|---|---:|---:|---|---|---|
+| `--sp` | Required if `--sp_file` is not used | `None` | Species tree as a Newick string | `--sp "(A,(B,C));"` | Supplies the species tree directly on the command line. DAFT adds a final semicolon if needed. |
+| `--sp_file` | Required if `--sp` is not used | `None` | Path to a text file containing one species-tree Newick string | `--sp_file "species_tree.txt"` | Reads the species tree from a file. Use either `--sp` or `--sp_file`. |
+| `--gt` | Yes | none | Path to a CSV file or a simple tree-list file | `--gt "test_data.csv"` | Supplies the gene tree set. For CSV input, DAFT expects a gene-tree column; for a simple tree-list file, DAFT converts it to CSV internally. |
+| `--path` | No | `./DAFT_utils` | Path to the DAFT utility folder | `--path "./DAFT_utils"` | Lets DAFT find helper modules. Change this when running from outside the repository root or when `DAFT_utils/` is stored elsewhere. |
+| `--output` | No, but strongly recommended | `None` | Output label string | `--output "output"` | Used in output names such as `DAFT_Test_<output>.txt`, `DAFT_Test_<output>.xlsx`, and `DAFT_Direction_<output>.txt`. |
+| `--sibling` | No | `0` | `1` or `0` | `--sibling 1` | Controls whether DAFT includes sibling comparisons. `1` runs sibling comparisons; `0` skips them. |
+| `--excel` | No | `0` | `1` or `0` | `--excel 1` | Controls whether DAFT writes `DAFT_Test_<output>.xlsx`. The Excel output is useful when the text output is too large to inspect comfortably. |
+| `--direction` | No | `0` | `1` or `0` | `--direction 1` | Controls whether DAFT automatically runs `DAFT_Direction.py` after DAFT Test. `1` runs direction inference on significant pairs; `0` only runs DAFT Test. |
+| `--correct` | No | `0` | `1` or `0` | `--correct 1` | Controls whether DAFT reports corrected output. `1` adds appearance columns and corrected Z-score columns; `0` reports uncorrected output only. |
+| `--demography` | No | `None` | Path to a demography file | `--demography "demography.txt"` | Optional parser argument for demography-related workflows. Standard DAFT Test runs do not require it. |
+| `--rooting` | No | `None` | Outgroup taxon, or comma-separated outgroup taxa | `--rooting A` | Records the intended outgroup for rooting checks. When used with `--forced 1`, DAFT reroots the species tree and gene trees using this outgroup. |
+| `--forced` | No | `0` | `1` or `0` | `--rooting A --forced 1` | Controls explicit rerooting. `1` reroots using `--rooting`; `0` does not reroot. |
+| `--allow_inconsistent_rooting` | No | `0` | `1` or `0` | `--allow_inconsistent_rooting 1` | Controls whether DAFT continues when gene-tree roots are inconsistent with the species-tree root. Use `1` only when the inconsistency is intentional. |
+| `--ignore_duplication` | No | `0` | `1` or `0` | `--ignore_duplication 1` | Controls duplicate-taxon handling in gene trees. `1` skips duplicate-containing gene trees and writes `<output>_duplicate_removed_gene_trees.csv`; `0` stops when duplicates are detected. |
+| `--random_seed` | No | `42` | Integer | `--random_seed 42` | Sets the random seed used in the djiNNI direction step when tied movement counts must be resolved. |
+| `--verbose` | No | `0` | `1` or `0` | `--verbose 1` | Controls validation and progress messages. `1` prints more information; `0` is quieter. |
+
+The automatic direction step uses the significance filters currently implemented in DAFT: a Z-score cutoff of `-1.96` and a minimum count cutoff of `6`. This means DAFT Direction is only run automatically on lineage pairs with a strong enough Z-score and enough supporting gene-tree counts.
 
 ---
 
 ## 7. Main Output Folders
 
-DAFT organizes output into folders named with the output label.
+DAFT organizes output into folders named with the output label. The exact files present depend on the arguments used.
 
----
+| Folder | File or file pattern | Appears when | Purpose |
+|---|---|---|---|
+| `DAFT_results_<output>/` | `DAFT_Test_<output>.txt` | Standard DAFT Test run | Main fixed-width text output from `DAFT_Test.py`. |
+| `DAFT_results_<output>/` | `DAFT_Test_<output>.xlsx` | `--excel 1` | Excel version of the DAFT Test output, useful for large species trees. |
+| `DAFT_results_<output>/` | `DAFT_Direction_<output>.txt` | `--direction 1`, or a separate DAFT Direction run | Main fixed-width text output from `DAFT_Direction.py`. |
+| `DAFT_results_<output>/` | `branch_map.csv` | Standard DAFT run | Maps DAFT numeric branch IDs back to species-tree branches. Use this file to interpret numeric lineage IDs in the output. |
+| `DAFT_results_<output>/` | `important_<output>.csv` | Not produced by standard runs; may appear only in older or custom workflows | Additional summary file for significant results, if produced. |
+| `DAFT_extras_<output>/` | `djiNNI_<output>_<lineage1_id>_<lineage2_id>.csv` | Direction inference | Intermediate djiNNI comparison file. Numeric IDs are used to avoid very long file names when lineage descriptions contain full species names. |
+| `DAFT_extras_<output>/` | Other `introgression*`, `rev*`, `result*`, `list_*`, or `Summary*` CSV files | Direction inference / djiNNI internals | Extra files useful for inspecting gene-tree-level evidence and debugging the djiNNI step. |
+| `DAFT_log_<output>/` | `<output>_DAFT_log.txt` | Validation / DAFT Test | Human-readable validation and run log. |
+| `DAFT_log_<output>/` | `<output>_djiNNI_log.txt` | Direction inference | Human-readable djiNNI progress log. |
+| `DAFT_log_<output>/` | `<output>_taxon_report.csv` | Validation | CSV report showing taxon presence across the species tree and gene trees. |
+| `DAFT_log_<output>/` | `<output>_rooted_gene_trees.csv` | `--rooting OUTGROUP --forced 1` | Gene trees after explicit rerooting. |
+| `DAFT_log_<output>/` | `<output>_duplicate_removed_gene_trees.csv` | `--ignore_duplication 1` removes one or more trees | Cleaned gene-tree file after duplicate-containing gene trees are skipped. |
 
-## `DAFT_results_<output>/`
-
-This folder contains the main output files.
-
-Typical files include:
-
-```text
-DAFT_Test_<output>.txt
-DAFT_Test_<output>.xlsx
-DAFT_Direction_<output>.txt
-branch_map.csv
-important_<output>.csv
-```
-
-Some files only appear when the corresponding option is enabled.
-
-For example:
-
-- `DAFT_Test_<output>.xlsx` appears when `--excel 1`
-- `DAFT_Direction_<output>.txt` appears when `--direction 1` or when direction inference is run separately
-- `branch_map.csv` maps DAFT branch labels back to the original species tree
-
----
-
-## `DAFT_extras_<output>/`
-
-This folder contains extra files created during the direction workflow.
-
-These files are useful for inspecting gene-tree-level evidence and debugging the djiNNI step.
-
-Examples may include files such as:
-
-```text
-djiNNI_out_B_K.csv
-djiNNI_out_K_B.csv
-```
-
-The exact file names depend on the lineage pair and argument order.
-
----
-
-## `DAFT_log_<output>/`
-
-This folder contains validation logs and audit files. Typical files include:
-
-```text
-<output>_DAFT_log.txt
-<output>_djiNNI_log.txt
-<output>_taxon_report.csv
-<output>_rooted_gene_trees.csv
-<output>_duplicate_removed_gene_trees.csv
-```
-
-Some files appear only when the corresponding option is used. For example, `<output>_rooted_gene_trees.csv` appears when DAFT is run with `--rooting OUTGROUP --forced 1`, and `<output>_duplicate_removed_gene_trees.csv` appears when `--ignore_duplication 1` removes duplicate-containing trees.
+Because DAFT now reports full species names in lineage descriptions, using full lineage strings directly in intermediate djiNNI file names can make file names too long. To avoid this, DAFT uses the same numeric branch IDs used in the main DAFT output and in `branch_map.csv` when naming extra djiNNI files. For example, if the output prefix is `out`, the intermediate comparison between lineages `2` and `3` is written as `djiNNI_out_2_3.csv` rather than a file name containing the full Newick or full species-name description for both lineages.
 
 ---
 
@@ -772,16 +445,44 @@ DAFT labels branches internally. The file:
 DAFT_results_<output>/branch_map.csv
 ```
 
-maps these internal branch labels back to the original species tree.
+maps these internal branch labels back to the original species tree. Use this file whenever an output branch label is hard to interpret.
 
-Example concept:
+### `branch_map.csv` columns
 
-```text
-Original branch: (B,U);
-DAFT label:      U:39
-```
+| Column | Meaning |
+|---|---|
+| `From` | Parent branch or clade in the labelled species tree. For the root, this can be the same as `To`. |
+| `To` | Child branch, terminal taxon, or clade assigned a DAFT numeric ID. |
+| `id` | Numeric DAFT branch ID used in the main output tables, DAFT Direction tables, network labels, and extra djiNNI file names. |
 
-Use this file whenever an output branch label is hard to interpret.
+Example row interpretation:
+
+| `From` | `To` | `id` | Meaning |
+|---|---|---:|---|
+| `(B,U);` | `U;` | `39` | Branch ID `39` refers to the branch leading to `U` from the `(B,U)` clade. |
+
+---
+
+### `<output>_taxon_report.csv` columns
+
+This validation file is written to `DAFT_log_<output>/` and reports how taxa were seen by DAFT.
+
+| Column | Meaning |
+|---|---|
+| `original_taxon` | Taxon name as read from the species tree and gene trees. |
+| `in_species_tree` | `True` if the taxon appears in the species tree; `False` otherwise. |
+| `gene_tree_count` | Number of gene trees containing the taxon. |
+| `daft_internal_name` | Internal DAFT name assigned to the taxon. This is usually the same as the original taxon name. |
+
+---
+
+### Rooted and duplicate-filtered gene-tree CSV columns
+
+Files such as `<output>_rooted_gene_trees.csv` and `<output>_duplicate_removed_gene_trees.csv` use this simple format:
+
+| Column | Meaning |
+|---|---|
+| `gt` | Gene tree Newick string after the relevant validation step. |
 
 ---
 
@@ -807,146 +508,86 @@ NNI_sp  Test_lineage  Test_count  comparison_uncle  uncle_count  Z-value-uncle  
 
 ---
 
-## Test Output Columns
+## Test Output Format
 
-### `Focal_lineage`
+`DAFT_Test_<output>.txt` is organized as one block per focal lineage. Each block starts with a `Focal_lineage = ...` line, followed by a fixed-width table.
 
-The branch or clade being evaluated.
+### DAFT Test block structure
 
-DAFT asks which other lineages attach discordantly to this focal lineage more often than expected.
+| Output item | Appears when | Meaning |
+|---|---|---|
+| `Species Tree = ...` | Once at the top of the file | The labelled species tree used by DAFT. Branch labels in this tree correspond to the numeric IDs used in the output tables. |
+| `Focal_lineage = ...` | At the start of each focal-lineage block | The branch or clade currently being evaluated. DAFT asks which other lineages attach discordantly to this focal lineage more often than expected. |
+| Header row beginning with `NNI_sp` | In each focal-lineage block | Column names for the fixed-width output table. The exact columns depend on whether correction and sibling comparisons are enabled. |
+| Data rows | In each focal-lineage block | One row per test lineage compared against the current focal lineage. |
+| Separator row of `---` characters | After each focal-lineage block | Marks the end of that focal-lineage block. |
 
----
+### DAFT Test table columns
 
-### `Test_lineage`
+| Column | Appears when | Meaning |
+|---|---|---|
+| `NNI_sp` | Always | Number of nearest-neighbor interchanges separating the focal lineage and test lineage in the species tree. Larger values mean the lineages are farther apart in the species tree. |
+| `Test_lineage` | Always | The lineage being tested against the current focal lineage. |
+| `Test_appearance` | `--correct 1` | Number of gene trees in which the test lineage or clade was available to be observed. |
+| `Test_count` | Always | Observed number of gene trees in which the focal lineage and test lineage show the relevant discordant attachment. This remains an observed count, not a corrected count. |
+| `comparison_uncle` | Always | The uncle, or avuncular, lineage used as a comparison for the test lineage. A blank or `-` value means no valid uncle comparison was available for that row. |
+| `uncle_appearance` | `--correct 1` | Number of gene trees in which the uncle lineage or clade was available to be observed. |
+| `uncle_count` | Always | Observed attachment count for the uncle comparison lineage. |
+| `Z-value-uncle` | Always | Raw Z-score comparing the test lineage count against the uncle lineage count. More negative values indicate stronger evidence for introgression. |
+| `Z-value-uncle_corrected` | `--correct 1` | Corrected uncle-comparison Z-score after scaling by lineage availability. |
+| `comparison_sibling` | `--sibling 1` | Sibling lineage used as a second comparison. A blank or `-` value means no valid sibling comparison was available for that row. |
+| `sibling_count` | `--sibling 1` | Observed attachment count for the sibling comparison lineage. |
+| `sibling_appearance` | `--correct 1` and `--sibling 1` | Number of gene trees in which the sibling lineage or clade was available to be observed. |
+| `Z-value-sibling` | `--sibling 1` | Raw Z-score comparing the test lineage count against the sibling lineage count. More negative values indicate stronger evidence for introgression. |
+| `Z-value-sibling_corrected` | `--correct 1` and `--sibling 1` | Corrected sibling-comparison Z-score after scaling by lineage availability. |
 
-The lineage being tested against the focal lineage.
-
----
-
-### `NNI_sp`
-
-The number of nearest-neighbor interchanges separating the focal lineage and test lineage in the species tree.
-
-A larger value means the two lineages are farther apart in the species tree.
-
----
-
-### `Test_count`
-
-The number of gene trees in which the focal lineage and test lineage show the relevant discordant attachment.
-
-In uncorrected output, this is a raw count.
-
-In corrected output, this appears as:
-
-```text
-attachment_count / total_lineage_count
-```
-
----
-
-### `comparison_uncle`
-
-The uncle, or avuncular lineage, used as a comparison for the test lineage.
-
-The uncle comparison asks whether the test lineage attaches to the focal lineage more often than a closer comparison lineage does.
-
----
-
-### `uncle_count`
-
-The attachment count for the uncle lineage.
-
----
-
-### `Z-value-uncle`
-
-The Z-score comparing the test lineage count against the uncle lineage count.
-
-More negative values indicate stronger evidence for introgression.
-
----
-
-### `comparison_sibling`
-
-The sibling lineage used as a second comparison.
-
-This column is included when:
-
-```bash
---sibling 1
-```
-
----
-
-### `sibling_count`
-
-The attachment count for the sibling lineage.
-
----
-
-### `Z-value-sibling`
-
-The Z-score comparing the test lineage count against the sibling lineage count.
-
-More negative values indicate stronger evidence for introgression.
+In corrected output, DAFT keeps observed counts and availability counts in separate columns. For example, `Test_count` is the observed attachment count, while `Test_appearance` is the number of gene trees in which that test lineage or clade was available to be observed.
 
 ---
 
 ## 10. Corrected Output Example
 
-Correction is useful when one lineage is observed more often than another across the full gene tree set.
+Correction is useful when one lineage is observed more often than another across the full gene tree set. Corrected output has the same focal-lineage block structure as uncorrected output, but it adds appearance columns and corrected Z-score columns.
 
-For example, suppose DAFT is comparing two lineages in a six-species tree:
-
-```text
-Species Tree = (((1,2),3),((4,5),6));
-=====================================
-Focal_lineage = ((4,5),6);
-
-NNI_sp  Test_lineage  Test_count     comparison_uncle  uncle_count  Z-value-uncle  comparison_sibling  sibling_count  Z-value-sibling
-=======================================================================================================================================
-2       1;            5.00005/2000   3;                5e-05/215    -2.24|-0.73    2;                  5e-05/779      -2.24|-0.75
-2       (1,2);        1.00005/803    -                 -            -|-            3;                  5e-05/779      -1.00|-0.98
----------------------------------------------------------------------------------------------------------------------------------------
-```
-
-The format:
+Example corrected DAFT Test block:
 
 ```text
-5.00005/2000
+Focal_lineage = 11
+NNI_sp  Test_lineage  Test_appearance  Test_count       comparison_uncle  uncle_appearance  uncle_count  Z-value-uncle       Z-value-uncle_corrected  comparison_sibling  sibling_count  sibling_appearance  Z-value-sibling  Z-value-sibling_corrected
+==================================================================================================================================================================================================================================================
+0       6             1584             1264                              0                 0            -                   -                                            0              0                   -                -
+1       8             1613             156                               0                 0            -                   -                        7                   138            2000                -1.05            -2.73
+1       7             2000             138                               0                 0            -                   -                        8                   156            1613                1.05             2.73
+1       12            2000             163                               0                 0            -                   -                                            0              0                   -                -
+2       13            2000             19                12                2000              163          10.67               10.67                                        0              0                   -                -
+2       10            2000             33                7                 2000              138          8.03                8.03                     9                   31             2000                -0.25            -0.25
+2       9             2000             31                7                 2000              138          8.23                8.23                     10                  33             2000                0.25             0.25
+3       14            1524             2                 13                2000              19           3.71                3.07                                         0              0                   -                -
+--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 ```
 
-means the attachment was observed about 5 times, and that the lineage was observed 2000 times in the full gene tree set.
+In this corrected output, `Test_count`, `uncle_count`, and `sibling_count` are still the observed attachment counts.
 
-The format:
+The appearance columns report how often each lineage or clade was available to be observed:
 
-```text
-5e-05/215
-```
+| Appearance column | Count column it helps interpret | Meaning |
+|---|---|---|
+| `Test_appearance` | `Test_count` | Number of gene trees in which the test lineage or clade was available to be observed. |
+| `uncle_appearance` | `uncle_count` | Number of gene trees in which the uncle comparison lineage or clade was available to be observed. |
+| `sibling_appearance` | `sibling_count` | Number of gene trees in which the sibling comparison lineage or clade was available to be observed. |
 
-means the avuncular attachment count was 0, but DAFT added a very small pseudo-count, and that the lineage was observed 215 times in the full gene tree set.
-.
+For example, in the row with `Test_lineage = 8`, the test lineage was available in `1613` gene trees and attached to the focal lineage in `156` gene trees. The sibling lineage `7` was available in `2000` gene trees and had `138` observed attachments. The raw sibling Z-score is `-1.05`, while the corrected sibling Z-score is `-2.73`.
 
+The raw and corrected Z-scores are printed in separate columns:
 
-Correction makes the comparison fair by scaling counts according to how often each lineage or clade was available to be observed.
+| Raw Z-score column | Corrected Z-score column |
+|---|---|
+| `Z-value-uncle` | `Z-value-uncle_corrected` |
+| `Z-value-sibling` | `Z-value-sibling_corrected` |
 
-The Z-score format:
+Correction makes the comparison fairer by scaling counts according to how often each lineage or clade was available to be observed.
 
-```text
--2.24|-0.73
-```
-
-means:
-
-```text
-raw Z-score:       -2.24
-corrected Z-score: -0.73
-```
-
-In this example, the raw test looks significant, but the corrected test does not. This means the apparent signal was partly caused by unequal lineage availability.
-
-***IMPORTANT NOTE: biologically significant results should have significant Z-scores BOTH before and after correction. We do not recommend using results that are only significant after correction. 
+***IMPORTANT NOTE: biologically significant results should have significant Z-scores BOTH before and after correction. We do not recommend using results that are only significant after correction.***
 
 ---
 
@@ -962,23 +603,16 @@ Z <= -1.96
 
 More negative values indicate stronger evidence that the test lineage attaches to the focal lineage more often than expected.
 
-In corrected output, DAFT also reports the corrected Z-score, which appears after the vertical bar:
+In corrected output, DAFT also reports corrected Z-scores in separate columns rather than combining raw and corrected values into one field.
+
+For example:
 
 ```text
-raw_Z | corrected_Z
+Z-value-uncle            -2.24
+Z-value-uncle_corrected  -0.73
 ```
 
-Example:
-
-```text
--2.24|-0.73
-```
-
-Here, the corrected value is:
-
-```text
--0.73
-```
+Here, the corrected value is `-0.73`.
 
 ---
 
@@ -1026,118 +660,24 @@ M; and E;
 
 ## 13. DAFT Direction Arguments
 
-### `--sp`
+Use this table as the argument reference for `daft-direction` or `python3 DAFT_Direction.py`.
 
-Species tree in Newick format.
-
----
-
-### `--sp_file`
-
-File containing the species tree in Newick format.
-
-Use either `--sp` or `--sp_file`.
-
----
-
-### `--gt`
-
-Gene tree file. This can be a CSV file or a simple non-CSV tree-list file.
-
----
-
-### `--path`
-
-Path to the DAFT utility folder. The default is:
-
-```bash
---path "./DAFT_utils"
-```
-
-This is useful when running `DAFT_Direction.py` from outside the repository root.
-
----
-
-### `--verbose`
-
-Controls whether DAFT Direction prints additional progress messages.
-
-```text
-1 = verbose output
-0 = quieter output
-```
-
-Example:
-
-```bash
---verbose 1
-```
-
----
-
-### `--lineages_file`
-
-Plain text file containing a Python-style list of lineage pairs.
-
-Example file contents:
-
-```text
-[('B;', 'K;'), ('M;', 'E;')]
-```
-
-Example command argument:
-
-```bash
---lineages_file "lineages.txt"
-```
-
-Each tuple contains one pair of lineages to test.
-
----
-
-### `--lineagesN_file`
-
-Optional file containing non-unique or bidirectional lineage tuples.
-
-Example file contents:
-
-```text
-[(['(1,2);', '3;'], '4;')]
-```
-
-Example command argument:
-
-```bash
---lineagesN_file "lineagesN.txt"
-```
-
-Most manual runs do not need this argument. When `DAFT_Test.py` runs direction inference automatically, it writes the needed lineage files and passes them to `DAFT_Direction.py`.
-
----
-
-### `--output`
-
-Output label used in the output file name.
-
-Example:
-
-```bash
---output "output"
-```
-
-For example, when `--output "output"` is used, this produces:
-
-```text
-DAFT_Direction_output.txt
-```
-
----
-
-### `--rooting`, `--forced`, `--allow_inconsistent_rooting`, `--ignore_duplication`, `--random_seed`
-
-These options have the same meaning in `DAFT_Direction.py` as in `DAFT_Test.py`.
-
-Use `--rooting OUTGROUP --forced 1` to explicitly reroot before direction inference. Use `--allow_inconsistent_rooting 1` only when you intentionally want to keep inconsistent roots unchanged. Use `--ignore_duplication 1` only when you want DAFT to skip duplicate-containing gene trees instead of stopping.
+| Argument | Required? | Default | Input format / allowed values | Example | Meaning / output effect |
+|---|---:|---:|---|---|---|
+| `--sp` | Required if `--sp_file` is not used | `None` | Species tree as a Newick string | `--sp "(A,(B,C));"` | Supplies the species tree directly on the command line. |
+| `--sp_file` | Required if `--sp` is not used | `None` | Path to a text file containing one species-tree Newick string | `--sp_file "species_tree.txt"` | Reads the species tree from a file. Use either `--sp` or `--sp_file`. |
+| `--gt` | Yes for normal runs | none | Path to a CSV file or simple tree-list file | `--gt "test_data.csv"` | Supplies the gene tree set used for djiNNI direction inference. |
+| `--path` | No | `./DAFT_utils` | Path to the DAFT utility folder | `--path "./DAFT_utils"` | Lets DAFT Direction find helper modules. Change this when running from outside the repository root or when `DAFT_utils/` is stored elsewhere. |
+| `--verbose` | No | `1` | `1` or `0` | `--verbose 1` | Controls progress messages in DAFT Direction. `1` prints more information; `0` is quieter. |
+| `--lineages_file` | Yes | none | Path to a text file containing a Python-style list of lineage tuples | `--lineages_file "lineages.txt"` | Supplies the significant lineage pairs to test. Example file contents: `[('B;', 'K;'), ('M;', 'E;')]`. |
+| `--lineagesN_file` | No | `None` | Path to a text file containing non-unique or bidirectional lineage tuples | `--lineagesN_file "lineagesN.txt"` | Optional bidirectional-lineage input. Manual DAFT Direction runs usually do not need this file; automatic direction runs from DAFT Test create and pass this when needed. |
+| `--output` | No, but strongly recommended | `None` | Output label string | `--output "output"` | Used in output names such as `DAFT_Direction_<output>.txt` and intermediate djiNNI files. |
+| `--rooting` | No | `None` | Outgroup taxon, or comma-separated outgroup taxa | `--rooting A` | Records the intended outgroup for rooting checks. When used with `--forced 1`, DAFT reroots the species tree and gene trees using this outgroup. |
+| `--forced` | No | `0` | `1` or `0` | `--rooting A --forced 1` | Controls explicit rerooting. `1` reroots using `--rooting`; `0` does not reroot. |
+| `--allow_inconsistent_rooting` | No | `0` | `1` or `0` | `--allow_inconsistent_rooting 1` | Controls whether DAFT continues when gene-tree roots are inconsistent with the species-tree root. Use `1` only when the inconsistency is intentional. |
+| `--cache_hash` | No | `None` | Hash string | `--cache_hash "<hash>"` | Input hash used to separate djiNNI cache results by dataset. DAFT Test passes this automatically during automatic direction inference; manual users usually do not need to set it. |
+| `--ignore_duplication` | No | `0` | `1` or `0` | `--ignore_duplication 1` | Controls duplicate-taxon handling in gene trees. `1` skips duplicate-containing gene trees; `0` stops when duplicates are detected. |
+| `--random_seed` | No | `42` | Integer | `--random_seed 42` | Sets the random seed used by djiNNI when tied movement counts must be resolved. |
 
 ---
 
@@ -1230,114 +770,141 @@ Network (ONLY NNI > 1) :  (((((((P[&label=7],(R[&label=9],Q[&label=10])),O[&labe
 
 The direction output file usually contains these sections:
 
-```text
-SIGNIFICANT PAIRS
-DATA TABLE1
-DATA TABLE2(BIDIRECTIONAL)
-INFERRED RELATIONS
-NETWORK
-```
+| Output section | Appears when | Purpose |
+|---|---|---|
+| `SIGNIFICANT PAIRS` | Always | Lists the significant lineage pairs passed to DAFT Direction and the NNI distance between each pair. |
+| `DATA TABLE1 (ONLY NNI > 1)` | When at least one significant pair is more than 1 NNI apart | Summarizes which lineage moved more often during NNI transformations. This table is used to infer the likely receiver. |
+| `DATA TABLE2 (BIDIRECTIONAL) (ONLY NNI > 1)` | When at least one significant pair is more than 1 NNI apart | Tests whether there is evidence for introgression in the opposite direction. |
+| `INFERRED RELATIONS (ONLY NNI > 1)` | When at least one `NNI > 1` relation is inferred | Reports receiver and donor lineages inferred from the direction tables. |
+| `Network (ONLY NNI > 1)` | When a network can be written from inferred `NNI > 1` relations | Reports the inferred introgression network in Newick-like format. |
 
 ---
 
 ## `SIGNIFICANT PAIRS`
 
-This section lists the lineage pairs passed to DAFT Direction.
+This section lists the lineage pairs passed to DAFT Direction and the NNI distance between the two lineages in the species tree.
 
-Example:
+Although the output is printed as sentences, each line can be read as a two-column table:
+
+| Significant pair | NNI distance |
+|---|---:|
+| `26 AND 23` | `4 NNI APART` |
+| `26 AND 22` | `4 NNI APART` |
+| `38 AND 42` | `1 NNI APART` |
+| `17 AND 25` | `1 NNI APART` |
+
+Using the example above, this line:
 
 ```text
-BETWEEN 1; AND 4;           4 NNI APART
+BETWEEN 26 AND 23                           4 NNI APART
 ```
 
-This means lineages `1;` and `4;` are 4 NNIs apart in the species tree.
+means that lineages `26` and `23` passed the DAFT significance filters and are 4 NNI moves apart in the species tree.
+
+The `SIGNIFICANT PAIRS` section can include both `NNI > 1` pairs and `1 NNI APART` pairs. In the example above, `38 AND 42` and `17 AND 25` are listed because they passed the significance filters, but they are exactly 1 NNI apart.
 
 ---
 
-## `DATA TABLE1`
+## `DATA TABLE1 (ONLY NNI > 1)`
 
-This is the main direction inference table.
+This is the main direction inference table for significant pairs that are more than 1 NNI apart.
 
-Important columns:
+| Column | Meaning |
+|---|---|
+| `Significant_Pairs` | Pair of lineage IDs being tested for direction. |
+| `Total_gene_trees` | Number of gene trees contributing to this direction comparison. |
+| `Lineage1` | First lineage in the significant pair. |
+| `Count1` | Number of times `Lineage1` was counted as moving during the NNI transformations. |
+| `Lineage2` | Second lineage in the significant pair. |
+| `Count2` | Number of times `Lineage2` was counted as moving during the NNI transformations. |
+| `Major_Moved` | Lineage with the higher movement count. DAFT interprets this as the likely receiver lineage. |
+
+Using the example above:
 
 ```text
-Significant_Pairs
-Total_gene_trees
-Lineage1
-Count1
-Lineage2
-Count2
-Major_Moved
+26 AND 23          35                26        35      23        0       26
 ```
 
-`Count1` and `Count2` summarize how often each lineage appears to move during the NNI transformations.
+means that 35 gene trees supported the comparison between lineages `26` and `23`. Lineage `26` moved 35 times and lineage `23` moved 0 times, so DAFT identifies `26` as the major moved lineage and therefore the likely receiver.
 
-`Major_Moved` is the lineage with the higher movement count.
-
-DAFT interprets `Major_Moved` as the likely recipient lineage.
+Pairs that are exactly 1 NNI apart are not shown in this table because this table is labelled `ONLY NNI > 1`.
 
 ---
 
-## `DATA TABLE2(BIDIRECTIONAL)`
+## `DATA TABLE2 (BIDIRECTIONAL) (ONLY NNI > 1)`
 
-This section reports the bidirectional introgression test.
+This section reports the bidirectional introgression test for the `NNI > 1` pairs.
 
-Important columns:
+| Column | Meaning |
+|---|---|
+| `Significant_Pairs` | Pair of lineage IDs being tested. |
+| `Minor_Moved` | The lineage with the lower movement count in `DATA TABLE1`. This is the inferred donor in the primary direction test. |
+| `Minor_sibling` | Sibling/comparison lineage used to test whether the opposite direction also has support. |
+| `Total_gene_trees` | Number of gene trees contributing to the bidirectional comparison. |
+| `Minor_sibling_count` | Attachment or movement count for the minor sibling comparison lineage. |
+| `Minor_moved_count` | Attachment or movement count for the minor moved lineage. |
+| `Z_score` | Z-score for the bidirectional test. A strongly negative value supports a bidirectional signal; `-` means the value was not available or not applicable. |
+
+Using the example above:
 
 ```text
-Significant_Pairs
-Minor_Moved
-Minor_sibling
-Total_gene_trees
-Minor_sibling_count
-Minor_moved_count
-Z_score
+26 AND 23          23           22             11                0                    0                  -
 ```
 
-This test checks whether there is support for introgression in the opposite direction.
-
-A strongly negative Z-score supports a bidirectional signal.
+means that DAFT checked whether there was evidence for the opposite direction involving minor moved lineage `23` and its comparison sibling `22`. The `Z_score` is `-`, so this row does not provide evidence for bidirectional introgression.
 
 ---
 
-## `INFERRED RELATIONS`
+## `INFERRED RELATIONS (ONLY NNI > 1)`
 
-This section reports the inferred donor and recipient.
+This section reports the inferred donor and receiver for each `NNI > 1` pair.
 
-Example:
+Each line can be read as:
 
-```text
-BETWEEN 1; AND 4;        RECEIVER: 4; AND Donor: 1;         (BIDIRECTIONAL)
-```
+| Output field | Meaning |
+|---|---|
+| Pair label, such as `26 AND 23` | The significant pair being interpreted. |
+| `RECEIVER:<id>` | The inferred receiver lineage. This usually matches `Major_Moved` from `DATA TABLE1`. |
+| `Donor:<id>` | The inferred donor lineage. This is the other lineage in the pair. |
+| `(BIDIRECTIONAL)` | Optional label printed when the bidirectional test also supports the opposite direction. |
 
-This means:
-
-```text
-Receiver = 4;
-Donor    = 1;
-```
-
-If the line contains:
+Using the example above:
 
 ```text
-(BIDIRECTIONAL)
+26 AND 23                 RECEIVER:26 AND Donor:23
 ```
 
-then DAFT found evidence for introgression in both directions.
+means:
+
+```text
+Receiver = 26
+Donor    = 23
+```
+
+This follows from `DATA TABLE1`, where lineage `26` had the higher movement count and was identified as `Major_Moved`.
 
 ---
 
-## `NETWORK`
+## `Network (ONLY NNI > 1)`
 
-The final section reports the inferred introgression network in Newick format.
+The final section reports the inferred introgression network in Newick-like format.
 
-Example:
+| Output field | Meaning |
+|---|---|
+| `Network (ONLY NNI > 1)` | Indicates that the network is built only from significant pairs more than 1 NNI apart. |
+| Newick-like network string | The inferred introgression network, including hybrid-node labels when direction relations are inserted. |
+| `[&label=<id>]` annotations | Branch or taxon labels corresponding to DAFT's numeric lineage IDs. Use `branch_map.csv` to map these labels back to the species-tree branches. |
+
+In the example above, the network is built from the inferred `NNI > 1` relations:
 
 ```text
-Network: (7,((6,(#H2,((#H5,5),((((4)#H1)#H3)#H6,#H4)))),(3,(#H1,((#H6,2),((((1)#H2)#H4)#H5,#H3))))));
+26 AND 23                 RECEIVER:26 AND Donor:23
+26 AND 22                 RECEIVER:26 AND Donor:22
 ```
 
-This network can be visualized using a tree or network visualization tool that supports hybrid nodes or extended Newick-like notation.
+This is why the network section is labelled `ONLY NNI > 1`. The `1 NNI APART` pairs from `SIGNIFICANT PAIRS`, such as `38 AND 42` and `17 AND 25` in the example above, are reported as significant pairs but are not included in `DATA TABLE1`, `DATA TABLE2`, `INFERRED RELATIONS`, or the final network.
+
+The network can be visualized using a tree or network visualization tool that supports hybrid nodes or extended Newick-like notation.
 
 ---
 
