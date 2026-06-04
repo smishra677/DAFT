@@ -174,7 +174,7 @@ The labelled tree should look like this:
 
 ![Labelled species tree with DAFT branch IDs](./image/image.png)
 
-The numbers on each branch correspond to the `Focal_lineage`, `Test_lineage`, `comparison_uncle`, and `comparison_sibling` values in the DAFT output.
+The numbers on each branch correspond to the values used for the entries in `Focal_lineage`, `Test_lineage`, `comparison_uncle`, and `comparison_sibling` in the DAFT output.
 
 ---
 
