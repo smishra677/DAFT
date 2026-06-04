@@ -6,7 +6,7 @@ This tutorial shows how we used DAFT and djiNNI on the Tanganyikan cichlid gene 
 get gene trees + species tree
 format the gene trees for DAFT
 run DAFT Test
-extract significant branch-pair signals
+extract significant branch-pairs
 run DAFT Direction / djiNNI
 interpret the result biologically
 ```
@@ -227,7 +227,7 @@ For the sibling comparison:
 Z-value-sibling = -10.13
 ```
 
-This is significant because it is less than `-1.96`. Therefore, DAFT identifies `Ma` and `(Ol,Pu)` as a candidate branch-pair signal.
+This is significant because it is less than `-1.96`. Therefore, DAFT identifies `Ma` and `(Ol,Pu)` as a candidate branch-pair.
 
 Biologically, this does not yet tell us the direction of introgression. At this stage, DAFT Test is only saying that this pair shows an unusually high number of discordant attachments compared to the number of attachments between `Ma` and `Br`.
 
@@ -250,9 +250,9 @@ Ma;,Gr;
 Ma;,"(Ol,Pu);"
 ```
 
-Some signals appear twice because the same pair can be significant when viewed from both focal directions. For example, `Ma` and `(Ol,Pu)` are significant both when `Ma` is the focal lineage and when `(Ol,Pu)` is the focal lineage.
+Some pairs appear twice because the same pair can be significant when viewed from both focal directions. For example, `Ma` and `(Ol,Pu)` are significant both when `Ma` is the focal lineage and when `(Ol,Pu)` is the focal lineage.
 
-After collapsing duplicates, we get five unique candidate branch-pair signals:
+After collapsing duplicates, we get five unique candidate branch-pairs:
 
 ```text
 "(Ol,Pu);",Ma;
@@ -264,7 +264,7 @@ Ma;,Gr;
 
 These are the candidate pairs we will pass to djiNNI / DAFT Direction.
 
-Important: these are candidate branch-pair signals, not automatically five independent biological introgression events. One biological event can sometimes produce several significant DAFT signals because of tail effects, ghosted effects, or events involving internal branches.
+Important: these are candidate branch-pairs, not automatically five independent biological introgression events. One biological event can sometimes produce several significant DAFT pairs because of tail effects, ghosted effects, or events involving internal branches.
 
 ---
 
@@ -546,7 +546,7 @@ The plotted network should look like this:
 
 ## Step 15: Biological summary of the Gante example
 
-DAFT Test identifies five candidate branch-pair signals:
+DAFT Test identifies five candidate branch-pairs:
 
 ```text
 (Ol,Pu) -- Ma
@@ -565,7 +565,7 @@ Ma -> Ol
 
 The other three pairs are 1 NNI apart. They may still be biologically informative, but DAFT Direction cannot determine donor and receiver for them.
 
-⚠️ **The important lesson is that DAFT significant pairs should be interpreted as candidate branch-pair signals. They are the starting point for biological interpretation, not automatically a one-to-one list of independent introgression events.**
+⚠️ **The important lesson is that DAFT significant pairs should be interpreted as candidate branch-pairs. They are the starting point for biological interpretation, not automatically a one-to-one list of independent introgression events.**
 
 ---
 
