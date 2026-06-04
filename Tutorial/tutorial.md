@@ -317,17 +317,17 @@ For the same `Focal_lineage = 10` (i.e. branch `Ma`), the appropriate sheet look
 
 ![Corrected DAFT Test row](./image/image-2.png)
 
-From the `Test_lineage = 5` row, we can see that the test lineage `(Ol,Pu)` appears 3187 times, while the uncle lineage `Gr` appears 4781 times. Since `(Ol,Pu)` appears fewer times overall, DAFT scales the comparison counts (attachments with `Ma`) before recomputing the corrected Z-score.
+From the `Test_lineage = 5` row, we can see that the test lineage `(Ol,Pu)` appears 3187 times, while the uncle lineage `Gr` appears 4781 times. Since `(Ol,Pu)` appears fewer times overall, DAFT scales the comparison counts (attachments with `Ma`) before recomputing the corrected Z-score. It does not need to scale the test count since it appears fewer times.
 
 For the uncle comparison:
 
 ```text
-new_uncle_count = uncle_count * Test_appearance / uncle_appearance
-                = 1450 * 3187 / 4781
+new_uncle_count = uncle_count * (Test_appearance / uncle_appearance)
+                = 1450 * (3187 / 4781)
                 = 966.57
 ```
 
-The corrected uncle Z-score is then computed from the scaled count and the test count.
+The corrected uncle Z-score is then computed from the scaled count and the original test count.
 
 For the sibling comparison, correction makes the signal even more negative:
 
