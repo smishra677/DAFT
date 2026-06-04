@@ -211,7 +211,7 @@ Using the branch map, this means:
 | `comparison_sibling = 8` | the sibling comparison lineage is `Br` |
 | `sibling_count = 168` | 168 gene trees contain an attachment between `Ma` and `Br` |
 
-DAFT uses one-tailed Z-scores. Negative values indicate that the test lineage attaches to the focal lineage more often than expected under the comparison. We use `-1.96` here as a simple threshold.
+DAFT uses Z-scores to test for significance. Negative values indicate that the test lineage attaches to the focal lineage more often than expected under the comparison. We use `-1.96` here as a simple threshold (this corresponds to a threshold of P<0.05 for a two-sided test).
 
 For the uncle comparison:
 
