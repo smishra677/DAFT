@@ -414,7 +414,7 @@ The key rule is:
 | NNI distance | Interpretation |
 |---:|---|
 | `0` | Concordant/sister relationship in the species tree; direction is not inferred. |
-| `1` | Significant pair, but DAFT Direction cannot infer donor/receiver. |
+| `1` | Significant pair, but DAFT Direction cannot infer donor/recipient. |
 | `>1` | Eligible for djiNNI direction inference. |
 
 In this example, only two pairs are more than 1 NNI apart:
@@ -449,7 +449,7 @@ For pair `5 AND 10`:
 | `Lineage2 = 10`, `Count2 = 191` | lineage 10 appears as the moved lineage in 191 trees |
 | `Major_Moved = 5` | lineage 5 moved more often |
 
-Since lineage 5 moved more often, djiNNI infers lineage 5 as the receiver and lineage 10 as the donor.
+Since lineage 5 moved more often, djiNNI infers lineage 5 as the recipient and lineage 10 as the donor.
 
 Using the branch map:
 
@@ -461,7 +461,7 @@ Using the branch map:
 So this row is interpreted as:
 
 ```text
-receiver: (Ol,Pu)
+recipient: (Ol,Pu)
 donor: Ma
 ```
 
@@ -475,7 +475,7 @@ For pair `10 AND 6`:
 The inferred direction is:
 
 ```text
-receiver: Ol
+recipient: Ol
 donor: Ma
 ```
 
@@ -508,8 +508,8 @@ DAFT Direction summarizes the inferred relations as:
 ```text
 INFERRED RELATIONS (ONLY NNI > 1) :
 ================================================================================
-5 AND 10                  RECEIVER:5 AND Donor:10
-10 AND 6                  RECEIVER:6 AND Donor:10
+5 AND 10                  Recipient:5 AND Donor:10
+10 AND 6                  Recipient:6 AND Donor:10
 ********************************************************************************
 ```
 
@@ -517,10 +517,10 @@ Translated back to biological lineages:
 
 | DAFT relation | Biological interpretation |
 |---|---|
-| `RECEIVER:5 AND Donor:10` | `(Ol,Pu)` receives genetic material from `Ma` |
-| `RECEIVER:6 AND Donor:10` | `Ol` receives genetic material from `Ma` |
+| `Recipient:5 AND Donor:10` | `(Ol,Pu)` receives genetic material from `Ma` |
+| `Recipient:6 AND Donor:10` | `Ol` receives genetic material from `Ma` |
 
-The remaining significant pairs are still reported, but they are 1 NNI apart, so DAFT Direction cannot infer donor and receiver for them.
+The remaining significant pairs are still reported, but they are 1 NNI apart, so DAFT Direction cannot infer donor and recipient for them.
 
 ---
 
@@ -563,7 +563,7 @@ Ma -> (Ol,Pu)
 Ma -> Ol
 ```
 
-The other three pairs are 1 NNI apart. They may still be biologically informative, but DAFT Direction cannot determine donor and receiver for them.
+The other three pairs are 1 NNI apart. They may still be biologically informative, but DAFT Direction cannot determine donor and recipient for them.
 
 ⚠️ **The important lesson is that DAFT significant pairs should be interpreted as candidate branch-pairs. They are the starting point for biological interpretation, not automatically a one-to-one list of independent introgression events.**
 
