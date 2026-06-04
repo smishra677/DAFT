@@ -526,7 +526,7 @@ The remaining significant pairs are still reported, but they are 1 NNI apart, so
 
 ## Step 14: Plot the network
 
-DAFT Direction also outputs an Extended Newick network:
+DAFT Direction also outputs an Extended Newick network, but ONLY FOR NNI>1 EVENTS:
 
 ```text
 Network (ONLY NNI > 1) :  ((((((((Ol[&label=6])#H2,Pu[&label=7]))#H1,Br[&label=8]),Gr[&label=9]),((#H1,Ma[&label=10]),#H2)),Mz[&label=11]),On[&label=12]);
