@@ -565,7 +565,7 @@ Ma -> Ol
 
 The other three pairs are 1 NNI apart. They may still be biologically informative, but DAFT Direction cannot determine donor and recipient for them.
 
-⚠️ **The important lesson is that DAFT significant pairs should be interpreted as candidate branch-pairs. They are the starting point for biological interpretation, not automatically a one-to-one list of independent introgression events.**
+⚠️ **Remember that DAFT significant pairs should be interpreted as candidate events. They are the starting point for biological interpretation, not automatically a one-to-one list of independent introgression events.**
 
 ---
 
