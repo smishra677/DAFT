@@ -2,6 +2,7 @@ import numpy as np
 import os, sys
 import pandas as pd
 import argparse
+import shutil
 import copy
 import warnings
 import pprint
@@ -362,10 +363,10 @@ def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,p
 
         with open(lineagesN_file, "w", encoding="utf-8") as f:
             f.write(repr(list_non_unique))
+        daft_direction = shutil.which("daft-direction")
 
         argv = [
-            sys.executable,
-            script,
+            daft_direction,
             "--sp", str(sp),
             "--gt", str(gene_treefile),
             "--path", path,
@@ -378,7 +379,7 @@ def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,p
         ]
         
         
-        status = os.spawnv(os.P_WAIT, sys.executable, argv)
+        status = os.spawnv(os.P_WAIT, daft_direction, argv)
         exit_code = os.WEXITSTATUS(status) if hasattr(os, "WEXITSTATUS") else (status >> 8)
         if exit_code != 0:
             raise RuntimeError(f"DAFT_Direction.py failed with code {exit_code}")
@@ -1433,13 +1434,13 @@ def write_significance(sorted_grouped,out_file,labeled_sp,correction_flag):
 
 def convert_excel(out):
         script = "./DAFT_produce_excel.py"
+        daft_excel = shutil.which("daft-excel")
         argv = [
-                sys.executable,         
-                script,
+               daft_excel,
                 "--output",out,
                 
             ]
-        status = os.spawnv(os.P_WAIT, sys.executable, argv)
+        status = os.spawnv(os.P_WAIT, daft_excel, argv)
         exit_code = os.WEXITSTATUS(status) if hasattr(os, "WEXITSTATUS") else (status >> 8)
         if exit_code != 0:
             raise RuntimeError(f"DAFT_produce_excel.py failed with code {exit_code}")
@@ -1447,25 +1448,26 @@ def convert_excel(out):
         
 def convert_excel_corrected(out):
         script = "./DAFT_produce_excel_correction.py"
+        daft_excel_correction = shutil.which("daft-excel-correction")
+        
         argv = [
-                sys.executable,         
-                script,
+                daft_excel_correction,
                 "--output",out,
                 
             ]
-        status = os.spawnv(os.P_WAIT, sys.executable, argv)
+        status = os.spawnv(os.P_WAIT, daft_excel_correction, argv)
         exit_code = os.WEXITSTATUS(status) if hasattr(os, "WEXITSTATUS") else (status >> 8)
         if exit_code != 0:
             raise RuntimeError(f"DAFT_produce_excel_correction.py failed with code {exit_code}")
 
 def clean_folder(out):
         script = "./clean_folder.py"
+        daft_clean = shutil.which("daft-clean")
         argv = [
-                sys.executable,         
-                script,
+                daft_clean,         
                 "--output",out,
             ]
-        status = os.spawnv(os.P_WAIT, sys.executable, argv)
+        status = os.spawnv(os.P_WAIT, daft_clean, argv)
         exit_code = os.WEXITSTATUS(status) if hasattr(os, "WEXITSTATUS") else (status >> 8)
         if exit_code != 0:
             raise RuntimeError(f"clean_folder.py failed with code {exit_code}")
@@ -2364,7 +2366,12 @@ sorted_grouped_converted= essential.idfy_it(sorted_grouped,node_map)
 pd.DataFrame(branch_map).to_csv('branch_map.csv',index=False)
 #print(sorted_grouped)
 #exit()
-write_significance(sorted_grouped_converted,out_file,labeled_sp,correct_flag)
+max_lengths_col = sorted_grouped[["What_moved", "comparison_uncle","comparison_sibling"]].astype(str).apply(lambda col: col.str.len().max()).max()
+#print(max_lengths_col)
+if max_lengths_col<30:
+    write_significance(sorted_grouped,out_file,labeled_sp,correct_flag)
+else:
+    write_significance(sorted_grouped_converted,out_file,labeled_sp,correct_flag)
 
 if produce_excel:
     if correct_flag:

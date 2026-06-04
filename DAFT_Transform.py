@@ -108,9 +108,9 @@ red = readWrite.readWrite()
 
 
 
-def print_extension(message,out=output.split('_')[0]):
+def print_extension(message,out=output.split('_')[:-2]):
    
-    log_path = out + "_djiNNI_log.txt"
+    log_path = '_'.join(out) + "_djiNNI_log.txt"
 
     with open(log_path, "a", encoding="utf-8") as log:
         log.write(message+'\n')
@@ -608,11 +608,17 @@ def tabulate(tracker,sp,gt,test_dic,lineage1,lineage2,lineage_stats):
         return overall_return,lineage_stats
         
 
-def render_lineage_stats(lineage_stats):
-        print("\nLineage comparison counts:")
+def render_lineage_stats(lineage_stats,verbose):
+        if verbose:
+                print("\nLineage comparison counts:")
+        print_extension("\nLineage comparison counts:")
         for key, value in lineage_stats.items():
-                print(f"{key}: {value}")
-        print('##'*40)
+                if verbose:
+                        print(f"{key}: {value}")
+                print_extension(f"{key}: {value}")
+        if verbose:
+                print('##'*40)
+        print_extension('##'*40)
         
 
 
@@ -809,5 +815,5 @@ for tree_number,gene_tree in enumerate(gt_list):
                 intro_df= pd.DataFrame(write_intro)
                 intro_df.to_csv('djiNNI_'+output+'.csv', index=False)
                 
-if verbose:
-        render_lineage_stats(lineage_stats)
+#if verbose:
+render_lineage_stats(lineage_stats,verbose)

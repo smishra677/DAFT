@@ -2,6 +2,7 @@ import os
 import sys
 import pandas as pd
 import ast
+import shutil
 import argparse
 import numpy as np
 import warnings
@@ -25,12 +26,12 @@ def read_list_file(file_path):
     
 def clean_folder(out):
         script = "./clean_folder.py"
+        daft_clean = shutil.which("daft-clean")
         argv = [
-                sys.executable,         
-                script,
+                daft_clean,         
                 "--output",out,
             ]
-        status = os.spawnv(os.P_WAIT, sys.executable, argv)
+        status = os.spawnv(os.P_WAIT, daft_clean, argv)
         exit_code = os.WEXITSTATUS(status) if hasattr(os, "WEXITSTATUS") else (status >> 8)
         if exit_code != 0:
             raise RuntimeError(f"clean_folder.py failed with code {exit_code}")
@@ -420,9 +421,9 @@ def write_direction(df,network_output,sp,out_filec):
                     is_bidirectional = False
 
                 if is_bidirectional:
-                    line = f"{row['Significant_Pairs']:<25}{' RECEIVER:'+row['What_moved']+' AND Donor:'+ row['Minor_Moved'] +'  (BIDIRECTIONAL)'}\n"
+                    line = f"{row['Significant_Pairs']:<25}{' RECIPIENT'+row['What_moved']+' AND Donor:'+ row['Minor_Moved'] +'  (BIDIRECTIONAL)'}\n"
                 else:
-                    line = f"{row['Significant_Pairs']:<25}{' RECEIVER:'+row['What_moved']+' AND Donor:'+ row['Minor_Moved']}\n"
+                    line = f"{row['Significant_Pairs']:<25}{' RECIPIENT:'+row['What_moved']+' AND Donor:'+ row['Minor_Moved']}\n"
                 f.write(line)
 
         f.write("*" * 80 + "\n")
@@ -652,9 +653,9 @@ def run_tranform(data,out_filec,lineages_bidrectional,sp_string,list_df,path,ver
                 #print('asasas',verbose)
                 #output = out_filec
                 djiNNI_output_name= essential.dji_output_name(out_filec,sp_string,lineage1,lineage2)
-                
+                daft_transform = shutil.which("daft-transform")
                 argv = [
-                    sys.executable, script,
+                    daft_transform,
                     "--sp", str(sp_string),
                     "--lineages", str(lineages1),
                     "--path", path,
@@ -665,7 +666,9 @@ def run_tranform(data,out_filec,lineages_bidrectional,sp_string,list_df,path,ver
                     "--random_seed", str(random_seed),
                     "--output", djiNNI_output_name,
                 ]
-                status = os.spawnv(os.P_WAIT, sys.executable, argv)
+                #status = os.spawnv(os.P_WAIT, sys.executable, argv)
+
+                status = os.spawnv(os.P_WAIT, daft_transform, argv)
                 exit_code = status if os.name == "nt" else (status >> 8) 
 
                 if exit_code != 0:
@@ -799,6 +802,7 @@ df['NNI_'] = df.apply(
     lambda row: essential.find_dist_string(sp, row['Lineage1'], row['Lineage2']),
     axis=1
 )
+max_lengths_col = df[["Lineage1", "Lineage2"]].astype(str).apply(lambda col: col.str.len().max()).max()
 
 
 node_map,branch_map,sp_labeled= essential.id_it(sp_string)
@@ -815,5 +819,8 @@ network_output=essential.to_network(sp_labeled)
 
 #print(df)fp
 #print(sp_labeled.to_newick())
-write_direction(df_converted,network_output,sp,out_filec)
+if max_lengths_col>30:
+    write_direction(df_converted,network_output,sp,out_filec)
+else:
+    write_direction(df,network_output,sp,out_filec)
 clean_folder(out_filec)
