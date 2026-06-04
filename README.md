@@ -1314,5 +1314,11 @@ Significance was assessed using both avuncular and sibling comparisons.
 Lineage pairs with Z <= -1.96 and sufficient supporting counts were passed to DAFT Direction/djiNNI. 
 Direction inference was performed using NNI reconciliation, and the lineage with the higher movement-count was interpreted as the recipient.
 ```
+## Citation
 
+If you use DAFT, please cite:
+
+Mishra, S. R., Pomar-Pallarès, L., Lanfear, R., & Hahn, M. W. (2026).  
+**New approaches to detecting and characterizing introgression in large species trees.**  
+*bioRxiv*, 2026.05.30.728990. https://doi.org/10.64898/2026.05.30.728990
 ---
