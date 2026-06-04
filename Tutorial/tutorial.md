@@ -111,7 +111,7 @@ gt
 "((Pu,Ol),Gr,...);"
 ```
 
-For users applying this workflow to their own data, the key requirement is that the final gene tree file must be a CSV with a column named `gt`.
+For users applying this workflow to their own data, the key requirement is that the final gene tree file must be a CSV with the first column called `gt`.
 
 ---
 
