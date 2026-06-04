@@ -449,7 +449,7 @@ For pair `5 AND 10`:
 | `Lineage2 = 10`, `Count2 = 191` | lineage 10 appears as the moved lineage in 191 trees |
 | `Major_Moved = 5` | lineage 5 moved more often |
 
-Since lineage 5 moved more often, djiNNI infers lineage 5 as the recipient and lineage 10 as the donor.
+Since lineage 5 moved more often, djiNNI infers lineage 5 as the major recipient and lineage 10 as the major donor.
 
 Using the branch map:
 
@@ -493,9 +493,9 @@ Significant_Pairs  Minor_Moved  Minor_sibling  Total_gene_trees  Minor_sibling_c
 ****************************************************************************************************************
 ```
 
-This table asks whether there is evidence for bidirectional introgression.
+This table asks whether there is evidence for bidirectional introgression. Because we only asked who moved *more* in DATA TABLE1, here we want to know if there is also evidence for introgression in the other direction.
 
-To test this, djiNNI compares the minor-moved lineage to an appropriate sibling lineage. In this Gante example, there is no valid sibling comparison for these pairs, so the table contains `-` values and no bidirectional conclusion is made.
+To test this, djiNNI compares the minor-moved lineage (i.e. the one that was not named as the major recipient in DATA TABLE1) to an appropriate sibling lineage. In the Gante example, there is no valid sibling comparison for these pairs, so the table contains `-` values and no bidirectional conclusion is made. In other words, we cannot test for bidirectional introgression here.
 
 This means the inferred relations are treated as unidirectional.
 
