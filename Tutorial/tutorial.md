@@ -75,7 +75,7 @@ For users applying this workflow to their own data, this is the first place to s
 
 ## Step 2: Convert the Gante gene trees into DAFT format
 
-The downloaded Gante gene trees are in Nexus format. DAFT expects a CSV file with a column named `gt`, where each row is one Newick gene tree.
+The downloaded Gante gene trees are in Nexus format. DAFT expects a CSV file with the first row, first column named `gt`, where each following row is one Newick gene tree in the first column.
 
 We use the helper script:
 
