@@ -313,11 +313,11 @@ The corrected output includes additional columns such as:
 | `sibling_appearance` | Number of gene trees where the sibling lineage appears |
 | `Z-value-sibling_corrected` | Sibling Z-score after correcting for lineage appearance |
 
-For the same `Focal_lineage = 10`, the appropriate sheet looks like this:
+For the same `Focal_lineage = 10` (i.e. branch `Ma`), the appropriate sheet looks like this:
 
 ![Corrected DAFT Test row](./image/image-2.png)
 
-From the `Test_lineage = 5` row, we can see that the test lineage `(Ol,Pu)` appears 3187 times, while the uncle lineage `Gr` appears 4781 times. Since `(Ol,Pu)` appears fewer times overall, DAFT scales the comparison count before recomputing the corrected Z-score.
+From the `Test_lineage = 5` row, we can see that the test lineage `(Ol,Pu)` appears 3187 times, while the uncle lineage `Gr` appears 4781 times. Since `(Ol,Pu)` appears fewer times overall, DAFT scales the comparison counts (attachments with `Ma`) before recomputing the corrected Z-score.
 
 For the uncle comparison:
 
