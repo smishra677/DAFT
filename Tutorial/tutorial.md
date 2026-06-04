@@ -229,7 +229,7 @@ Z-value-sibling = -10.13
 
 This is significant because it is less than `-1.96`. Therefore, DAFT identifies `Ma` and `(Ol,Pu)` as a candidate branch-pair signal.
 
-Biologically, this does not yet tell us the direction of introgression. At this stage, DAFT Test is only saying that this pair shows an unusual discordant attachment pattern.
+Biologically, this does not yet tell us the direction of introgression. At this stage, DAFT Test is only saying that this pair shows an unusually high number of discordant attachments compared to the number of attachments between `Ma` and `Br`.
 
 ---
 
