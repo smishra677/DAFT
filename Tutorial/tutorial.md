@@ -69,7 +69,7 @@ Tutorial/dataset/
 └── sp_tree.tree
 ```
 
-For users applying this workflow to their own data, this is the first place to substitute their own files: replace `sp_tree.tree` with a rooted species tree and replace `raxml.trees` with their own gene tree file.
+For users applying this workflow to their own data, this is the first place to substitute their own files: replace `sp_tree.tree` with a rooted species tree and replace `raxml.trees` with their own gene tree file. Make sure the species names are the same in both sets of trees! (Shorter species names also work better for viewing the output.)
 
 ---
 
