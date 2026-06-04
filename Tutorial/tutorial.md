@@ -340,7 +340,7 @@ This remains significant.
 ⚠️ **Caution:** This is only a statistical correction. We recommend keeping significant pairs only when both the raw and corrected Z-scores are significant, to increase detection confidence and reduce false positives. For example: `Z-value-uncle <= -1.96` and `Z-value-uncle_corrected <= -1.96`, or `Z-value-sibling <= -1.96` and `Z-value-sibling_corrected <= -1.96`.
 
 
-A conservative approach is to keep pairs where the raw and corrected values both support significance. In this example, correction does not change the final set of significant pairs:
+In this example, correction does not change the final set of significant pairs:
 
 ```text
 "(Ol,Pu);",Ma;
