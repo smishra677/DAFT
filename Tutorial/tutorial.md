@@ -129,7 +129,7 @@ daft-test \
   --direction 0
 ```
 
-This runs DAFT Test only. The output will be written to:
+This runs DAFT Test only, with both avuncular and sibling tests (since the sibling option has been chosen here; the avuncular test always runs automatically). The output will be written to:
 
 ```text
 DAFT_results_gante/
@@ -213,7 +213,7 @@ Using the branch map, this means:
 
 DAFT uses Z-scores to test for significance. Negative values indicate that the test lineage attaches to the focal lineage more often than expected under the comparison. We use `-1.96` here as a simple threshold (this corresponds to a threshold of P<0.05 for a two-sided test).
 
-For the uncle comparison:
+For the avuncular (uncle) comparison:
 
 ```text
 Z-value-uncle = 24.06
@@ -299,7 +299,7 @@ The corrected text output can be wide, so the Excel file is often easier to insp
 DAFT_results_gante_correct/DAFT_Test_gante_correct.xlsx
 ```
 
-The first sheet is a catalogue. In this example, `Focal_lineage = 10` appears in `Comparison 2`.
+The first sheet is a catalogue of all the other sheets: it tells you where to find everything. In this example, `Focal_lineage = 10` appears in `Comparison 2`.
 
 ![Excel catalogue for corrected DAFT Test output](./image/image-3.png)
 
@@ -313,11 +313,11 @@ The corrected output includes additional columns such as:
 | `sibling_appearance` | Number of gene trees where the sibling lineage appears |
 | `Z-value-sibling_corrected` | Sibling Z-score after correcting for lineage appearance |
 
-For the same `Focal_lineage = 10`, `Test_lineage = 5` row:
+For the same `Focal_lineage = 10`, the appropriate sheet looks like this:
 
 ![Corrected DAFT Test row](./image/image-2.png)
 
-The test lineage `(Ol,Pu)` appears 3187 times, while the uncle lineage `Gr` appears 4781 times. Since `(Ol,Pu)` appears fewer times overall, DAFT scales the comparison count before recomputing the corrected Z-score.
+From the `Test_lineage = 5` row, we can see that the test lineage `(Ol,Pu)` appears 3187 times, while the uncle lineage `Gr` appears 4781 times. Since `(Ol,Pu)` appears fewer times overall, DAFT scales the comparison count before recomputing the corrected Z-score.
 
 For the uncle comparison:
 
