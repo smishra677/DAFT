@@ -57,7 +57,7 @@ For your own data, a typical workflow would be to reconstruct unrooted gene tree
 
 DAFT requires rooted gene trees with the same outgroup as the species tree. Alternatively, you can use DAFT to root the gene trees with `--rooting OUTGROUP --forced 1`.
 
-**DAFT treats the supplied species tree as an assumed reference topology, so discordant attachments and introgression signals are interpreted relative to that tree.**
+*DAFT treats the supplied species tree as the "true" reference topology, so discordant attachments and introgression signals are interpreted relative to that tree.*
 
 
 After this step, the tutorial dataset folder should contain:
@@ -268,9 +268,9 @@ Important: these are candidate branch-pairs, not automatically five independent 
 
 ## Step 7: Run DAFT Test with correction
 
-The previous run used raw attachment counts. DAFT can also run in correction mode, which adjusts for how often a lineage appears across the gene tree dataset.
+The previous run used raw attachment counts. DAFT can also run in correction mode, which adjusts for how often a lineage appears across the gene tree dataset. The correction useful when there is missing data, lineage loss, or high ILS, because some branches may appear fewer times than others. 
 
-This is useful when there is missing data, lineage loss, or high ILS, because some branches may appear fewer times than others.
+However, we always recommend running DAFT first without correction, as these are more easily interpretable results. If your data has a lot of missing data (or very high ILS) you can run the correction, but **the most reliable results will always be significant both with and without correction.**
 
 Run:
 
