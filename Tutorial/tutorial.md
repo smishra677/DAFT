@@ -49,12 +49,16 @@ Place it in:
 Tutorial/dataset/raxml.trees
 ```
 
-Next, create a species tree file called `Tutorial/dataset/sp_tree.tree` containing the rooted species tree used for this tutorial: `(On,(Mz,(Ma,(Gr,(Br,(Pu,Ol))))));`. 
+Next, create a species tree file called `Tutorial/dataset/sp_tree.tree` containing the rooted species tree used for this tutorial: `(On,(Mz,(Ma,(Gr,(Br,(Pu,Ol))))));`.
 
-For this example, we use the species-tree topology from the original paper. 
+For this example, we use the gene trees and species-tree topology from the original paper.
 
-For your own data, this file should contain your best estimate of the rooted species tree, for example from a concatenated analysis, ASTRAL, or another species-tree inference method. 
-**DAFT treats this tree as an assumed reference topology, so discordant attachments and introgression signals are interpreted relative to the supplied species tree.**
+For your own data, a typical workflow would be to reconstruct unrooted gene trees from a large set of homologous single-copy loci using a tool such as RAxML or IQ-TREE, and then estimate a species tree using a species-tree estimation method such as ASTRAL.
+
+DAFT requires rooted gene trees with the same outgroup as the species tree. Alternatively, you can use DAFT to root the gene trees with `--rooting OUTGROUP --forced 1`.
+
+**DAFT treats the supplied species tree as an assumed reference topology, so discordant attachments and introgression signals are interpreted relative to that tree.**
+
 
 After this step, the tutorial dataset folder should contain:
 
