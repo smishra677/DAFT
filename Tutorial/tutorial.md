@@ -53,7 +53,7 @@ Next, create a species tree file called `Tutorial/dataset/sp_tree.tree` containi
 
 For this example, we use the gene trees and species-tree topology from the original paper.
 
-For your own data, a typical workflow would be to reconstruct unrooted gene trees from a large set of homologous single-copy loci using a tool such as RAxML or IQ-TREE, and then estimate a species tree using a species-tree estimation method such as ASTRAL.
+For your own data, a typical workflow would be to reconstruct unrooted gene trees from a large set of homologous single-copy loci using a tool such as RAxML[6] or IQ-TREE [7], and then estimate a species tree using a species-tree estimation method such as ASTRAL[8].
 
 DAFT requires rooted gene trees with the same outgroup as the species tree. Alternatively, you can use DAFT to root the gene trees with `--rooting OUTGROUP --forced 1`.
 
@@ -605,3 +605,9 @@ This is the same logic used in the Gante example, but it can be applied to any d
 [4] Letunic, I., & Bork, P. (2021). Interactive Tree Of Life (iTOL) v5: An online tool for phylogenetic tree display and annotation. *Nucleic Acids Research*, 49, W293–W296. https://doi.org/10.1093/nar/gkab301
 
 [5] Vaughan, T. G. (2017). IcyTree: Rapid browser-based visualization for phylogenetic trees and networks. *Bioinformatics*, 33, 2392–2394. https://doi.org/10.1093/bioinformatics/btx155
+
+[6] Kozlov, A. M., Darriba, D., Flouri, T., Morel, B., & Stamatakis, A. (2019). RAxML-NG: A fast, scalable and user-friendly tool for maximum likelihood phylogenetic inference. *Bioinformatics*, 35, 4453–4455. https://doi.org/10.1093/bioinformatics/btz305
+
+[7] Wong, T. K. F., Ly-Trong, N., Ren, H., Demotte, P., Baños, H., Roger, A. J., Susko, E., Bielow, C., De Maio, N., Goldman, N., Hahn, M. W., dos Reis, M., Vinh, L. S., Huttley, G., Lanfear, R., & Minh, B. Q. (2026). IQ-TREE 3: Phylogenomic inference software using complex evolutionary models. *Molecular Biology and Evolution*, 43(5), msag117. https://doi.org/10.1093/molbev/msag117
+
+[8] Zhang, C., Rabiee, M., Sayyari, E., & Mirarab, S. (2018). ASTRAL-III: Polynomial time species tree reconstruction from partially resolved gene trees. *BMC Bioinformatics*, 19(Suppl 6), 153. https://doi.org/10.1186/s12859-018-2129-y
