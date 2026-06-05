@@ -75,7 +75,7 @@ For users applying this workflow to their own data, this is the first place to s
 
 ## Step 2: Convert the Gante gene trees into DAFT format
 
-The downloaded Gante gene trees are in Nexus format. DAFT expects a CSV file with the first row, first column named `gt`, where each following row is one Newick gene tree in the first column.
+The downloaded Gante gene trees are in Nexus format. DAFT expects a  file with the first row, first column named `gt`, where each following row is one Newick gene tree in the first column.
 
 We use the helper script:
 
@@ -89,29 +89,28 @@ This script takes three arguments:
 |---|---|
 | `path` | Path to the main DAFT folder so the script can find `DAFT_utils` |
 | `input_file` | Input Nexus tree file |
-| `output_file` | Output CSV file for DAFT |
+| `output_file` | Output multi-tree format file for DAFT |
 
 From the `DAFT-main/Tutorial` folder, run:
 
 ```bash
-python extract_gante.py ../ dataset/raxml.trees dataset/Gante.csv
+python extract_gante.py ../ dataset/raxml.trees dataset/Gante.tree
 ```
 
 After this step, you should see:
 
 ```text
-Tutorial/dataset/Gante.csv
+Tutorial/dataset/Gante.tree
 ```
 
 The file should look like this:
 
-```csv
-gt
-"((Ol,Pu),Br,...);"
-"((Pu,Ol),Gr,...);"
+```multi-tree format
+((Ol,Pu),Br,...);
+((Pu,Ol),Gr,...);
 ```
 
-For users applying this workflow to their own data, the key requirement is that the final gene tree file must be a CSV with the first column called `gt`.
+For users applying this workflow to their own data, the key requirement is that the final gene tree file must be a multi-tree format where each row is a gene tree.
 
 ---
 
@@ -122,7 +121,7 @@ Now we run DAFT Test. From the main `DAFT-main` folder, run:
 ```bash
 daft-test \
   --sp_file "./Tutorial/dataset/sp_tree.tree" \
-  --gt "./Tutorial/dataset/Gante.csv" \
+  --gt "./Tutorial/dataset/Gante.tree" \
   --output "gante" \
   --sibling 1 \
   --excel 1 \
@@ -279,7 +278,7 @@ Run:
 ```bash
 daft-test \
   --sp_file "./Tutorial/dataset/sp_tree.tree" \
-  --gt "./Tutorial/dataset/Gante.csv" \
+  --gt "./Tutorial/dataset/Gante.tree" \
   --output "gante_correct" \
   --sibling 1 \
   --excel 1 \
@@ -379,7 +378,7 @@ From the main `DAFT-main` folder, run:
 ```bash
 daft-direction \
   --sp_file "./Tutorial/dataset/sp_tree.tree" \
-  --gt "./Tutorial/dataset/Gante.csv" \
+  --gt "./Tutorial/dataset/Gante.tree" \
   --lineages_file "./Tutorial/significant_pairs_gante.txt" \
   --output "output_gante_direction"
 ```
@@ -576,14 +575,14 @@ To adapt this tutorial to a new dataset, replace the Gante inputs with your own 
 | File to replace | Requirement |
 |---|---|
 | `Tutorial/dataset/sp_tree.tree` | Rooted, bifurcating species tree in Newick format |
-| `Tutorial/dataset/Gante.csv` | CSV file with a column named `gt`, one Newick gene tree per row |
+| `Tutorial/dataset/Gante.tree` | multi-tree format file with one Newick gene tree per row |
 | `Tutorial/significant_pairs_gante.txt` | Significant pairs extracted from your DAFT Test output |
 
 The general workflow remains the same:
 
 ```text
 1. Prepare a rooted species tree.
-2. Prepare a gene tree CSV with column `gt`.
+2. Prepare a gene tree multi-tree format  with one Newick gene tree per row .
 3. Run DAFT Test.
 4. Plot or inspect the labelled species tree so branch IDs are interpretable.
 5. Extract significant focal/test pairs using a chosen Z-score threshold.
