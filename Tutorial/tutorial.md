@@ -49,17 +49,12 @@ Place it in:
 Tutorial/dataset/raxml.trees
 ```
 
-Next, create a species tree file called:
+Next, create a species tree file called `Tutorial/dataset/sp_tree.tree` containing the rooted species tree used for this tutorial: `(On,(Mz,(Ma,(Gr,(Br,(Pu,Ol))))));`. 
 
-```text
-Tutorial/dataset/sp_tree.tree
-```
+For this example, we use the species-tree topology from the original paper. 
 
-with the following rooted species tree:
-
-```text
-(On,(Mz,(Ma,(Gr,(Br,(Pu,Ol))))));
-```
+For your own data, this file should contain your best estimate of the rooted species tree, for example from a concatenated analysis, ASTRAL, or another species-tree inference method. 
+**DAFT treats this tree as an assumed reference topology, so discordant attachments and introgression signals are interpreted relative to the supplied species tree.**
 
 After this step, the tutorial dataset folder should contain:
 
