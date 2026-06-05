@@ -538,7 +538,7 @@ https://icytree.org/
 
 The plotted network should look like this:
 
-![DAFT Direction network plotted in IcyTree](./image/tree.png)
+![DAFT Direction network plotted](./image/tree1.png)
 
 ---
 
