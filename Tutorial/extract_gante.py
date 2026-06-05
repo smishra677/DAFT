@@ -1,13 +1,10 @@
-#!/usr/bin/env python3
-
 import dendropy
 import sys
 import argparse
-import pandas as pd
 
 
 parser = argparse.ArgumentParser(
-    description="Extract Gante et al. Nexus gene trees into a DAFT-readable CSV file."
+    description="Extract Gante et al. Nexus gene trees into a DAFT-readable TXT file."
 )
 
 parser.add_argument(
@@ -22,7 +19,7 @@ parser.add_argument(
 
 parser.add_argument(
     "output_file",
-    help="Output CSV file. Example: Gante.csv"
+    help="Output TXT file. Example: Gante.txt"
 )
 
 args = parser.parse_args()
@@ -40,7 +37,8 @@ trees = dendropy.TreeList.get(
     schema="nexus"
 )
 
-dic = {"gt": []}
+
+gene_trees = []
 
 for ili, trea in enumerate(trees, 1):
 
@@ -48,14 +46,16 @@ for ili, trea in enumerate(trees, 1):
     red = readWrite.readWrite()
 
     tree = str(trea.as_string(schema="newick"))
-    tree=tree.replace('e-','0')
+    tree = tree.replace('e-', '0')
 
     if len(tree) == 0:
         continue
 
     tr = red.parse_bio(red.to_newick(red.parse_bio(tree)))
 
-    dic["gt"] += [tr.to_newick()]
+    gene_trees.append(tr.to_newick())
 
 
-pd.DataFrame(dic).to_csv(args.output_file, index=False)
+with open(args.output_file, "w") as f:
+    for gt in gene_trees:
+        f.write(gt.strip() + "\n")
