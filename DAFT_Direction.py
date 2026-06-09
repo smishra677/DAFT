@@ -421,7 +421,7 @@ def write_direction(df,network_output,sp,out_filec):
                     is_bidirectional = False
 
                 if is_bidirectional:
-                    line = f"{row['Significant_Pairs']:<25}{' RECIPIENT'+row['What_moved']+' AND Donor:'+ row['Minor_Moved'] +'  (BIDIRECTIONAL)'}\n"
+                    line = f"{row['Significant_Pairs']:<25}{' RECIPIENT:'+row['What_moved']+' AND Donor:'+ row['Minor_Moved'] +'  (BIDIRECTIONAL)'}\n"
                 else:
                     line = f"{row['Significant_Pairs']:<25}{' RECIPIENT:'+row['What_moved']+' AND Donor:'+ row['Minor_Moved']}\n"
                 f.write(line)
