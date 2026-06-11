@@ -72,10 +72,10 @@ DATA_SET/<out>_log.txt
 The CSV output contains:
 
 ```text
-gt,NNI
+gt
 ```
 
-where `gt` is the noisy gene tree and `NNI` is the number of NNI moves applied to that tree.
+where `gt` is the noisy gene tree.
 
 ### DAFT Batch Script
 
