@@ -672,7 +672,7 @@ class daft_validate:
                 raise ValueError(
                     "Some gene trees are rooted inconsistently with the species tree. "
                     "Use --rooting OUTGROUP --forced 1 to reroot, or "
-                    "--allow_inconsistent_rooting 1 to continue without rerooting. "
+                    "--allow_inconsistent_rooting 1 to continue without rerooting (for example, if the gene trees are already rooted as intended)."
                     "First inconsistent tree: " + inconsistent[0]
                 )
 
