@@ -8,7 +8,7 @@ from utils_reconcILS import *
 import pandas as pd
 
 
-num_gene_trees = 20000
+num_gene_trees = 200
 sequence_length = 1
 data_path = "./DATA_SET"
 
@@ -146,21 +146,6 @@ simulations = [
         ],
     },
     {
-        "out": "I_2",
-        "tree_key": "big",
-        "population_size": 10000000,
-        "mass_migrations": [
-            [10, 5, 0, 0.02],
-        ],
-    },
-    {
-        "out": "I_3",
-        "tree_key": "big",
-        "population_size": 1000000,
-        "mass_migrations": [
-        ],
-    },
-    {
         "out": "JJ",
         "tree_key": "small_unbalanced",
         "population_size": 1000,
@@ -202,32 +187,6 @@ simulations = [
         ],
     },
     {
-        "out": "MM_1",
-        "tree_key": "small_balanced",
-        "population_size": 1000,
-        "mass_migrations": [
-            [145, 3, 5, 0.02],
-            [150, 2, 1, 0.02],
-        ],
-    },
-    {
-        "out": "MM_4",
-        "tree_key": "small_balanced",
-        "population_size": 1000,
-        "mass_migrations": [
-            [150, 2, 1, 0.02],
-            [155, 3, 5, 0.02],
-        ],
-    },
-    {
-        "out": "M_4",
-        "tree_key": "small_balanced",
-        "population_size": 10000,
-        "mass_migrations": [
-            [150, 3, 0, 0.05],
-        ],
-    },
-    {
         "out": "N",
         "tree_key": "small_unbalanced",
         "population_size": 1000,
@@ -262,15 +221,6 @@ simulations = [
         ],
     },
     {
-        "out": "OO_1",
-        "tree_key": "small_balanced",
-        "population_size": 1000,
-        "mass_migrations": [
-            [150, 3, 5, 0.2],
-            [1450, 6, 9, 0.2],
-        ],
-    },
-    {
         "out": "P",
         "tree_key": "big",
         "population_size": 1000,
@@ -300,29 +250,12 @@ simulations = [
         "tree_key": "big",
         "population_size": 1000,
         "mass_migrations": [
-            [643, 12, 13, 0.02],
-            [4499, 26, 34, 0.02],
-        ],
-    },
-    {
-        "out": "QQ_1",
-        "tree_key": "big",
-        "population_size": 1000,
-        "mass_migrations": [
             [642, 20, 1, 0.02],
             [3642, 23, 27, 0.02],
         ],
     },
     {
-        "out": "Q_4",
-        "tree_key": "small_balanced",
-        "population_size": 10000,
-        "mass_migrations": [
-            [150, 3, 0, 0.077],
-        ],
-    },
-    {
-        "out": "Q_6",
+        "out": "Q_1",
         "tree_key": "small_balanced",
         "population_size": 10000,
         "mass_migrations": [
@@ -351,38 +284,6 @@ simulations = [
         "tree_key": "small_unbalanced",
         "population_size": 10000,
         "mass_migrations": [
-            [10, 5, 0, 0.02],
-        ],
-    },
-    {
-        "out": "R_2",
-        "tree_key": "small_unbalanced",
-        "population_size": 10000000,
-        "mass_migrations": [
-            [10, 5, 0, 0.02],
-        ],
-    },
-    {
-        "out": "R_4",
-        "tree_key": "small_unbalanced",
-        "population_size": 10000,
-        "mass_migrations": [
-            [150, 5, 0, 0.077],
-        ],
-    },
-    {
-        "out": "R_5",
-        "tree_key": "small_unbalanced",
-        "population_size": 10000,
-        "mass_migrations": [
-            [150, 5, 0, 0.077],
-        ],
-    },
-    {
-        "out": "R_6",
-        "tree_key": "small_unbalanced",
-        "population_size": 10000,
-        "mass_migrations": [
             [150, 5, 0, 0.1],
         ],
     },
@@ -404,15 +305,7 @@ simulations = [
         ],
     },
     {
-        "out": "S_4",
-        "tree_key": "small_unbalanced",
-        "population_size": 10000,
-        "mass_migrations": [
-            [150, 0, 5, 0.077],
-        ],
-    },
-    {
-        "out": "S_6",
+        "out": "S_1",
         "tree_key": "small_unbalanced",
         "population_size": 10000,
         "mass_migrations": [
@@ -441,35 +334,11 @@ simulations = [
         "tree_key": "big",
         "population_size": 10000,
         "mass_migrations": [
-            [643, 12, 13, 0.5],
-        ],
-    },
-    {
-        "out": "T_3",
-        "tree_key": "big",
-        "population_size": 1000000,
-        "mass_migrations": [
-            [643, 12, 13, 0.5],
-        ],
-    },
-    {
-        "out": "T_5",
-        "tree_key": "big",
-        "population_size": 10000,
-        "mass_migrations": [
-            [643, 12, 13, 0.082],
-        ],
-    },
-    {
-        "out": "T_6",
-        "tree_key": "big",
-        "population_size": 10000,
-        "mass_migrations": [
             [643, 12, 13, 0.1],
         ],
     },
     {
-        "out": "T_7",
+        "out": "T_2",
         "tree_key": "big",
         "population_size": 10000,
         "mass_migrations": [
@@ -523,15 +392,7 @@ simulations = [
         "mass_migrations": [
             [643, 7, 13, 0.02],
         ],
-    },
-    {
-        "out": "test",
-        "tree_key": "test",
-        "population_size": 100,
-        "mass_migrations": [
-            [200, 3, 0, 0.1],
-        ],
-    },
+    }
 ]
 
 

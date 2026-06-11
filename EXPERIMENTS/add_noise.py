@@ -58,7 +58,7 @@ op_tree = pd.read_csv(dupcoal_location+'/'+og_tree)['gt'].to_list()
 
 #print(dupcoal_location+"error_trees_"+str(error)+".tre")
 
-errored_gene_trees= {'gt':[],'NNI':[]}
+errored_gene_trees= {'gt':[]}
 with open(dupcoal_location+'/'+outfile+".txt", "w") as file:
     for idx_,ij in enumerate(poi):
         #rando_branch = np.random.randint(ij,size=20)
@@ -72,7 +72,7 @@ with open(dupcoal_location+'/'+outfile+".txt", "w") as file:
         #exit()
         if ij==0 or len(enum)==0 or ij>len(enum):
             errored_gene_trees['gt']+=[tr.to_newick()]
-            errored_gene_trees['NNI']+=[0]
+            #errored_gene_trees['NNI']+=[0]
             file.write(f"{tr.to_newick()}\n")
             continue
         else:
@@ -94,7 +94,7 @@ with open(dupcoal_location+'/'+outfile+".txt", "w") as file:
             
 
             errored_gene_trees['gt']+=[tr.to_newick()]
-            errored_gene_trees['NNI']+=[nni]
+            #errored_gene_trees['NNI']+=[nni]
             file.write(f"{tr.to_newick()}\n")
 
 

@@ -298,10 +298,7 @@ val_key = [(A,'./RESULTS/RESULTS/APRIL_19/DAFT_results_A'),
            (C,'./RESULTS/RESULTS/APRIL_19/DAFT_results_I'),
            (A,'./RESULTS/RESULTS/APRIL_19/DAFT_results_J'),
            (B,'./RESULTS/RESULTS/APRIL_19/DAFT_results_K'),
-           (C,'./RESULTS/RESULTS/APRIL_19/DAFT_results_L'),
-           (A,'./RESULTS/RESULTS/APRIL_19/DAFT_results_J_1'),
-           (B,'./RESULTS/RESULTS/APRIL_19/DAFT_results_K_1'),
-           (C,'./RESULTS/RESULTS/APRIL_19/DAFT_results_L_1'),]
+           (C,'./RESULTS/RESULTS/APRIL_19/DAFT_results_L'),]
 
 
 
