@@ -535,6 +535,12 @@ You can paste this Extended Newick string into an online network viewer such as 
 ```text
 https://icytree.org/
 ```
+Or you can use `daft-viewer`:
+
+```text
+https://github.com/roblanf/daft-viewer
+```
+
 
 The plotted network should look like this:
 
