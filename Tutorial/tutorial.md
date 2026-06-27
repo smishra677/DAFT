@@ -1,6 +1,6 @@
 # Tutorial: Running DAFT on the Gante et al. cichlid dataset
 
-This tutorial shows how we used DAFT and djiNNI on the Tanganyikan cichlid gene trees from Gante et al. [1]. The goal is not only to reproduce the DAFT result, but also to show the full workflow to follow on a new dataset:
+This tutorial shows how we used DAFT and djiNNI on the Tanganyikan cichlid gene trees from Gante et al. [^1]. The goal is not only to reproduce the DAFT result, but also to show the full workflow to follow on a new dataset:
 
 ```text
 get gene trees + species tree
@@ -17,7 +17,7 @@ We intentionally walk through the extraction and formatting steps instead of onl
 
 ## Requirements
 
-Before starting, install DAFT and the Python packages needed by this tutorial [3].
+Before starting, install DAFT and the Python packages needed by this tutorial [^3].
 
 ```bash
 pip install -r requirements.txt
@@ -31,7 +31,7 @@ The tutorial assumes you are working from the main `DAFT-main` repository folder
 
 ## Step 1: Download the Gante et al. gene trees
 
-Download the Gante et al. RAxML gene trees from Dryad [2] (for your convience they're provided in ./dataset folder):
+Download the Gante et al. RAxML gene trees from Dryad [^3] (for your convience they're provided in ./dataset folder):
 
 ```text
 https://datadryad.org/dataset/doi:10.5061/dryad.jr67t
@@ -53,7 +53,7 @@ Next, create a species tree file called `Tutorial/dataset/sp_tree.tree` containi
 
 For this example, we use the gene trees and species-tree topology from the original paper.
 
-For your own data, a typical workflow would be to reconstruct unrooted gene trees from a large set of homologous single-copy loci using a tool such as RAxML[6] or IQ-TREE [7], and then estimate a species tree using a species-tree estimation method such as ASTRAL[8].
+For your own data, a typical workflow would be to reconstruct unrooted gene trees from a large set of homologous single-copy loci using a tool such as RAxML[^6] or IQ-TREE [^7], and then estimate a species tree using a species-tree estimation method such as ASTRAL[^8].
 
 DAFT requires rooted gene trees with the same outgroup as the species tree. Alternatively, you can use DAFT to root the gene trees with `--rooting OUTGROUP --forced 1`.
 
@@ -166,7 +166,7 @@ Each number is a DAFT branch ID. For example:
 | `11` | `Mz` |
 | `12` | `On` |
 
-It is helpful to plot this labelled tree before interpreting the output. One option is to paste the labelled species tree into iTOL [4] and turn on branch labels. In iTOL, go to the advanced display options and show labels/metadata so that the DAFT branch IDs are visible.
+It is helpful to plot this labelled tree before interpreting the output. One option is to paste the labelled species tree into iTOL [^4] and turn on branch labels. In iTOL, go to the advanced display options and show labels/metadata so that the DAFT branch IDs are visible.
 
 The labelled tree should look like this:
 
@@ -530,7 +530,7 @@ DAFT Direction also outputs an Extended Newick network, but ONLY FOR NNI>1 EVENT
 Network (ONLY NNI > 1) :  ((((((((Ol[&label=6])#H2,Pu[&label=7]))#H1,Br[&label=8]),Gr[&label=9]),((#H1,Ma[&label=10]),#H2)),Mz[&label=11]),On[&label=12]);
 ```
 
-You can paste this Extended Newick string into an online network viewer such as IcyTree [5]:
+You can paste this Extended Newick string into an online network viewer such as IcyTree [^5]:
 
 ```text
 https://icytree.org/
@@ -596,18 +596,18 @@ This is the same logic used in the Gante example, but it can be applied to any d
 
 ## References
 
-[1] Gante, H. F., Matschiner, M., Malmstrøm, M., Jakobsen, K. S., Jentoft, S., & Salzburger, W. (2016). Genomics of speciation and introgression in Princess cichlid fishes from Lake Tanganyika. *Molecular Ecology*, 25, 6143–6161. https://doi.org/10.1111/mec.13767
+[^1] Gante, H. F., Matschiner, M., Malmstrøm, M., Jakobsen, K. S., Jentoft, S., & Salzburger, W. (2016). Genomics of speciation and introgression in Princess cichlid fishes from Lake Tanganyika. *Molecular Ecology*, 25, 6143–6161. https://doi.org/10.1111/mec.13767
 
-[2] Gante, H. F., Matschiner, M., Malmstrøm, M., Jakobsen, K. S., Jentoft, S., & Salzburger, W. (2016). Data from: Genomics of speciation and introgression in Princess cichlid fishes from Lake Tanganyika. Dryad. https://doi.org/10.5061/dryad.jr67t
+[^3] Gante, H. F., Matschiner, M., Malmstrøm, M., Jakobsen, K. S., Jentoft, S., & Salzburger, W. (2016). Data from: Genomics of speciation and introgression in Princess cichlid fishes from Lake Tanganyika. Dryad. https://doi.org/10.5061/dryad.jr67t
 
-[3] Sukumaran, J., & Holder, M. T. (2010). DendroPy: A Python library for phylogenetic computing. *Bioinformatics*, 26, 1569–1571. https://doi.org/10.1093/bioinformatics/btq228
+[^2] Sukumaran, J., & Holder, M. T. (2010). DendroPy: A Python library for phylogenetic computing. *Bioinformatics*, 26, 1569–1571. https://doi.org/10.1093/bioinformatics/btq228
 
-[4] Letunic, I., & Bork, P. (2021). Interactive Tree Of Life (iTOL) v5: An online tool for phylogenetic tree display and annotation. *Nucleic Acids Research*, 49, W293–W296. https://doi.org/10.1093/nar/gkab301
+[^4] Letunic, I., & Bork, P. (2021). Interactive Tree Of Life (iTOL) v5: An online tool for phylogenetic tree display and annotation. *Nucleic Acids Research*, 49, W293–W296. https://doi.org/10.1093/nar/gkab301
 
-[5] Vaughan, T. G. (2017). IcyTree: Rapid browser-based visualization for phylogenetic trees and networks. *Bioinformatics*, 33, 2392–2394. https://doi.org/10.1093/bioinformatics/btx155
+[^5] Vaughan, T. G. (2017). IcyTree: Rapid browser-based visualization for phylogenetic trees and networks. *Bioinformatics*, 33, 2392–2394. https://doi.org/10.1093/bioinformatics/btx155
 
-[6] Kozlov, A. M., Darriba, D., Flouri, T., Morel, B., & Stamatakis, A. (2019). RAxML-NG: A fast, scalable and user-friendly tool for maximum likelihood phylogenetic inference. *Bioinformatics*, 35, 4453–4455. https://doi.org/10.1093/bioinformatics/btz305
+[^6] Kozlov, A. M., Darriba, D., Flouri, T., Morel, B., & Stamatakis, A. (2019). RAxML-NG: A fast, scalable and user-friendly tool for maximum likelihood phylogenetic inference. *Bioinformatics*, 35, 4453–4455. https://doi.org/10.1093/bioinformatics/btz305
 
-[7] Wong, T. K. F., Ly-Trong, N., Ren, H., Demotte, P., Baños, H., Roger, A. J., Susko, E., Bielow, C., De Maio, N., Goldman, N., Hahn, M. W., dos Reis, M., Vinh, L. S., Huttley, G., Lanfear, R., & Minh, B. Q. (2026). IQ-TREE 3: Phylogenomic inference software using complex evolutionary models. *Molecular Biology and Evolution*, 43(5), msag117. https://doi.org/10.1093/molbev/msag117
+[^7] Wong, T. K. F., Ly-Trong, N., Ren, H., Demotte, P., Baños, H., Roger, A. J., Susko, E., Bielow, C., De Maio, N., Goldman, N., Hahn, M. W., dos Reis, M., Vinh, L. S., Huttley, G., Lanfear, R., & Minh, B. Q. (2026). IQ-TREE 3: Phylogenomic inference software using complex evolutionary models. *Molecular Biology and Evolution*, 43(5), msag117. https://doi.org/10.1093/molbev/msag117
 
-[8] Zhang, C., Rabiee, M., Sayyari, E., & Mirarab, S. (2018). ASTRAL-III: Polynomial time species tree reconstruction from partially resolved gene trees. *BMC Bioinformatics*, 19(Suppl 6), 153. https://doi.org/10.1186/s12859-018-2129-y
+[^8] Zhang, C., Rabiee, M., Sayyari, E., & Mirarab, S. (2018). ASTRAL-III: Polynomial time species tree reconstruction from partially resolved gene trees. *BMC Bioinformatics*, 19(Suppl 6), 153. https://doi.org/10.1186/s12859-018-2129-y
