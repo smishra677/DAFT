@@ -778,7 +778,7 @@ if len(lineages_bidrectional)==0:
 run_tranform(data,out_filec,lineages_bidrectional,sp_string,list_df,path,verbose,djiNNI_hash,random_seed)
 
 df = pd.DataFrame(list_df)
-#df.to_csv(f'results1_{out_filec}.csv',index=False)
+df.to_csv(f'results1_{out_filec}.csv',index=False)
 
 
 
@@ -796,7 +796,7 @@ df =df[df.inUnique==True]
 df = df[((df['Count1']+df['Count2'])>total_count_cutoff)]
 #print(df.to_csv('some_test.cxv'))
 #df,sp_string1= convert_species(df,sp_string)
-#df.to_csv(f'results1_{out_filec}.csv',index=False)
+df.to_csv(f'results1_{out_filec}.csv',index=False)
 
 df['NNI_'] = df.apply(
     lambda row: essential.find_dist_string(sp, row['Lineage1'], row['Lineage2']),
