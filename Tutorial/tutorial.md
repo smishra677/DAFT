@@ -31,7 +31,7 @@ The tutorial assumes you are working from the main `DAFT-main` repository folder
 
 ## Step 1: Download the Gante et al. gene trees
 
-Download the Gante et al. RAxML gene trees from Dryad [^3] (for your convience they're provided in ./dataset folder):
+Download the Gante et al. RAxML gene trees from Dryad [^2] (for your convience they're provided in ./dataset folder):
 
 ```text
 https://datadryad.org/dataset/doi:10.5061/dryad.jr67t
