@@ -597,9 +597,9 @@ This is the same logic used in the Gante example, but it can be applied to any d
 
 [^1]: Gante, H. F., Matschiner, M., Malmstrøm, M., Jakobsen, K. S., Jentoft, S., & Salzburger, W. (2016). Genomics of speciation and introgression in Princess cichlid fishes from Lake Tanganyika. *Molecular Ecology*, 25, 6143–6161. [doi:10.1111/mec.13767](https://doi.org/10.1111/mec.13767)
 
-[^3]: Gante, H. F., Matschiner, M., Malmstrøm, M., Jakobsen, K. S., Jentoft, S., & Salzburger, W. (2016). Data from: Genomics of speciation and introgression in Princess cichlid fishes from Lake Tanganyika. Dryad. [doi:10.5061/dryad.jr67t](https://doi.org/10.5061/dryad.jr67t)
+[^2]: Gante, H. F., Matschiner, M., Malmstrøm, M., Jakobsen, K. S., Jentoft, S., & Salzburger, W. (2016). Data from: Genomics of speciation and introgression in Princess cichlid fishes from Lake Tanganyika. Dryad. [doi:10.5061/dryad.jr67t](https://doi.org/10.5061/dryad.jr67t)
 
-[^2]: Sukumaran, J., & Holder, M. T. (2010). DendroPy: A Python library for phylogenetic computing. *Bioinformatics*, 26, 1569–1571. [doi:10.1093/bioinformatics/btq228](https://doi.org/10.1093/bioinformatics/btq228)
+[^3]: Sukumaran, J., & Holder, M. T. (2010). DendroPy: A Python library for phylogenetic computing. *Bioinformatics*, 26, 1569–1571. [doi:10.1093/bioinformatics/btq228](https://doi.org/10.1093/bioinformatics/btq228)
 
 [^4]: Letunic, I., & Bork, P. (2021). Interactive Tree Of Life (iTOL) v5: An online tool for phylogenetic tree display and annotation. *Nucleic Acids Research*, 49, W293–W296. [doi:10.1093/nar/gkab301](https://doi.org/10.1093/nar/gkab301)
 
