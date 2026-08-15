@@ -115,6 +115,7 @@ essential= daft_essential()
 validate= daft_validate()
 
 sp_string = parser.sp
+original_gt_file= parser.gt
 gene_treefile = essential.convert_gt_to_csv(parser.gt)
 lineages = parser.lineages
 lineages_bidrectional = parser.lineagesN
@@ -142,8 +143,22 @@ else:
     gene_treefile = validation.gene_treefile
     djiNNI_hash = validation.input_hash
 
+console=validate.console
 
 
+def print_extension(console,color,message,out):
+   
+    log_path = out + "_djiNNI_log.txt"
+
+    with open(log_path, "a", encoding="utf-8") as log:
+        validate.print_panel(
+            "djiNNI Message",
+            message,
+            log,
+            console,
+            color,
+        )
+        
 
 
 def convert_species(df,sp_string):
@@ -722,6 +737,11 @@ def run_tranform(data,out_filec,lineages_bidrectional,sp_string,list_df,path,ver
                 list_df['To_where']+=[None]
                 list_df['Minor_Moved']+=[None]
                 list_df['Minor_moved_count']+=[0]
+
+                if find_equal(lineages,(lineage1,lineage2)):
+                    #print(lineage1,lineage2,'They dont have gene tree')
+                    #print_extension(lineage1,lineage2,'They dont have gene tree')
+                    print_extension(console,"yellow",f"{original_gt_file} have zero gene trees with ({lineage1[:-1]},{lineage2[:-1]}) clade",out_filec)
                 
                 #list_df={'Labeled_species':[],'Total_gene_trees':[],'Lineage1':[],'Count1':[],'Lineage2':[],'Count2':[],'What_moved':[],'To_where':[]}
 
@@ -798,6 +818,12 @@ df = df[((df['Count1']+df['Count2'])>total_count_cutoff)]
 #df,sp_string1= convert_species(df,sp_string)
 df.to_csv(f'results1_{out_filec}.csv',index=False)
 
+if len(df)==0:
+    print_extension(console,"red",'None of the pairs lineages in lineages_file have a valid gene tree ',out_filec)
+    print_extension(console,"red",'Ending the process. \n \n Please try with some other pairs',out_filec)
+    #print('None of the pairs  lineages_file have gene ')
+    clean_folder(out_filec)
+    exit()
 df['NNI_'] = df.apply(
     lambda row: essential.find_dist_string(sp, row['Lineage1'], row['Lineage2']),
     axis=1
