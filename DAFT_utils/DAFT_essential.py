@@ -10,6 +10,7 @@ from utils_reconcILS import *
 from reconcILS import *
 import numpy as np
 import warnings
+import os
 from pathlib import Path
 
 
@@ -479,16 +480,34 @@ class daft_essential:
 
     def dji_output_name(self,out_filec,sp_string,lineage1,lineage2):
         node_map,branch_map,sp_labeled = self.id_it(sp_string)
+        end_id= max(branch_map['id'])
+        to_add={'Discordant_lineage':[],'id':[]}
 
         lineage1_id = self.map_id_tag(lineage1,sp_labeled)
         lineage2_id = self.map_id_tag(lineage2,sp_labeled)
-
+        trigger=False
         if lineage1_id is None:
-            lineage1_id = self.short_output_token(lineage1)
+            end_id=end_id+1
+            trigger=True
+            lineage1_id = end_id
+            to_add['Discordant_lineage']+=[lineage1]
+            to_add['id']+=[end_id]
+
 
         if lineage2_id is None:
-            lineage2_id = self.short_output_token(lineage2)
+            end_id=end_id+1
+            trigger=True
+            lineage2_id = end_id
+            to_add['Discordant_lineage']+=[lineage2]
+            to_add['id']+=[end_id]
 
+        if trigger:
+            df = pd.DataFrame(to_add)
+            file_name=str(out_filec)+"_discordant_id.csv"
+            #print(file_name)
+            #exit()
+            df.to_csv(file_name,mode="a",header=not os.path.exists(file_name),index=False)
+        
         return str(out_filec) + "_" + str(lineage1_id) + "_" + str(lineage2_id)
 
     def write_events_network(self,tree):
