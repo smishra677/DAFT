@@ -222,7 +222,8 @@ class daft_validate:
 
         try:
             tree = Tree(newick_string, format=1)
-            tree_rc = red.parse(newick_string)
+            newick_string1 = newick_string.replace('e-', '0')
+            tree_rc = red.parse(newick_string1)
         except Exception as err:
             raise ValueError(label + " could not be parsed as Newick: " + str(err))
 
