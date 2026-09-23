@@ -68,7 +68,7 @@ def parse1():
     parser.add_argument('--cache_hash', type=str, default=None, help="Input hash used for djiNNI cache")
     parser.add_argument('--ignore_duplication', type=int, default=0, help="Ignore gene tree containing duplication and continue")
     parser.add_argument('--random_seed', type=int, default=42, help="Random seed for djiNNI")
-    
+    parser.add_argument('--mesquite', type=int, default=0, help="Mesquite format")
     
     args = parser.parse_args()
 
@@ -126,6 +126,7 @@ ignore_duplicate =parser.ignore_duplication
 force_root=parser.forced
 allow_incos=parser.allow_inconsistent_rooting
 to_root=parser.rooting
+mesquite=parser.mesquite
 random_seed=parser.random_seed
 np.random.seed(int(random_seed))
 
@@ -845,7 +846,7 @@ network_output=essential.to_network(sp_labeled)
 
 #print(df)fp
 #print(sp_labeled.to_newick())
-if max_lengths_col>30:
+if max_lengths_col>30 or mesquite:
     write_direction(df_converted,network_output,sp,out_filec)
 else:
     write_direction(df,network_output,sp,out_filec)

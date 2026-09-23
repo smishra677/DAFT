@@ -42,7 +42,8 @@ def parse1():
     parser.add_argument('--ignore_duplication', type=int, default=0, help="Ignore gene tree containing duplication and continue")
     parser.add_argument('--random_seed', type=int, default=42, help="Random seed for djiNNI")
     parser.add_argument('--verbose', type=int, default=0, help="Verbose mode. 1 = yes, 0 = no")
-
+    parser.add_argument('--mesquite', type=int, default=0, help="Mesquite format")
+    
     args = parser.parse_args()
 
     if args.sp_file:
@@ -100,6 +101,7 @@ ignore_duplicate =parser.ignore_duplication
 force_root=parser.forced
 allow_incos=parser.allow_inconsistent_rooting
 to_root=parser.rooting
+mesquite=parser.mesquite
 random_seed =parser.random_seed
 verbose=parser.verbose
 
@@ -306,7 +308,7 @@ def extract_direction(out):
         
 
 
-def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,path,dji_cache_input_hash,random_seed,verbose,sibling_flag):
+def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,path,dji_cache_input_hash,random_seed,verbose,sibling_flag,mesquite):
     #sp= red.parse(sp_string)
 
     sp.label_internal()
@@ -376,6 +378,8 @@ def call_direction(sorted_grouped,gene_treefile,sp,out,demography,correct_flag,p
             "--cache_hash", str(dji_cache_input_hash),
             "--random_seed", str(random_seed),
             "--output", output,
+            "--mesquite", str(mesquite),
+
         ]
         
         
@@ -2368,7 +2372,7 @@ pd.DataFrame(branch_map).to_csv('branch_map.csv',index=False)
 #exit()
 max_lengths_col = sorted_grouped[["What_moved", "comparison_uncle","comparison_sibling"]].astype(str).apply(lambda col: col.str.len().max()).max()
 #print(max_lengths_col)
-if max_lengths_col<30:
+if max_lengths_col<30 and not mesquite:
     write_significance(sorted_grouped,out_file,labeled_sp,correct_flag)
 else:
     write_significance(sorted_grouped_converted,out_file,labeled_sp,correct_flag)
@@ -2381,7 +2385,7 @@ if produce_excel:
 if run_direction:
     #call_direction(sorted_grouped,gene_treefile,sp,out_file)
     #call_direction(sorted_grouped,gene_treefile,sp,out_file,demography,correct_flag,path)
-    call_direction(sorted_grouped,gene_treefile,sp,out_file,demography,correct_flag,path,dji_cache_input_hash,random_seed,verbose,sibling_flag)
+    call_direction(sorted_grouped,gene_treefile,sp,out_file,demography,correct_flag,path,dji_cache_input_hash,random_seed,verbose,sibling_flag,mesquite)
         
 clean_folder(out_file)
 
