@@ -822,7 +822,7 @@ class daft_essential:
                 if Z_score_sib<=-1.96:
                     df.at[i,'CouldbeBidirectional']=True
 
-        df.to_csv('err.csv',index=False)
+        #df.to_csv('err.csv',index=False)
         return df
 
     # ---------- styling----------
