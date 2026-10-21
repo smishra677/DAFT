@@ -1,3 +1,4 @@
+import ete3
 import numpy as np
 import os, sys
 import pandas as pd
@@ -187,7 +188,8 @@ def filter_data(data,lineage1,lineage2):
         ##print(gt)
         gt =gt[0]
         ##print(gt)
-        gt =gt.replace('e-', '0')
+        newick_tree = ete3.Tree(gt, format=1)
+        gt = newick_tree.write(format=9)
         gt_tr= red.parse(gt)
         gt_tr.label_internal()
 
@@ -398,7 +400,8 @@ def find_sib_lineage_pair(data):
     sib_lineage={}
     for g_t in data:
         #print(g_t)
-        g_t[0] = g_t[0].replace('e-', '0')
+        newick_tree = ete3.Tree(g_t[0], format=1)
+        g_t[0] = newick_tree.write(format=9)
         tr= red.parse(g_t[0])
         tr.label_internal()
         list_gt_sibling=essential.find_sibling(tr,[])
@@ -1575,7 +1578,8 @@ def correct_accounting_by_product(data,leaf1,where_at,leaf2,uncle,sp_string):
     L1=red.parse(leaf1)
     for g_t in data:
         #print(g_t)
-        g_t[0] = g_t[0].replace('e-', '0')
+        newick_tree = ete3.Tree(g_t[0], format=1)
+        g_t[0] = newick_tree.write(format=9)
         tr= red.parse(g_t[0])
         tr.label_internal()
         
@@ -1658,7 +1662,8 @@ def correct_accounting_by_product(data,leaf1,where_at,leaf2,uncle,sp_string):
     L1=red.parse(leaf1)
     for g_t in data:
         #print(g_t)
-        g_t[0] = g_t[0].replace('e-', '0')
+        newick_tree = ete3.Tree(g_t[0], format=1)
+        g_t[0] = newick_tree.write(format=9)
         tr= red.parse(g_t[0])
         tr.label_internal()
         
@@ -1734,7 +1739,8 @@ def correct_accounting(data,leaf1,where_at,leaf2,uncle):
         
     for g_t in data:
         #print(g_t)
-        g_t[0] = g_t[0].replace('e-', '0')
+        newick_tree = ete3.Tree(g_t[0], format=1)
+        g_t[0] = newick_tree.write(format=9)
         tr= red.parse(g_t[0])
         tr.label_internal()
         

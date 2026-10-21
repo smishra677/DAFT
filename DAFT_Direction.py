@@ -1,3 +1,4 @@
+import ete3
 import os
 import sys
 import pandas as pd
@@ -647,7 +648,8 @@ def run_tranform(data,out_filec,lineages_bidrectional,sp_string,list_df,path,ver
 
             for idex, gt in enumerate(data):
                 #print(gt)
-                gt =gt[0].replace('e-', '0')
+                newick_tree = ete3.Tree(gt[0], format=1)
+                gt = newick_tree.write(format=9)
                 gt_tr= red.parse(gt)
                 gt_tr.label_internal()
                 if  essential.current_address(taxa_1,gt_tr) and essential.current_address(taxa_2,gt_tr) and reco.get_current_sister(gt_tr,taxa_1)==taxa_2:

@@ -1,3 +1,4 @@
+import ete3
 import copy
 from collections import Counter
 import sys
@@ -682,7 +683,8 @@ for tree_number,gene_tree in enumerate(gt_list):
         
         #print('gene tree :',gene_tree , 'Test_Lineage :',lineage1 , lineage2)
 
-        gene_tree_string = gene_tree.replace('e-', '0')
+        newick_tree = ete3.Tree(gene_tree, format=1)
+        gene_tree_string = newick_tree.write(format=9)
         #print(gene_tree_string)
 
         tr= red.parse_bio(gene_tree_string)
