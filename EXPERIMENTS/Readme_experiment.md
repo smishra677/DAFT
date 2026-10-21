@@ -182,9 +182,11 @@ Use the original simulation CSV and ensure that:
 - Each reference has exactly two root children.
 - Each inferred tree contains exactly the same taxa as its reference.
 
-When the reference root split exists in the inferred tree, the script places the root halfway along the matching edge, preserving its total length.
 
-**Current limitation:** If the root split is absent or rerooting fails, the script resolves polytomies instead. Reference-consistent rooting is therefore not guaranteed for every output tree. The script also does not currently enforce matching reference and tree-file counts.
+
+Each inferred tree is paired with the reference tree at the same row position after naturally sorting the IQ-TREE output files. If the reference root split exists in the inferred tree, the script roots the inferred tree halfway along the matching edge. Otherwise, it retains the inferred tree without reference-based rerooting and resolves polytomies into binary branching.
+
+Ensure that the reference CSV and tree files have matching counts and corresponding order..
 
 Expected output:
 
