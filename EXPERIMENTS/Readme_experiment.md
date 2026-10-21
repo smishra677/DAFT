@@ -100,7 +100,7 @@ python alisim_C.py \
   --output DATA_SET/C_alisim_experiment \
   --iqtree ./iqtree3 \
   --model JC \
-  --length 500 \
+  --length 300 \
   --indel 0.004 \
   --branch-length 0.1 \
   --threads 1 \
