@@ -1,241 +1,55 @@
-# DAFT Simulation and Accuracy Scripts
+## Running simulation experiments
+(written by Sarthak Mishra, refactored by AI) 
+These scripts simulate gene alignments with AliSim, infer maximum-likelihood trees with IQ-TREE, and export the inferred trees to a CSV for downstream experiments.
 
-This folder contains the scripts used to generate simulated datasets, add NNI noise to selected gene-tree datasets, run DAFT, and summarize accuracy.
+### Requirements
 
-These scripts reproduce the simulation experiments from the paper **"New approaches to detecting and characterizing introgression in large species trees"** by Mishra et al.
+- Python 3
+- IQ-TREE with AliSim support
+- DendroPy: `python -m pip install dendropy`
+- An input CSV containing a `gt` column of semicolon-terminated Newick trees. Quote Newick strings because they contain commas.
 
-## Requirements
+Run the following commands from the repository root.
 
-1. Python 3
-2. DAFT and its Python dependencies
-3. msprime
-4. pandas
-5. numpy
-6. ete3
-7. matplotlib
-
-Please move these files to the main folder:
-
-```text
-./DAFT-main
-```
-
-## Scripts
-
-### Simulation Scripts
-
-`simulate.py` generates the simulated species trees, demography files, and gene-tree lists used by DAFT.
-
-Expected output:
-
-```text
-DATA_SET/sp_<simulation_id>
-DATA_SET/demography_<simulation_id>
-DATA_SET/list_<simulation_id>.csv
-```
-
-The `list_<simulation_id>.csv` files are the gene-tree input files used by DAFT.
-
-### Add NNI Noise
-
-`add_noise.py` adds NNI error to an existing simulated gene-tree file.
-
-The input file should be a CSV file with a column named:
-
-```text
-gt
-```
-
-Example:
+### 1. Simulate alignments and infer trees
 
 ```bash
-python add_noise.py --file DATA_SET --og list_A.csv --error 2 --out list_A_error_2
+python scripts/alisim_C.py \
+  --input DATA_SET/list_C.csv \
+  --output DATA_SET/C_alisim_experiment \
+  --iqtree ./iqtree3 \
+  --model JC \
+  --length 500 \
+  --indel 0.004 \
+  --branch-length 0.1 \
+  --threads 1 \
+  --seed 12345
 ```
 
-Arguments:
+This example uses the JC model, an ancestral sequence length of 500 bases, and insertion and deletion rates of 0.004 each relative to substitutions. Missing branch lengths are assigned 0.1 substitutions per site; existing lengths are retained. Indels can change the final alignment length.
 
-```text
---file    Folder containing the gene-tree CSV
---og      Original gene-tree CSV file name
---error   Mean NNI error used for the Poisson draw
---out     Output prefix
-```
+Each input tree produces one simulated alignment and one inferred tree. Inference uses AliSim's true alignment directly, without realignment. The seed increases by one for each input tree.
 
-The script writes:
+The output directory must not already exist. It contains:
 
-```text
-DATA_SET/<out>.txt
-DATA_SET/<out>.csv
-DATA_SET/<out>_log.txt
-```
+- `input_trees/`: input trees with missing branch lengths filled in.
+- `alignments/`: simulated PHYLIP alignments.
+- `trees/`: IQ-TREE inference outputs, including `.treefile` files.
+- `logs/`: simulation and inference logs.
+- `reconstructed_trees.nwk`: inferred trees, one per line.
+- `manifest.csv` and `settings.json`: file mappings and run parameters.
 
-The CSV output contains:
-
-```text
-gt
-```
-
-where `gt` is the noisy gene tree.
-
-### DAFT Batch Script
-
-`big_batch_it.py` runs DAFT on all simulated datasets.
-
-This script assumes that the simulation step has already created:
-
-```text
-DATA_SET/list_<simulation_id>.csv
-DATA_SET/demography_<simulation_id>
-```
-
-The dictionary `sim_dict` maps each simulation ID to the DAFT command template used for that simulation.
-
-The script chunks each gene-tree list, runs DAFT on each chunk, moves the djiNNI cache for each chunk into `DAFT_extras`, and saves the final DAFT results for each simulation.
-
-Typical output:
-
-```text
-RESULTS/DAFT_results_<simulation_id>
-```
-
-### Direction Extraction
-
-Run the direction extraction script before running the djiNNI accuracy script.
+### 2. Export inferred trees to CSV
 
 ```bash
-python accuracy_extract_direction.py
+python scripts/extract_binary_iqtree.py \
+  DATA_SET/C_alisim_experiment/trees \
+  --reference-csv DATA_SET/list_C.csv \
+  --output DATA_SET/C_inferred.csv
 ```
 
-`accuracy_extract_direction.py` reads DAFT direction output files and creates:
+Tree files are sorted naturally and paired with reference CSV rows by position. Use the same reference CSV and row order as the simulation input. Each target tree must have the same taxa as its reference, and each reference must have exactly two root children.
 
-```text
-Summary_direction.csv
-```
+The script attempts to reroot each inferred tree using its reference root split, placing the root halfway along the matching edge. If that split is absent or rerooting fails, the current implementation resolves polytomies instead; reference-consistent rooting is therefore not guaranteed for every output tree.
 
-### djiNNI Direction Accuracy
-
-`accuracy_djiNNI.py` compares DAFT direction results against the known simulated donor and receiver pairs.
-
-```bash
-python accuracy_djiNNI.py
-```
-
-In `accuracy_djiNNI.py`, the expected introgression links are written as:
-
-```python
-expected = [(donor, receiver)]
-```
-
-This is important because the DAFT direction table stores receivers and donors in separate columns.
-
-### True-Positive Accuracy
-
-`accuracy_tp.py` summarizes true-positive recovery across the simulated datasets.
-
-```bash
-python accuracy_tp.py
-```
-
-The script uses the known expected introgression links for each simulation and compares them against the DAFT output summaries.
-
-Typical output:
-
-```text
-Results_rate_uncle_M_TT.csv
-Results_rate_sibling_M_TT.csv
-```
-
-These files report the total number of simulations checked, false negatives, true positives, the false-negative rate, and the true-positive rate for the uncle-style and sibling-style tests.
-
-### False-Positive Accuracy
-
-`accuracy_fp.py` summarizes false-positive calls across simulations where specific lineage-pair tests should not be inferred as introgression.
-
-```bash
-python accuracy_fp.py
-```
-
-Typical output:
-
-```text
-Results_rate_uncle.csv
-Results_rate_sibling.csv
-```
-
-These files report the total number of tests checked, false positives, true positives, the false-positive rate, and the true-positive rate for the uncle-style and sibling-style tests.
-
-### Other Helper Scripts
-
-```text
-extract_gante.py
-compare_demography_files.py
-```
-
-`extract_gante.py` extracts GANTE results for comparison.
-
-`compare_demography_files.py` compares demography files generated by different simulation scripts.
-
-## Sequence of Actions
-
-1. Generate simulated data.
-
-```bash
-python simulate.py
-```
-
-2. Optionally, add NNI noise to selected gene-tree files.
-
-```bash
-python add_noise.py --file DATA_SET --og list_A.csv --error 2 --out list_A_error_2
-```
-
-3. Run DAFT on the simulated datasets.
-
-```bash
-python big_batch_it.py
-```
-
-4. Extract inferred directions from the DAFT output.
-
-```bash
-python accuracy_extract_direction.py
-```
-
-5. Summarize djiNNI direction accuracy.
-
-```bash
-python accuracy_djiNNI.py
-```
-
-6. Summarize true-positive and false-positive accuracy.
-
-```bash
-python accuracy_tp.py
-python accuracy_fp.py
-```
-
-## Notes
-
-The scripts use simulation IDs such as `A`, `B`, `C`, `M`, `MM`, and related IDs. These IDs connect the simulated data files, DAFT command groups, demography files, and accuracy checks.
-
-The main file naming convention is:
-
-```text
-DATA_SET/list_<simulation_id>.csv
-DATA_SET/demography_<simulation_id>
-RESULTS/DAFT_results_<simulation_id>
-```
-
-If NNI noise is added, the noisy gene-tree CSV produced by `add_noise.py` can be used as the DAFT gene-tree input for the corresponding noisy simulation.
-
-If paths are changed, update the path variables at the top of the relevant script before running.
-
-## Reproducibility
-
-The intended workflow is:
-
-```text
-simulate.py  ->  add_noise.py  ->  big_batch_it.py  ->  accuracy_extract_direction.py  ->  accuracy_djiNNI.py  ->  accuracy_tp.py / accuracy_fp.py
-```
-
-The simulation scripts generate the input data. `add_noise.py` optionally adds NNI error to selected gene-tree files. The DAFT batch script runs the analyses. The accuracy scripts summarize how well DAFT recovered the known simulated relationships and how often it inferred false positives.
+The resulting CSV contains a single `gt` column. Add `--recursive` to search subdirectories or `--overwrite` to replace an existing output CSV.
