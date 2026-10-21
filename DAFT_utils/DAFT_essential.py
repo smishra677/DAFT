@@ -658,6 +658,7 @@ class daft_essential:
 
     def sibling_bidirectional(self,df,lineagesU,sp_string):
         df = df.copy()
+        
 
         #for c in BASE_COLS:
         df['Significant_Pairs'] = pd.NA
@@ -701,6 +702,7 @@ class daft_essential:
             
             found_j = None
             found_k = None
+            found_L=  None
             for j in idxs:
                 if j == i:
                     #print('yess')
@@ -711,27 +713,51 @@ class daft_essential:
                 L1_count_j = df.at[j, 'Count1']
                 L2_count_j = df.at[j, 'Count2']
 
-                if self.isequal_set(L1_i, L1_j) and self._is_sibling(L2_i, L2_j,sp_string) and L2_count_i<=L1_count_i:
-                    found_j = j
-                    found_k = 1
-                    break
+                if self.isequal_set(L1_i, L1_j) and self._is_sibling(L2_i, L2_j,sp_string):
+                    if L2_count_i<=L1_count_i:
+                        found_j = j
+                        found_k = 1
+                        break
+                    else:
+                        found_L=True
+                        found_j = j
+                        found_k = 1
+                        break
 
-                if self.isequal_set(L1_i, L2_j) and self._is_sibling(L2_i, L1_j,sp_string) and L2_count_i<=L1_count_i:
-                    found_j = j
-                    found_k = 2
-                    break
+                if self.isequal_set(L1_i, L2_j) and self._is_sibling(L2_i, L1_j,sp_string):
+                    if L2_count_i<=L1_count_i:
+                        found_j = j
+                        found_k = 2
+                        break
+                    else:
+                        found_L=True
+                        found_j = j
+                        found_k = 2
+                        break
 
-                if self.isequal_set(L2_i, L1_j) and self._is_sibling(L1_i, L2_j,sp_string) and L1_count_i<=L2_count_i:
-                    found_j = j
-                    found_k = 1
-                    break
+                if self.isequal_set(L2_i, L1_j) and self._is_sibling(L1_i, L2_j,sp_string):
+                    if L1_count_i<=L2_count_i:
+                        found_j = j
+                        found_k = 1
+                        break
+                    else:
+                        found_L=True
+                        found_j = j
+                        found_k = 1
+                        break
 
-                if self.isequal_set(L2_i, L2_j) and self._is_sibling(L1_i, L1_j,sp_string) and L1_count_i<=L2_count_i:
-                    found_j = j
-                    found_k = 2
-                    break
+                if self.isequal_set(L2_i, L2_j) and self._is_sibling(L1_i, L1_j,sp_string):
+                    if L1_count_i<=L2_count_i:
+                        found_j = j
+                        found_k = 2
+                        break
+                    else:
+                        found_L=True
+                        found_j = j
+                        found_k = 2
+                        break
 
-            if found_j is not None:
+            if found_j is not None and found_L==False:
                 df.at[i,'minor_sibling_Total_gene_trees'] = df.at[found_j, 'Total_gene_trees']
                 df.at[i,'minor_sibling_What_moved'] = df.at[found_j, 'What_moved']
                 df.at[i,'minor_sibling_To_where'] = df.at[found_j, 'To_where']
@@ -760,7 +786,43 @@ class daft_essential:
 
                 if Z_score_sib<=-1.96:
                     df.at[i,'CouldbeBidirectional']=True
+            
+            
+            else:
+                df.at[i,'minor_sibling_Total_gene_trees'] = df.at[found_j, 'Total_gene_trees']
+                df.at[i,'minor_sibling_What_moved'] = df.at[found_j, 'To_where']
+                df.at[i,'minor_sibling_To_where'] = df.at[found_j, 'What_moved']
+                #df.at[i,'Minor_moved_count'] = maxZ_i
+            
 
+                if found_k==1:
+                    df.at[i,'minor_sibling'] = df.at[found_j, 'Lineage2']
+                    df.at[i,'minor_sibling_count'] = df.at[found_j, 'Count2']
+                    #df.at[i,'Minor_moved_count'] = maxZ_i
+                                        
+                    denomi = minZ_i+L2_count_j
+                    
+                    if denomi==0:
+                        Z_score_sib=np.nan
+                    else:
+                        Z_score_sib= (L2_count_j-minZ_i)/ math.sqrt(minZ_i+L2_count_j)
+
+                else:
+                    df.at[i,'minor_sibling'] = df.at[found_j, 'Lineage1']
+                    df.at[i,'minor_sibling_count'] = df.at[found_j, 'Count1']
+
+                    denomi= minZ_i+L1_count_j
+                    if denomi==0:
+                        Z_score_sib=np.nan
+                    else:
+                        Z_score_sib= (L1_count_j-minZ_i)/ math.sqrt(minZ_i+L1_count_j)
+
+                df.at[i,'Z_score_sibling']=Z_score_sib
+
+                if Z_score_sib<=-1.96:
+                    df.at[i,'CouldbeBidirectional']=True
+
+        df.to_csv('err.csv',index=False)
         return df
 
     # ---------- styling----------
